@@ -95,7 +95,7 @@ org $A2AA20      ; update timers when Samus enters ship
 
 
 ; Main bank stuff
-org $E08000
+org $FF8000
 print pc, " infohud start"
 ih_max_etank_code:
 {
