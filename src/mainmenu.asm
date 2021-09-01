@@ -112,36 +112,12 @@ action_presets_submenu:
 preset_category_submenus:
 {
     dw #PresetsMenuPrkd
-    dw #PresetsMenuKpdr21
-    dw #PresetsMenuHundo
-    dw #PresetsMenu100early
-    dw #PresetsMenuRbo
-    dw #PresetsMenuPkrd
-    dw #PresetsMenuKpdr25
-    dw #PresetsMenuGtclassic
-    dw #PresetsMenu14ice
-    dw #PresetsMenu14speed
-    dw #PresetsMenuAllbosskpdr
-    dw #PresetsMenuAllbosspkdr
-    dw #PresetsMenuAllbossprkd    
     dw #$0000
 }
 
 preset_category_banks:
 {
     dw #PresetsMenuPrkd>>16
-    dw #PresetsMenuKpdr21>>16
-    dw #PresetsMenuHundo>>16
-    dw #PresetsMenu100early>>16
-    dw #PresetsMenuRbo>>16
-    dw #PresetsMenuPkrd>>16
-    dw #PresetsMenuKpdr25>>16
-    dw #PresetsMenuGtclassic>>16
-    dw #PresetsMenu14ice>>16
-    dw #PresetsMenu14speed>>16
-    dw #PresetsMenuAllbosskpdr>>16
-    dw #PresetsMenuAllbosspkdr>>16
-    dw #PresetsMenuAllbossprkd>>16
     dw #$0000
 
 }
@@ -198,63 +174,79 @@ mm_goto_ctrlsmenu:
 ; -------------
 ; Presets menu
 ; -------------
-pushpc
 
-org $FE8000
-  print pc, " prkd menu start"
-  incsrc presets/prkd_menu.asm
-  print pc, " prkd menu end"
+PresetsMenu:
+    dw #presets_goto_select_preset_category
+    dw #presets_current
+    dw #presets_custom_preset_slot
+    dw #presets_save_custom_preset
+    dw #presets_load_custom_preset
+    dw #presets_kill_enemies
+    dw #$0000
+    %cm_header("PRESET OPTIONS MENU")
 
-  print pc, " kpdr21 menu start"
-  incsrc presets/kpdr21_menu.asm
-  print pc, " kpdr21 menu end"
+presets_goto_select_preset_category:
+    %cm_submenu("Select Preset Category", #SelectPresetCategoryMenu)
 
-  print pc, " hundo menu start"
-  incsrc presets/hundo_menu.asm
-  print pc, " hundo menu end"
+presets_custom_preset_slot:
+    %cm_numfield("Custom Preset Slot", !sram_custom_preset_slot, 0, 31, 1, #0) ; update max slots in gamemode.asm
 
-  print pc, " 100early menu start"
-  incsrc presets/100early_menu.asm
-  print pc, " 100early menu end"
+presets_save_custom_preset:
+    %cm_jsr("Save Custom Preset", #action_save_custom_preset, #$0000)
 
-  print pc, " rbo menu start"
-  incsrc presets/rbo_menu.asm
-  print pc, " rbo menu end"
+presets_load_custom_preset:
+    %cm_jsr("Load Custom Preset", #action_load_custom_preset, #$0000)
 
-  print pc, " pkrd menu start"
-  incsrc presets/pkrd_menu.asm
-  print pc, " pkrd menu end"
+presets_kill_enemies:
+    %cm_toggle("Auto-Kill Enemies", !sram_preset_enemies, #$0001, #0)
 
-  print pc, " kpdr25 menu start"
-  incsrc presets/kpdr25_menu.asm
-  print pc, " kpdr25 menu end"
+SelectPresetCategoryMenu:
+    dw #presets_current
+    dw #precat_prkd
+    dw #$0000
+    %cm_header("SELECT PRESET CATEGORY")
 
-org $FF8000
-  print pc, " gtclassic menu start"
-  incsrc presets/gtclassic_menu.asm
-  print pc, " gtclassic menu end"
+presets_current:
+    dw !ACTION_CHOICE
+    dl #!sram_preset_category
+    dw #$0000
+    db #$28, "CURRENT PRESET", #$FF
+        db #$28, "  ANY% PRKD", #$FF
+    db #$FF
 
-  print pc, " 14ice menu start"
-  incsrc presets/14ice_menu.asm
-  print pc, " 14ice menu end"
+precat_prkd:
+    %cm_jsr("Any% PRKD", #action_select_preset_category, #$0000)
 
-  print pc, " 14speed menu start"
-  incsrc presets/14speed_menu.asm
-  print pc, " 14speed menu end"
+action_select_preset_category:
+{
+    TYA : STA !sram_preset_category
+    JSR cm_go_back
+    JSR cm_calculate_max
+    RTS
+}
 
-  print pc, " allbosskpdr menu start"
-  incsrc presets/allbosskpdr_menu.asm
-  print pc, " allbosskpdr menu end"
+action_save_custom_preset:
+{
+    JSL custom_preset_save
+    LDA #$0001 : STA !ram_cm_leave
+    LDA #!SOUND_MENU_MOVE : JSL $80903F
+    RTS
+}
 
-  print pc, " allbosspkdr menu start"
-  incsrc presets/allbosspkdr_menu.asm
-  print pc, " allbosspkdr menu end"
+action_load_custom_preset:
+{
+    ; check if slot is populated first
+    LDA !sram_custom_preset_slot : ASL : TAX
+    LDA.l PresetSlot,X : TAX
+    LDA $703000,X : CMP #$5AFE : BEQ .safe
+    LDA #$0007 : JSL $80903F
+    RTS
 
-  print pc, " allbossprkd menu start"
-  incsrc presets/allbossprkd_menu.asm
-  print pc, " allbossprkd menu end"
-
-pullpc
+  .safe
+    STA !ram_custom_preset
+    LDA #$0001 : STA !ram_cm_leave
+    RTS
+}
 
 LoadRandomPreset:
 {
@@ -396,11 +388,7 @@ eq_setsupers:
         RTS
 
 eq_setpbs:
-if !FEATURE_PAL
-    %cm_numfield("Power Bombs", $7E09D0, 0, 70, 5, .routine)
-else
     %cm_numfield("Power Bombs", $7E09D0, 0, 65, 5, .routine)
-endif
     .routine
         LDA $09D0 : STA $09CE ; pbs
         RTS
@@ -1350,9 +1338,6 @@ GameMenu:
     dw #game_iconcancel
     dw #game_debugmode
     dw #game_debugbrightness
-if !FEATURE_PAL
-    dw #game_paldebug
-endif
     dw #game_minimap
     dw #game_clear_minimap
     dw #game_metronome
@@ -1362,11 +1347,7 @@ endif
     %cm_header("GAME")
 
 game_alternatetext:
-if !FEATURE_PAL
-    %cm_toggle("French Text", $7E09E2, #$0001, #0)
-else
     %cm_toggle("Japanese Text", $7E09E2, #$0001, #0)
-endif
 
 game_moonwalk:
     %cm_toggle("Moon Walk", $7E09E4, #$0001, #0)
@@ -1379,11 +1360,6 @@ game_debugmode:
 
 game_debugbrightness:
     %cm_toggle("Debug CPU Brightness", $7E0DF4, #$0001, #0)
-
-if !FEATURE_PAL
-game_paldebug:
-    %cm_toggle_inverted("PAL Debug Movement", $7E09E6, #$0001, #0)
-endif
 
 game_minimap:
     %cm_toggle("Minimap", !ram_minimap, #$0001, #0)
