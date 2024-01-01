@@ -3,21 +3,6 @@
 ; Menu Helpers
 ; ------------
 
-action_infohud_mainmenu:
-{
-    LDA !sram_top_display_mode : CMP #$0003 : BCC action_mainmenu
-    TDC : STA !sram_top_display_mode
-    BRA action_mainmenu
-}
-
-action_layout_mainmenu:
-{
-    ; Prepare dynamic menu
-    LDA !ram_door_portal_flags : AND !DOOR_PORTAL_MODE_MASK : STA !ram_cm_door_dynamic
-
-    ; continue into action_mainmenu
-}
-
 action_mainmenu:
 {
     ; Set bank of new menu
@@ -37,22 +22,6 @@ action_submenu:
     BRA action_submenu_jump
 }
 
-action_presets_submenu:
-{
-
-    ; Increment stack pointer by 2
-    LDA !ram_cm_stack_index : INC #2 : STA !ram_cm_stack_index : TAX
-
-    ; Lookup preset menu pointer for current category
-    LDA !sram_preset_category : ASL : TAY
-    PHB : PHK : PLB
-    LDA.w preset_category_submenus,Y : STA !ram_cm_menu_stack,X
-    LDA.w preset_category_banks,Y : STA !ram_cm_menu_bank
-    PLB
-
-    ; continue into action_submenu_jump
-}
-
 action_submenu_jump:
 {
     ; Set cursor to top for new menus
@@ -63,48 +32,6 @@ action_submenu_jump:
     JSL cm_colors
     JSL cm_draw
     RTL
-}
-
-preset_category_submenus:
-{
-    dw #PresetsMenuPrkd
-    dw #PresetsMenuKpdr21
-    dw #PresetsMenuHundo
-    dw #PresetsMenu100early
-    dw #PresetsMenuRbo
-    dw #PresetsMenuPkrd
-    dw #PresetsMenuKpdr25
-    dw #PresetsMenuGtclassic
-    dw #PresetsMenuGtmax
-    dw #PresetsMenu14ice
-    dw #PresetsMenu14speed
-    dw #PresetsMenu100map
-    dw #PresetsMenuNintendopower
-    dw #PresetsMenuAllbosskpdr
-    dw #PresetsMenuAllbosspkdr
-    dw #PresetsMenuAllbossprkd
-    dw #$0000
-}
-
-preset_category_banks:
-{
-    dw #PresetsMenuPrkd>>16
-    dw #PresetsMenuKpdr21>>16
-    dw #PresetsMenuHundo>>16
-    dw #PresetsMenu100early>>16
-    dw #PresetsMenuRbo>>16
-    dw #PresetsMenuPkrd>>16
-    dw #PresetsMenuKpdr25>>16
-    dw #PresetsMenuGtclassic>>16
-    dw #PresetsMenuGtmax>>16
-    dw #PresetsMenu14ice>>16
-    dw #PresetsMenu14speed>>16
-    dw #PresetsMenu100map>>16
-    dw #PresetsMenuNintendopower>>16
-    dw #PresetsMenuAllbosskpdr>>16
-    dw #PresetsMenuAllbosspkdr>>16
-    dw #PresetsMenuAllbossprkd>>16
-    dw #$0000
 }
 
 
@@ -118,62 +45,47 @@ preset_category_banks:
 
 MainMenu:
     dw #mm_goto_equipment
-    dw #mm_goto_presets
+if !FEATURE_PRESETS
     dw #mm_goto_presets_menu
-    dw #mm_goto_teleport
+endif
     dw #mm_goto_events
     dw #mm_goto_misc
-    dw #mm_goto_infohud
     dw #mm_goto_sprites
     dw #mm_goto_layout
     dw #mm_goto_gamemenu
-    dw #mm_goto_rngmenu
 if !FEATURE_SD2SNES
     dw #mm_goto_savestate
 endif
     dw #mm_goto_ctrlsmenu
     dw #mm_goto_customize
+    dw #mm_goto_arcade
     dw #$0000
-    %cm_version_header("SM PRACTICE HACK")
-if !FEATURE_DEV && defined("PRERELEASE")
-    %cm_footer("DEVELOPMENT BUILD !PRERELEASE")
-elseif !FEATURE_DEV
-    %cm_footer("DEVELOPMENT BUILD")
-elseif defined("PRERELEASE")
-    %cm_footer("PRERELEASE BUILD !PRERELEASE")
-else
-    table ../resources/normal.tbl
-endif
+    %cm_version_header("SM ARCADE HACK")
 
 MainMenuBanks:
     dw #EquipmentMenu>>16
-    dw #preset_category_banks>>16 ; dummy
+if !FEATURE_PRESETS
     dw #PresetsMenu>>16
-    dw #TeleportMenu>>16
+endif
     dw #EventsMenu>>16
     dw #MiscMenu>>16
-    dw #InfoHudMenu>>16
     dw #SpritesMenu>>16
     dw #LayoutMenu>>16
     dw #GameMenu>>16
-    dw #RngMenu>>16
 if !FEATURE_SD2SNES
     dw #SavestateMenu>>16
 endif
     dw #CtrlMenu>>16
     dw #CustomizeMenu>>16
+    dw #ArcadeMenu>>16
 
 mm_goto_equipment:
     %cm_mainmenu("Equipment", #EquipmentMenu)
 
-mm_goto_presets:
-    %cm_jsl("Category Presets", #action_presets_submenu, #$0000)
-
+if !FEATURE_PRESETS
 mm_goto_presets_menu:
     %cm_mainmenu("Preset Options", #PresetsMenu)
-
-mm_goto_teleport:
-    %cm_mainmenu("Teleport", #TeleportMenu)
+endif
 
 mm_goto_events:
     %cm_mainmenu("Events", #EventsMenu)
@@ -181,23 +93,19 @@ mm_goto_events:
 mm_goto_misc:
     %cm_mainmenu("Misc", #MiscMenu)
 
-mm_goto_infohud:
-    %cm_jsl("Infohud", #action_infohud_mainmenu, #InfoHudMenu)
-
 mm_goto_sprites:
     %cm_mainmenu("Sprite Features", #SpritesMenu)
 
 mm_goto_layout:
-    %cm_jsl("Room Layout", #action_layout_mainmenu, #LayoutMenu)
+    %cm_mainmenu("Room Layout", #LayoutMenu)
 
 mm_goto_gamemenu:
     %cm_mainmenu("Game Options", #GameMenu)
 
-mm_goto_rngmenu:
-    %cm_mainmenu("RNG Control", #RngMenu)
-
+if !FEATURE_SD2SNES
 mm_goto_savestate:
     %cm_mainmenu("Savestate Settings", #SavestateMenu)
+endif
 
 mm_goto_ctrlsmenu:
     %cm_mainmenu("Controller Shortcuts", #CtrlMenu)
@@ -205,51 +113,30 @@ mm_goto_ctrlsmenu:
 mm_goto_customize:
     %cm_mainmenu("Menu Customization", #CustomizeMenu)
 
+mm_goto_arcade:
+    %cm_mainmenu("Arcade", #ArcadeMenu)
 
+
+if !FEATURE_PRESETS
 ; -------------------
 ; Preset Options menu
 ; -------------------
 
 PresetsMenu:
-    dw #presets_goto_select_preset_category
-    dw #presets_current
-    dw #$FFFF
     dw #presets_custom_preset_slot
     dw #presets_save_custom_preset
     dw #presets_load_custom_preset
     dw #$FFFF
-    dw #presets_reload_last
-    dw #presets_load_random
-if !FEATURE_DEV
-    dw #presets_random_preset_rng
-endif
-    dw #$FFFF
     dw #presets_open_blue_doors
     dw #presets_load_with_enemies
-    dw #presets_clear_map_tiles
-    dw #presets_auto_segment_reset
-if !RAW_TILE_GRAPHICS
-    dw #$FFFF
-    dw #presets_compressed_graphics
-    dw #presets_compressed_palettes
-    dw #presets_compressed_tables
-endif
     dw #$0000
     %cm_header("PRESET OPTIONS MENU")
-if !RAW_TILE_GRAPHICS
-    %cm_footer("COMPRESSED OFF IS FASTER")
-endif
-
-presets_goto_select_preset_category:
-    %cm_submenu("Select Preset Category", #SelectPresetCategoryMenu)
 
 presets_custom_preset_slot:
     %cm_numfield("Custom Preset Slot", !sram_custom_preset_slot, 0, !TOTAL_PRESET_SLOTS, 1, 2, #.routine)
   .routine
     ; ignore if not A, X, or Y
     LDA !IH_CONTROLLER_PRI_NEW : BIT #$40C0 : BNE .submenu
-    LDA !sram_last_preset : BMI .exit
-    LDA #$0000 : STA !sram_last_preset
   .exit
     RTL
   .submenu
@@ -296,7 +183,7 @@ presets_load_custom_preset:
     ; check if slot is populated first
     LDA !sram_custom_preset_slot
     %presetslotsize()
-    LDA $703000,X : CMP #$5AFE : BEQ .safe
+    LDA !PRESET_SLOTS_START,X : CMP #$5AFE : BEQ .safe
     %sfxfail()
     RTL
 
@@ -305,222 +192,11 @@ presets_load_custom_preset:
     LDA #$0001 : STA !ram_cm_leave
     RTL
 
-presets_reload_last:
-    %cm_jsl("Reload Last Preset", .routine, #$0001)
-  .routine
-    LDA !sram_last_preset : STA !ram_load_preset
-    TYA : STA !ram_cm_leave
-    RTL
-
-presets_load_random:
-    %cm_jsl("Load Random Preset", .routine, #$0001)
-  .routine
-    TYA : STA !ram_cm_leave
-    JML LoadRandomPreset
-
-if !FEATURE_DEV
-presets_random_preset_rng:
-    %cm_toggle_inverted("Random Preset RNG", !ram_random_preset_rng, #$0001, #0)
-endif
-
 presets_open_blue_doors:
-    %cm_toggle_bit_inverted("Open Blue Doors", !sram_preset_options, !PRESETS_CLOSE_BLUE_DOORS, #0)
+    %cm_toggle_inverted("Open Blue Doors", !sram_preset_close_doors, #$0001, #0)
 
 presets_load_with_enemies:
-    %cm_toggle_bit("Load with Enemies", !sram_preset_options, !PRESETS_PRESERVE_ENEMIES, #0)
-
-presets_clear_map_tiles:
-    %cm_toggle_bit("Clear Map Tiles", !sram_preset_options, !PRESETS_CLEAR_MAP_TILES, #0)
-
-presets_auto_segment_reset:
-    %cm_toggle_bit_inverted("Auto Reset Segment", !sram_preset_options, !PRESETS_AUTO_SEGMENT_OFF, #0)
-
-if !RAW_TILE_GRAPHICS
-presets_compressed_graphics:
-    %cm_toggle_bit("Compressed Graphics", !sram_preset_options, !PRESETS_COMPRESSED_GRAPHICS, #0)
-
-presets_compressed_palettes:
-    %cm_toggle_bit("Compressed Palettes", !sram_preset_options, !PRESETS_COMPRESSED_PALETTES, #0)
-
-presets_compressed_tables:
-    %cm_toggle_bit("Compressed Tables", !sram_preset_options, !PRESETS_COMPRESSED_TABLES, #0)
-endif
-
-SelectPresetCategoryMenu:
-    dw #presets_current
-    dw #$FFFF
-    dw #precat_prkd
-    dw #precat_kpdr21
-    dw #precat_hundo
-    dw #precat_100early
-    dw #precat_rbo
-    dw #precat_pkrd
-    dw #precat_kpdr25
-    dw #precat_gtclassic
-    dw #precat_gtmax
-    dw #precat_14ice
-    dw #precat_14speed
-    dw #precat_100map
-    dw #precat_nintendopower
-    dw #precat_allbosskpdr
-    dw #precat_allbosspkdr
-    dw #precat_allbossprkd
-    dw #$0000
-    %cm_header("SELECT PRESET CATEGORY")
-
-presets_current:
-    dw !ACTION_CHOICE
-    dl #!sram_preset_category
-    dw #.routine
-    db #$28, "CURRENT PRESET", #$FF
-    db #$28, "       PRKD", #$FF
-    db #$28, "       KPDR", #$FF
-    db #$28, "  100% LATE", #$FF
-    db #$28, " 100% EARLY", #$FF
-    db #$28, "        RBO", #$FF
-    db #$28, "       PKRD", #$FF
-    db #$28, "     KPDR25", #$FF
-    db #$28, " GT CLASSIC", #$FF
-    db #$28, "    GT MAX%", #$FF
-    db #$28, "    14% ICE", #$FF
-    db #$28, "  14% SPEED", #$FF
-    db #$28, "   100% MAP", #$FF
-    db #$28, "  NIN POWER", #$FF
-    db #$28, "   ALL KPDR", #$FF
-    db #$28, "   ALL PKDR", #$FF
-    db #$28, "   ALL PRKD", #$FF
-    db #$FF
-  .routine
-    LDA #$0000 : STA !sram_last_preset
-    RTL
-
-precat_prkd:
-    %cm_jsl("Any% PRKD", #action_select_preset_category, #$0000)
-
-precat_kpdr21:
-    %cm_jsl("Any% KPDR", #action_select_preset_category, #$0001)
-
-precat_hundo:
-    %cm_jsl("100% Late Crocomire", #action_select_preset_category, #$0002)
-
-precat_100early:
-    %cm_jsl("100% Early Crocomire", #action_select_preset_category, #$0003)
-
-precat_rbo:
-    %cm_jsl("Reverse Boss Order", #action_select_preset_category, #$0004)
-
-precat_pkrd:
-    %cm_jsl("Any% PKRD", #action_select_preset_category, #$0005)
-
-precat_kpdr25:
-    %cm_jsl("Any% KPDR Early Ice", #action_select_preset_category, #$0006)
-
-precat_gtclassic:
-    %cm_jsl("GT Classic", #action_select_preset_category, #$0007)
-
-precat_gtmax:
-    %cm_jsl("GT Max%", #action_select_preset_category, #$0008)
-
-precat_14ice:
-    %cm_jsl("Low% Ice", #action_select_preset_category, #$0009)
-
-precat_14speed:
-    %cm_jsl("Low% Speed", #action_select_preset_category, #$000A)
-
-precat_100map:
-    %cm_jsl("100% Map Completion", #action_select_preset_category, #$000B)
-
-precat_nintendopower:
-    %cm_jsl("Nintendo Power", #action_select_preset_category, #$000C)
-
-precat_allbosskpdr:
-    %cm_jsl("All Bosses KPDR", #action_select_preset_category, #$000D)
-
-precat_allbosspkdr:
-    %cm_jsl("All Bosses PKDR", #action_select_preset_category, #$000E)
-
-precat_allbossprkd:
-    %cm_jsl("All Bosses PRKD", #action_select_preset_category, #$000F)
-
-action_select_preset_category:
-{
-    TYA : STA !sram_preset_category
-    LDA #$0000 : STA !sram_last_preset
-    JML cm_previous_menu
-}
-
-LoadRandomPreset:
-{
-    PHY : PHX
-    LDA !ram_random_preset_rng : BEQ .seedrandom
-    LDA !ram_random_preset_value : STA $12
-    BRA .seedpicked
-
-  .seedrandom
-    JSL MenuRNG : STA $12     ; random number
-
-  .seedpicked
-    PHK : PHK : PLA : STA $18 ; this routine lives in bank B8
-    LDA !sram_preset_category : ASL : TAY
-    LDA #preset_category_submenus : STA $16
-    LDA [$16],Y : TAX         ; preset category submenu table
-    LDA #preset_category_banks : STA $16
-    LDA [$16],Y : STA $18     ; preset category menu bank
-
-    STX $16 : LDY #$0000
-  .toploop
-    INY #2
-    LDA [$16],Y : BNE .toploop
-    TYA : LSR : TAY           ; Y = size of preset category submenu table
-
-    LDA $12 : XBA : AND #$00FF : STA $4204
-    %a8()
-    STY $4206                 ; divide top half of random number by Y
-    %a16()
-    PEA $0000 : PLA : PEA $0000 : PLA
-    LDA $4216 : ASL : TAY     ; randomly selected subcategory
-    LDA [$16],Y : STA $16     ; increment four bytes to get the subcategory table
-    LDY #$0004 : LDA [$16],Y : STA $16
-
-    LDY #$0000
-  .subloop
-    INY #2
-    LDA [$16],Y : BNE .subloop
-    TYA : LSR : TAY           ; Y = size of subcategory table
-
-    LDA $12 : AND #$00FF : STA $4204
-    %a8()
-    STY $14 : STY $4206       ; divide bottom half of random number by Y
-    %a16()
-    PEA $0000 : PLA : PEA $0000 : PLA
-    LDA $4216 : STA $12       ; randomly selected preset
-
-    ASL : TAY
-    LDA [$16],Y : STA $16     ; increment four bytes to get the data
-    LDY #$0004 : LDA [$16],Y
-    STA !ram_load_preset
-    LDA !ram_random_preset_rng : BEQ .done
-    LDA !ram_random_preset_value : INC : STA !ram_random_preset_value
-    LDA $12 : INC : CMP $14 : BMI .done
-    LDA !ram_random_preset_value : XBA : INC : XBA
-    AND #$FF00 : STA !ram_random_preset_value
-
-  .done
-    PLX : PLY
-    RTL
-}
-
-action_load_preset:
-{
-    PHB
-    PHK : PLB
-
-    TYA : STA !ram_load_preset
-    LDA #$0001 : STA !ram_cm_leave
-
-    PLB
-    RTL
-}
+    %cm_toggle("Load with Enemies", !sram_preset_preserve_enemies, #$0001, #0)
 
 
 ; -------------------
@@ -544,14 +220,10 @@ CustomPresetsMenu:
     dw #custompreset_13
     dw #custompreset_14
     dw #custompreset_15
-if !FEATURE_TINYSTATES
-; Tinystates only has slots $00-15
-else
     dw #$FFFF
     dw #custompreset_manage
     dw #custompreset_goto_page2
     dw #custompreset_goto_page3
-endif
     dw #$0000
     %cm_header("PRESS X TO NAME PRESETS")
     %cm_footer("PRESS Y TO TOGGLE DISPLAY")
@@ -590,14 +262,14 @@ CustomPresetsMenu3:
     dw #custompreset_37
     dw #custompreset_38
     dw #custompreset_39
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
+    dw #custompreset_40
+    dw #custompreset_41
+    dw #custompreset_42
+    dw #custompreset_43
+    dw #custompreset_44
+    dw #custompreset_45
+    dw #custompreset_46
+    dw #custompreset_47
     dw #$FFFF
     dw #custompreset_manage
     dw #custompreset_goto_page1
@@ -646,14 +318,19 @@ CustomPresetsMenu3:
     %cm_custompreset(37)
     %cm_custompreset(38)
     %cm_custompreset(39)
+    %cm_custompreset(40)
+    %cm_custompreset(41)
+    %cm_custompreset(42)
+    %cm_custompreset(43)
+    %cm_custompreset(44)
+    %cm_custompreset(45)
+    %cm_custompreset(46)
+    %cm_custompreset(47)
 
 custompreset_manage:
     %cm_jsl("Manage Preset Slots", .routine, #$0000)
   .routine
     LDA #$0000 : STA !ram_cm_manage_slots
-if !FEATURE_TINYSTATES
-    LDY.w #ManagePresetsMenu
-else
     ; determine which page is currently loaded
     LDA !ram_cm_stack_index : DEC #2 : TAX
     ; exit if not in a color menu
@@ -665,7 +342,6 @@ else
   .page3
     LDY.w #ManagePresetsMenu3
   .done
-endif
     JSL cm_previous_menu
     %setmenubank()
     JML action_submenu
@@ -687,14 +363,10 @@ ManagePresetsMenu:
     dw #managepreset_13
     dw #managepreset_14
     dw #managepreset_15
-if !FEATURE_TINYSTATES
-; Tinystates only has slots $00-15
-else
     dw #$FFFF
     dw #$FFFF
     dw #managepreset_goto_page2
     dw #managepreset_goto_page3
-endif
     dw #$0000
     %cm_header("PRESS A TO SWAP PRESETS")
     %cm_footer("PRESS X TO DELETE PRESET")
@@ -733,14 +405,14 @@ ManagePresetsMenu3:
     dw #managepreset_37
     dw #managepreset_38
     dw #managepreset_39
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
+    dw #managepreset_40
+    dw #managepreset_41
+    dw #managepreset_42
+    dw #managepreset_43
+    dw #managepreset_44
+    dw #managepreset_45
+    dw #managepreset_46
+    dw #managepreset_47
     dw #$FFFF
     dw #$FFFF
     dw #managepreset_goto_page1
@@ -789,6 +461,14 @@ ManagePresetsMenu3:
     %cm_managepreset(37)
     %cm_managepreset(38)
     %cm_managepreset(39)
+    %cm_managepreset(40)
+    %cm_managepreset(41)
+    %cm_managepreset(42)
+    %cm_managepreset(43)
+    %cm_managepreset(44)
+    %cm_managepreset(45)
+    %cm_managepreset(46)
+    %cm_managepreset(47)
 
 custompreset_goto_page1:
     %cm_adjacent_submenu("GOTO PAGE ONE", #CustomPresetsMenu)
@@ -827,11 +507,13 @@ managepreset_abort:
 managepreset_confirm:
     %cm_jsl("Confirm Delete Preset", .routine, #$0000)
   .routine
-    LDA !ram_cm_selected_slot : %presetslotsize()
-    LDA #$DEAD : STA $703000,X
+    LDA !ram_cm_selected_slot
+    %presetslotsize()
+    LDA #$DEAD : STA !PRESET_SLOTS_START,X
     LDA !ram_cm_selected_slot : ASL : TAX
     LDA #$DEAD : STA !sram_custom_preset_safewords,X
     JML cm_previous_menu
+endif
 
 
 ; ----------------
@@ -883,18 +565,16 @@ eq_goto_togglebeams:
     %cm_jsl("Toggle Beams", #eq_prepare_beams_menu, #ToggleBeamsMenu)
 
 eq_currentenergy:
-    %cm_numfield_word("Current Energy", !SAMUS_HP, 0, 2100, 1, 20, #0)
+    %cm_numfield_word("Current Energy", !SAMUS_HP, 0, 1499, 1, 20, #0)
 
 eq_setetanks:
-    %cm_numfield("Energy Tanks", !ram_cm_etanks, 0, 21, 1, 1, .routine)
+    %cm_numfield("Energy Tanks", !ram_cm_etanks, 0, 28, 1, 1, .routine)
   .routine
     TAX : BEQ .zero
-    LDA #$0000
-    CPX #$000F : BPL .loop
     LDA #$0063
   .loop
     DEX : BMI .endloop
-    CLC : ADC #$0064
+    CLC : ADC #$0032
     BRA .loop
   .zero
     LDA #$0063
@@ -903,16 +583,16 @@ eq_setetanks:
     RTL
 
 eq_currentreserves:
-    %cm_numfield_word("Current Reserves", !SAMUS_RESERVE_ENERGY, 0, 700, 1, 20, #0)
+    %cm_numfield_word("Current Reserves", !SAMUS_RESERVE_ENERGY, 0, 200, 1, 20, #0)
 
 eq_setreserves:
-    %cm_numfield("Reserve Tanks", !ram_cm_reserve, 0, 7, 1, 1, .routine)
+    %cm_numfield("Reserve Tanks", !ram_cm_reserve, 0, 4, 1, 1, .routine)
   .routine
     TAX : BEQ .zero
     LDA #$0000
   .loop
     DEX : BMI .endloop
-    CLC : ADC #$0064
+    CLC : ADC #$0032
     BRA .loop
   .zero
     STA !SAMUS_RESERVE_MODE
@@ -937,30 +617,51 @@ eq_reservemode:
     RTL
 
 eq_currentmissiles:
-    %cm_numfield_word("Current Missiles", !SAMUS_MISSILES, 0, 325, 1, 20, #0)
+    %cm_numfield_word("Current Missiles", !SAMUS_MISSILES, 0, 230, 1, 20, #0)
 
 eq_setmissiles:
-    %cm_numfield_word("Missiles", !SAMUS_MISSILES_MAX, 0, 325, 5, 20, .routine)
+    %cm_numfield_word("Missiles", !SAMUS_MISSILES_MAX, 0, 230, 2, 20, .routine)
   .routine
     LDA !SAMUS_MISSILES_MAX : STA !SAMUS_MISSILES
+  .check
+    CMP #$0000 : BNE .done
+    LDA #$2C0F
+    STA $7EC61C : STA $7EC61E : STA $7EC620
+    STA $7EC65C : STA $7EC65E : STA $7EC660
+    STA $7EC69C : STA $7EC69E : STA $7EC6A0
+  .done
     RTL
 
 eq_currentsupers:
-    %cm_numfield("Current Super Missiles", !SAMUS_SUPERS, 0, 65, 1, 5, #0)
+    %cm_numfield("Current Super Missiles", !SAMUS_SUPERS, 0, 50, 1, 5, #0)
 
 eq_setsupers:
-    %cm_numfield("Super Missiles", !SAMUS_SUPERS_MAX, 0, 65, 5, 5, .routine)
+    %cm_numfield("Super Missiles", !SAMUS_SUPERS_MAX, 0, 50, 1, 5, .routine)
   .routine
     LDA !SAMUS_SUPERS_MAX : STA !SAMUS_SUPERS
+  .check
+    CMP #$0000 : BNE .done
+    LDA #$2C0F
+    STA $7EC624 : STA $7EC626
+    STA $7EC664 : STA $7EC666
+    STA $7EC6A4 : STA $7EC6A6
+  .done
     RTL
 
 eq_currentpbs:
-    %cm_numfield("Current Power Bombs", !SAMUS_PBS, 0, 70, 1, 5, #0)
+    %cm_numfield("Current Power Bombs", !SAMUS_PBS, 0, 50, 1, 5, #0)
 
 eq_setpbs:
-    %cm_numfield("Power Bombs", !SAMUS_PBS_MAX, 0, 70, 5, 5, .routine)
+    %cm_numfield("Power Bombs", !SAMUS_PBS_MAX, 0, 50, 2, 10, .routine)
   .routine
     LDA !SAMUS_PBS_MAX : STA !SAMUS_PBS
+  .check
+    CMP #$0000 : BNE .done
+    LDA #$2C0F
+    STA $7EC62A : STA $7EC62C
+    STA $7EC66A : STA $7EC66C
+    STA $7EC6AA : STA $7EC6AC
+  .done
     RTL
 
 ; ---------------------
@@ -973,15 +674,7 @@ ToggleCategoryMenu:
     dw #cat_any_old
     dw #cat_14ice
     dw #cat_14speed
-if !FEATURE_PAL
-    dw #cat_14xice
-    dw #cat_14iceboots
-    dw #cat_14speedboots
-endif
-    dw #cat_gt_code
-    dw #cat_gt_max
     dw #cat_rbo
-    dw #cat_any_glitched
     dw #cat_inf_cf
     dw #cat_nothing
     dw #$0000
@@ -1002,32 +695,14 @@ cat_14ice:
 cat_14speed:
     %cm_jsl("14% Speed", action_category, #$0004)
 
-cat_gt_code:
-    %cm_jsl("GT Code", action_category, #$0005)
-
-cat_gt_max:
-    %cm_jsl("GT Max%", action_category, #$0006)
-
 cat_rbo:
-    %cm_jsl("RBO", action_category, #$0007)
-
-cat_any_glitched:
-    %cm_jsl("Any% Glitched", action_category, #$0008)
+    %cm_jsl("RBO", action_category, #$0005)
 
 cat_inf_cf:
-    %cm_jsl("Infinite Crystal Flashes", action_category, #$0009)
+    %cm_jsl("Infinite Crystal Flashes", action_category, #$0006)
 
 cat_nothing:
-    %cm_jsl("Nothing", action_category, #$000A)
-
-cat_14xice:
-    %cm_jsl("14% X-Ice", action_category, #$000B)
-
-cat_14iceboots:
-    %cm_jsl("14% Ice Boots", action_category, #$000C)
-
-cat_14speedboots:
-    %cm_jsl("14% Speed Boots", action_category, #$000D)
+    %cm_jsl("Nothing", action_category, #$0007)
 
 
 action_category:
@@ -1046,35 +721,29 @@ action_category:
   .doneMurderBeam
     LDA.l .table,X : STA !SAMUS_HP : STA !SAMUS_HP_MAX : INX #2
     LDA.l .table,X : STA !SAMUS_MISSILES : STA !SAMUS_MISSILES_MAX : INX #2
+    JSL eq_setmissiles_check
     LDA.l .table,X : STA !SAMUS_SUPERS : STA !SAMUS_SUPERS_MAX : INX #2
+    JSL eq_setsupers_check
     LDA.l .table,X : STA !SAMUS_PBS : STA !SAMUS_PBS_MAX : INX #2
+    JSL eq_setpbs_check
     LDA.l .table,X : STA !SAMUS_RESERVE_MAX : STA !SAMUS_RESERVE_ENERGY : INX #2
 
     JSL cm_set_etanks_and_reserve
+    LDA !SAMUS_ITEMS_EQUIPPED
+    JSL ti_grapple_check
     %sfxconfirm()
     JML $90AC8D ; update beam gfx
-}
 
   .table
     ;  Items,  Beams,  Health, Miss,   Supers, PBs,    Reserv, Dummy
-    dw #$F32F, #$100F, #$05DB, #$00E6, #$0032, #$0032, #$0190, #$0000        ; 100%
+    dw #$732F, #$100F, #$05DB, #$00E6, #$0032, #$0032, #$00C8, #$0000        ; 100%
     dw #$3125, #$1007, #$018F, #$000F, #$000A, #$0005, #$0000, #$0000        ; any% new
     dw #$3325, #$100B, #$018F, #$000F, #$000A, #$0005, #$0000, #$0000        ; any% old
     dw #$1025, #$1002, #$018F, #$000A, #$000A, #$0005, #$0000, #$0000        ; 14% ice
     dw #$3025, #$1000, #$018F, #$000A, #$000A, #$0005, #$0000, #$0000        ; 14% speed
-    dw #$F33F, #$100F, #$02BC, #$0064, #$0014, #$0014, #$012C, #$0000        ; gt code
-if !FEATURE_PAL
-    dw #$F33F, #$100F, #$0834, #$0145, #$0041, #$0046, #$02BC, #$0000        ; 136%
-else
-    dw #$F33F, #$100F, #$0834, #$0145, #$0041, #$0041, #$02BC, #$0000        ; 135%
-endif
     dw #$710C, #$1001, #$031F, #$001E, #$0019, #$0014, #$0064, #$0000        ; rbo
-    dw #$9004, #$0000, #$00C7, #$0005, #$0005, #$0005, #$0000, #$0000        ; any% glitched
-    dw #$F32F, #$100F, #$0031, #$01A4, #$005A, #$0063, #$0000, #$0000        ; crystal flash
+    dw #$732F, #$100F, #$0031, #$01A4, #$005A, #$0063, #$0000, #$0000        ; crystal flash
     dw #$0000, #$0000, #$0063, #$0000, #$0000, #$0000, #$0000, #$0000        ; nothing
-    dw #$9005, #$1002, #$012B, #$000A, #$000A, #$0005, #$0064, #$0000        ; 14% x-ice
-    dw #$1105, #$1002, #$018F, #$000A, #$000A, #$0005, #$0000, #$0000        ; 14% iceboots
-    dw #$3105, #$1000, #$018F, #$000A, #$000A, #$0005, #$0000, #$0000        ; 14% speedboots
 }
 
 
@@ -1181,22 +850,20 @@ eq_prepare_items_menu:
 ToggleItemsMenu:
     dw #ti_variasuit
     dw #ti_gravitysuit
+    dw #arcade_gravitytimer
     dw #$FFFF
     dw #ti_morphball
     dw #ti_bomb
     dw #ti_springball
     dw #ti_screwattack
+    dw #arcade_screwattacktimer
     dw #$FFFF
     dw #ti_hijumpboots
     dw #ti_spacejump
+    dw #arcade_spacejumptimer
     dw #ti_speedbooster
     dw #$FFFF
     dw #ti_grapple
-    dw #ti_xray
-    dw #$FFFF
-    dw #misc_suit_properties
-    dw #misc_water_physics
-    dw #misc_double_jump
     dw #$0000
     %cm_header("TOGGLE ITEMS")
 
@@ -1231,12 +898,13 @@ ti_grapple:
     %cm_toggle_bit("Grapple", !SAMUS_ITEMS_COLLECTED, #$4000, .routine)
   .routine
     LDA !SAMUS_ITEMS_EQUIPPED : EOR #$4000 : STA !SAMUS_ITEMS_EQUIPPED
-    RTL
-
-ti_xray:
-    %cm_toggle_bit("X-Ray", !SAMUS_ITEMS_COLLECTED, #$8000, .routine)
-  .routine
-    LDA !SAMUS_ITEMS_EQUIPPED : EOR #$8000 : STA !SAMUS_ITEMS_EQUIPPED
+  .check
+    AND #$4000 : CMP #$4000 : BNE .off
+    JML $809A2E
+  .off
+    LDA #$2C0F
+    STA $7EC630 : STA $7EC632
+    STA $7EC670 : STA $7EC672
     RTL
 
 equipment_toggle_items:
@@ -1269,7 +937,6 @@ equipment_toggle_items:
 eq_prepare_beams_menu:
 {
     JSL setup_beams_ram
-    JSL tb_init_custom_damage
     %setmenubank()
     JML action_submenu
 }
@@ -1330,19 +997,14 @@ setup_beams_ram:
 }
 
 ToggleBeamsMenu:
-    dw tb_chargebeam
-    dw tb_icebeam
-    dw tb_wavebeam
-    dw tb_spazerbeam
-    dw tb_plasmabeam
+    dw #tb_chargebeam
+    dw #tb_icebeam
+    dw #tb_wavebeam
+    dw #tb_spazerbeam
+    dw #tb_plasmabeam
+    dw #arcade_plasmatimer
     dw #$FFFF
-    dw misc_hyperbeam
-    dw #$FFFF
-    dw tb_glitchedbeams
-    dw #$FFFF
-    dw tb_customdamage
-    dw tb_customchargedamage
-    dw tb_customunchargedamage
+    dw #tb_glitchedbeams
     dw #$0000
     %cm_header("TOGGLE BEAMS")
 
@@ -1363,67 +1025,6 @@ tb_plasmabeam:
 
 tb_glitchedbeams:
     %cm_submenu("Glitched Beams", #GlitchedBeamsMenu)
-
-tb_customdamage:
-    dw !ACTION_CHOICE
-    dl #!sram_custom_damage
-    dw tb_init_custom_damage
-    db #$28, "Beam Damage", #$FF
-    db #$28, "    VANILLA", #$FF
-    db #$28, "     CUSTOM", #$FF
-    db #$28, "DASH CHRG 0", #$FF
-    db #$28, "DASH CHRG 1", #$FF
-    db #$28, "DASH CHRG 2", #$FF
-    db #$28, "DASH CHRG 3", #$FF
-    db #$28, "DASH CHRG 4", #$FF
-    db #$FF
-
-tb_init_custom_damage:
-{
-    LDA !sram_custom_damage : BEQ .vanilla
-    DEC : DEC : BEQ .dashCharge0
-    DEC : BEQ .dashCharge1
-    DEC : BEQ .dashCharge2
-    DEC : BEQ .dashCharge3
-    DEC : BEQ .dashCharge4
-    RTL
-
-  .vanilla
-    JSL compute_vanilla_charged_damage : STA !sram_custom_charge_damage
-    JSL compute_vanilla_uncharged_damage : STA !sram_custom_uncharge_damage
-    RTL
-
-  .dashCharge0
-    JSL compute_dash_charge_0_damage : STA !sram_custom_charge_damage
-    JSL compute_dash_charge_0_damage : STA !sram_custom_uncharge_damage
-    RTL
-
-  .dashCharge1
-    JSL compute_dash_charge_1_damage : STA !sram_custom_charge_damage
-    JSL compute_dash_charge_0_damage : STA !sram_custom_uncharge_damage
-    RTL
-
-  .dashCharge2
-    JSL compute_dash_charge_2_damage : STA !sram_custom_charge_damage
-    JSL compute_dash_charge_0_damage : STA !sram_custom_uncharge_damage
-    RTL
-
-  .dashCharge3
-    JSL compute_dash_charge_3_damage : STA !sram_custom_charge_damage
-    JSL compute_dash_charge_0_damage : STA !sram_custom_uncharge_damage
-    RTL
-
-  .dashCharge4
-    JSL compute_dash_charge_4_damage : STA !sram_custom_charge_damage
-    JSL compute_dash_charge_0_damage : STA !sram_custom_uncharge_damage
-    RTL
-}
-
-tb_customchargedamage:
-    %cm_numfield_word("Custom Charge Damage", !sram_custom_charge_damage, 0, 1000, 10, 50, #0)
-
-tb_customunchargedamage:
-    %cm_numfield_word("Custom Normal Damage", !sram_custom_uncharge_damage, 0, 1000, 10, 50, #0)
 
 equipment_toggle_beams:
 {
@@ -1467,7 +1068,6 @@ equipment_toggle_beams:
     LDA #$0000 : STA !ram_cm_plasma
 
   .done
-    JSL tb_init_custom_damage
     JML $90AC8D ; update beam gfx
 }
 
@@ -1508,306 +1108,6 @@ action_glitched_beam:
 }
 
 
-; -------------
-; Teleport menu
-; -------------
-
-TeleportMenu:
-    dw #tel_goto_crateria
-    dw #tel_goto_brinstar
-    dw #tel_goto_norfair
-    dw #tel_goto_wreckedship
-    dw #tel_goto_maridia
-    dw #tel_goto_tourian
-    dw #tel_ceres
-    dw #$0000
-    %cm_header("TELEPORT TO SAVE STATION")
-
-tel_goto_crateria:
-    %cm_submenu("Crateria", #TeleportCrateriaMenu)
-
-tel_goto_brinstar:
-    %cm_submenu("Brinstar", #TeleportBrinstarMenu)
-
-tel_goto_norfair:
-    %cm_submenu("Norfair", #TeleportNorfairMenu)
-
-tel_goto_wreckedship:
-    %cm_submenu("Wrecked Ship", #TeleportWreckedShipMenu)
-
-tel_goto_maridia:
-    %cm_submenu("Maridia", #TeleportMaridiaMenu)
-
-tel_goto_tourian:
-    %cm_submenu("Tourian", #TeleportTourianMenu)
-
-TeleportCrateriaMenu:
-    dw #tel_crateriaship
-    dw #tel_crateriaparlor
-    dw #$FFFF
-    dw #tel_crateria08
-    dw #tel_crateria09
-    dw #tel_crateria0A
-    dw #tel_crateria0B
-    dw #tel_crateria0C
-    dw #tel_crateria11
-    dw #tel_craterialanding
-    dw #$0000
-    %cm_header("CRATERIA SAVE STATIONS")
-
-tel_crateriaship:
-    %cm_jsl("Ship", #action_teleport, #$0000)
-
-tel_crateriaparlor:
-    %cm_jsl("Parlor", #action_teleport, #$0001)
-
-tel_crateria08:
-    %cm_jsl("DEBUG Forgotten Hwy Elev", #action_teleport, #$0008)
-
-tel_crateria09:
-    %cm_jsl("DEBUG Red Brinstar Elev", #action_teleport, #$0009)
-
-tel_crateria0A:
-    %cm_jsl("DEBUG Blue Brinstar Elev", #action_teleport, #$000A)
-
-tel_crateria0B:
-    %cm_jsl("DEBUG Green Brinstar Elev", #action_teleport, #$000B)
-
-tel_crateria0C:
-    %cm_jsl("DEBUG Tourian Elevator", #action_teleport, #$000C)
-
-tel_crateria11:
-    %cm_jsl("DEBUG Forgotten Highway", #action_teleport, #$0011)
-
-tel_craterialanding:
-    %cm_jsl("Gunship Landing", #action_teleport, #$0012)
-
-TeleportBrinstarMenu:
-    dw #tel_brinstarpink
-    dw #tel_brinstargreenshaft
-    dw #tel_brinstargreenetecoons
-    dw #tel_brinstarkraid
-    dw #tel_brinstarredtower
-    dw #$FFFF
-    dw #tel_brinstar08
-    dw #tel_brinstar09
-    dw #tel_brinstar0A
-    dw #tel_brinstar0B
-    dw #tel_brinstar11
-    dw #tel_brinstar12
-    dw #$0000
-    %cm_header("BRINSTAR SAVE STATIONS")
-
-tel_brinstarpink:
-    %cm_jsl("Pink Spospo", #action_teleport, #$0100)
-
-tel_brinstargreenshaft:
-    %cm_jsl("Green Shaft", #action_teleport, #$0101)
-
-tel_brinstargreenetecoons:
-    %cm_jsl("Green Etecoons", #action_teleport, #$0102)
-
-tel_brinstarkraid:
-    %cm_jsl("Kraid", #action_teleport, #$0103)
-
-tel_brinstarredtower:
-    %cm_jsl("Red Tower", #action_teleport, #$0104)
-
-tel_brinstar08:
-    %cm_jsl("DEBUG West Crateria Elev", #action_teleport, #$0108)
-
-tel_brinstar09:
-    %cm_jsl("DEBUG Old Tourian Elevator", #action_teleport, #$0109)
-
-tel_brinstar0A:
-    %cm_jsl("DEBUG Crateria Elevator", #action_teleport, #$010A)
-
-tel_brinstar0B:
-    %cm_jsl("DEBUG Norfair Elevator", #action_teleport, #$010B)
-
-tel_brinstar11:
-    %cm_jsl("DEBUG Kraid Gadora Room", #action_teleport, #$0111)
-
-tel_brinstar12:
-    %cm_jsl("DEBUG Big Pink", #action_teleport, #$0112)
-
-TeleportNorfairMenu:
-    dw #tel_norfairgrapple
-    dw #tel_norfairbubble
-    dw #tel_norfairtunnel
-    dw #tel_norfaircrocomire
-    dw #tel_norfairlnelevator
-    dw #tel_norfairridley
-    dw #$FFFF
-    dw #tel_norfair08
-    dw #tel_norfair09
-    dw #tel_norfair0A
-    dw #tel_norfair11
-    dw #tel_norfair12
-    dw #tel_norfair13
-    dw #tel_norfair15
-    dw #tel_norfair16
-    dw #$0000
-    %cm_header("NORFAIR SAVE STATIONS")
-
-tel_norfairgrapple:
-    %cm_jsl("Grapple", #action_teleport, #$0200)
-
-tel_norfairbubble:
-    %cm_jsl("Bubble Mountain", #action_teleport, #$0201)
-
-tel_norfairtunnel:
-    %cm_jsl("Tunnel", #action_teleport, #$0202)
-
-tel_norfaircrocomire:
-    %cm_jsl("Crocomire", #action_teleport, #$0203)
-
-tel_norfairlnelevator:
-    %cm_jsl("LN Elevator", #action_teleport, #$0204)
-
-tel_norfairridley:
-    %cm_jsl("Ridley", #action_teleport, #$0205)
-
-tel_norfair08:
-    %cm_jsl("DEBUG Brinstar Elevator", #action_teleport, #$0208)
-
-tel_norfair09:
-    %cm_jsl("DEBUG Lower Norfair Elev", #action_teleport, #$0209)
-
-tel_norfair0A:
-    %cm_jsl("DEBUG Upper Norfair Elev", #action_teleport, #$020A)
-
-tel_norfair11:
-    %cm_jsl("DEBUG Crocomire Speedway", #action_teleport, #$0211)
-
-tel_norfair12:
-    %cm_jsl("DEBUG Ridley Farming Room", #action_teleport, #$0212)
-
-tel_norfair13:
-    %cm_jsl("DEBUG Post-Croc Farming", #action_teleport, #$0213)
-
-tel_norfair15:
-    %cm_jsl("DEBUG OoB Screw Attack", #action_teleport, #$0215)
-
-tel_norfair16:
-    %cm_jsl("DEBUG Golden Torizo Room", #action_teleport, #$0216)
-
-TeleportWreckedShipMenu:
-    dw #tel_wreckedship
-    dw #$FFFF
-    dw #tel_wreckedship10
-    dw #tel_wreckedship11
-    dw #$0000
-    %cm_header("WRECKED SHIP SAVE STATIONS")
-
-tel_wreckedship:
-    %cm_jsl("Wrecked Ship", #action_teleport, #$0300)
-
-tel_wreckedship10:
-    %cm_jsl("DEBUG Entrance", #action_teleport, #$0310)
-
-tel_wreckedship11:
-    %cm_jsl("DEBUG Basement", #action_teleport, #$0311)
-
-TeleportMaridiaMenu:
-    dw #tel_maridiatube
-    dw #tel_maridiaelevator
-    dw #tel_maridiaaqueduct
-    dw #tel_maridiadraygon
-    dw #$FFFF
-    dw #tel_maridia08
-    dw #tel_maridia10
-    dw #tel_maridia11
-    dw #tel_maridia12
-    dw #tel_maridia13
-    dw #$0000
-    %cm_header("MARIDIA SAVE STATIONS")
-
-tel_maridiatube:
-    %cm_jsl("Tube", #action_teleport, #$0400)
-
-tel_maridiaelevator:
-    %cm_jsl("Elevator", #action_teleport, #$0401)
-
-tel_maridiaaqueduct:
-    %cm_jsl("Aqueduct", #action_teleport, #$0402)
-
-tel_maridiadraygon:
-    %cm_jsl("Draygon", #action_teleport, #$0403)
-
-tel_maridia08:
-    %cm_jsl("DEBUG East Crateria Elev", #action_teleport, #$0408)
-
-tel_maridia10:
-    %cm_jsl("DEBUG Pseudo Plasma Spark", #action_teleport, #$0410)
-
-tel_maridia11:
-    %cm_jsl("DEBUG Precious Room", #action_teleport, #$0411)
-
-tel_maridia12:
-    %cm_jsl("DEBUG Botwoon Hallway", #action_teleport, #$0412)
-
-tel_maridia13:
-    %cm_jsl("DEBUG Oasis", #action_teleport, #$0413)
-
-TeleportTourianMenu:
-    dw #tel_tourianmb
-    dw #tel_tourianentrance
-    dw #$FFFF
-    dw #tel_tourian08
-    dw #tel_tourian10
-    dw #tel_tourian11
-    dw #$0000
-    %cm_header("TOURIAN SAVE STATIONS")
-
-tel_tourianmb:
-    %cm_jsl("Mother Brain", #action_teleport, #$0500)
-
-tel_tourianentrance:
-    %cm_jsl("Entrance", #action_teleport, #$0501)
-
-tel_tourian08:
-    %cm_jsl("DEBUG Crateria Elevator", #action_teleport, #$0508)
-
-tel_tourian10:
-    %cm_jsl("DEBUG Rinka Shaft", #action_teleport, #$0510)
-
-tel_tourian11:
-    %cm_jsl("DEBUG Dustin Torizo", #action_teleport, #$0511)
-
-tel_ceres:
-    %cm_jsl("Ceres Station", #action_teleport, #$0600)
-
-action_teleport:
-{
-    ; teleport destination in Y when called
-    TYA : AND #$FF00 : XBA : STA !AREA_ID
-    TYA : AND #$00FF : STA !LOAD_STATION_INDEX
-    LDA #$0006 : STA !GAMEMODE
-
-    ; Make sure we can teleport to Zebes from Ceres
-    %a8()
-    LDA #$05 : STA $7ED914
-    %a16()
-
-    STZ $0727 ; Pause menu index
-    STZ $0E18 ; Set elevator to inactive
-    STZ $1C1F ; Clear message box index
-
-    JSL init_controller_bindings
-    LDA !SAMUS_HP_MAX : BNE .branch
-    LDA #$001F : STA !SAMUS_HP
-
-  .branch
-    JSL reset_all_counters
-    JSL stop_all_sounds
-
-    LDA #$0001 : STA !ram_cm_leave
-
-    RTL
-}
-
-
 ; -----------
 ; Misc menu
 ; -----------
@@ -1815,20 +1115,9 @@ action_teleport:
 MiscMenu:
     dw #misc_bluesuit
     dw #misc_flashsuit
-    dw #misc_hyperbeam
     dw #$FFFF
     dw #misc_gooslowdown
     dw #misc_healthbomb
-    dw #misc_suit_properties
-    dw #misc_water_physics
-    dw #misc_double_jump
-    dw #$FFFF
-    dw #misc_magicpants
-    dw #misc_spacepants
-    dw #$FFFF
-    dw #misc_metronome
-    dw #misc_metronome_tickrate
-    dw #misc_metronome_sfx
     dw #$FFFF
     dw #misc_killenemies
     dw #misc_forcestand
@@ -1841,263 +1130,11 @@ misc_bluesuit:
 misc_flashsuit:
     %cm_toggle("Flash Suit", !SAMUS_SHINE_TIMER, #$0001, #0)
 
-misc_hyperbeam:
-    %cm_toggle_bit("Hyper Beam", $7E0A76, #$8000, #.routine)
-  .routine
-    AND #$8000 : BEQ .off
-    LDA #$0003
-if !FEATURE_PAL
-    JSL $91E412 ; setup Samus for Hyper Beam
-else
-    JSL $91E4AD ; setup Samus for Hyper Beam
-endif
-    RTL
-
-  .off
-    ; check for Spazer+Plasma
-    LDA !SAMUS_BEAMS_COLLECTED : AND #$000C : CMP #$000C : BEQ .disableMurder
-    LDA !SAMUS_BEAMS_COLLECTED : STA !SAMUS_BEAMS_EQUIPPED
-    BRA .FXobjects
-
-  .disableMurder
-    LDA !SAMUS_BEAMS_COLLECTED : AND #$000B : STA !SAMUS_BEAMS_EQUIPPED
-
-  .FXobjects
-    LDX #$000E
-
-  .loopFXobjects
-    LDA $1E7D,X : CMP #$E1F0 : BEQ .found
-    DEX #2 : BPL .loopFXobjects
-
-  .found
-    ; clear Hyper Beam palette FX object
-    STZ $1E7D,X ; this is probably the only one that matters
-    STZ $1E8D,X : STZ $1E9D,X : STZ $1EAD,X
-    STZ $1EBD,X : STZ $1ECD,X : STZ $1EDD,X
-
-    JSL $90AC8D ; update beam gfx
-    RTL
-
 misc_gooslowdown:
     %cm_numfield("Goo Slowdown", $7E0A66, 0, 4, 1, 1, #0)
 
 misc_healthbomb:
     %cm_toggle("Health Bomb Flag", !SAMUS_HEALTH_WARNING, #$0001, #0)
-
-misc_magicpants:
-    dw !ACTION_CHOICE
-    dl #!ram_magic_pants_enabled
-    dw #$0000
-    db #$28, "Magic Pants", #$FF
-    db #$28, "        OFF", #$FF
-    db #$28, "      FLASH", #$FF
-    db #$28, "       LOUD", #$FF
-    db #$28, "       BOTH", #$FF
-    db #$FF
-
-misc_spacepants:
-    dw !ACTION_CHOICE
-    dl #!ram_space_pants_enabled
-    dw #$0000
-    db #$28, "Space Pants", #$FF
-    db #$28, "        OFF", #$FF
-    db #$28, "      FLASH", #$FF
-    db #$28, "       LOUD", #$FF
-    db #$28, "       BOTH", #$FF
-    db #$FF
-
-misc_metronome:
-    %cm_toggle("Metronome", !ram_metronome, #$0001, GameLoopExtras)
-
-misc_metronome_tickrate:
-    %cm_numfield("Metronome Tickrate", !sram_metronome_tickrate, 1, 255, 1, 8, #.routine)
-    .routine
-        LDA #$0000 : STA !ram_metronome_counter
-        RTL
-
-GameLoopExtras:
-{
-    LDA !ram_magic_pants_enabled : BNE .enabled
-    LDA !ram_space_pants_enabled : BNE .enabled
-    LDA !ram_metronome : BNE .enabled
-    LDA #$0000
-  .enabled
-    STA !ram_game_loop_extras
-    RTL
-}
-
-misc_metronome_sfx:
-    dw !ACTION_CHOICE
-    dl #!sram_metronome_sfx
-    dw #$0000
-    db #$28, "Metronome SFX", #$FF
-    db #$28, "    MISSILE", #$FF
-    db #$28, "      CLICK", #$FF
-    db #$28, "       BEEP", #$FF
-    db #$28, " POWER BEAM", #$FF
-    db #$28, "     SPAZER", #$FF
-    db #$FF
-
-misc_suit_properties:
-    dw !ACTION_CHOICE
-    dl #!sram_suit_properties
-    dw init_suit_properties_ram
-    db #$28, "Suit Properties", #$FF
-    db #$28, "    VANILLA", #$FF
-    db #$28, "   BALANCED", #$FF
-    db #$28, "   PROGRESS", #$FF
-    db #$28, " COMPLEMENT", #$FF
-    db #$28, " DASHRECALL", #$FF
-    db #$28, " HEATSHIELD", #$FF
-    db #$FF
-
-init_suit_properties_ram:
-{
-    ; Default to both suits getting 50% damage reduction (gravity gets extra 50%)
-    ; and both suits getting full heat protection
-    LDA #$0021 : STA !ram_suits_enemy_damage_check : STA !ram_suits_heat_damage_check
-
-    LDA !sram_suit_properties : CMP #$0002 : BMI .init_heat_damage
-
-    ; Progressive, Complementary, and DASH Recall/Heat Shield
-    ; give less enemy damage protection to gravity
-    LDA #$0001 : STA !ram_suits_enemy_damage_check
-
-  .init_heat_damage
-    LDA !sram_suit_properties : BEQ .end
-
-    ; Not vanilla, so only varia gets full heat protection
-    LDA #$0001 : STA !ram_suits_heat_damage_check
-
-  .end
-    ; Fallthrough to init_heat_damage_ram
-}
-
-init_heat_damage_ram:
-{
-    ; Default to gravity provides lava protection
-    LDA #$0020 : STA !SAMUS_LAVA_DAMAGE_SUITS
-
-    ; Default to 0.25 damage per frame
-    LDA #$4000 : STA !ram_suits_heat_damage_value
-
-    LDA !sram_suit_properties : CMP #$0004 : BPL .dash_recall
-    CMP #$0003 : BEQ .complementary
-    RTL
-
-  .complementary
-    ; Both varia and gravity required for lava protection
-    LDA #$0021 : STA !SAMUS_LAVA_DAMAGE_SUITS
-
-    ; If no gravity than nothing to do
-    LDA $09A2 : BIT #$0020 : BEQ .end
-
-    ; Without heat shield but with gravity we want heat damage to be 100%
-    ; Since damage is halved by gravity we'll set it to 200%
-    LDA #$8000 : STA !ram_suits_heat_damage_value
-    RTL
-
-  .dash_recall
-    BNE .heat_shield
-
-    ; If no gravity than nothing to do
-    LDA $09A2 : BIT #$0020 : BEQ .end
-
-    ; Without heat shield but with gravity we want heat damage to be 75%
-    ; Since damage is halved by gravity we'll set it to 150%
-    LDA #$6000 : STA !ram_suits_heat_damage_value
-
-  .end
-    RTL
-
-  .heat_shield
-    LDA !ROOM_ID : CMP #$B742 : BPL .no_damage : CMP #$AF13 : BMI .no_damage
-    CMP #$B1BA : BPL .heat_shield_damage : CMP #$AF40 : BPL .no_damage
-
-  .heat_shield_damage
-    ; We want Lower Norfair heat damage to be 50%
-    ; However if gravity is equipped then the damage is already halved
-    LDA $09A2 : BIT #$0020 : BNE .end
-    LDA #$2000 : STA !ram_suits_heat_damage_value
-    RTL
-
-  .no_damage
-    TDC : STA !ram_suits_heat_damage_value
-    RTL
-}
-
-
-misc_water_physics:
-    dw !ACTION_CHOICE
-    dl #!sram_water_physics
-    dw init_physics_ram
-    db #$28, "Water Physics", #$FF
-    db #$28, "    VANILLA", #$FF
-    db #$28, "PRESS VALVE", #$FF
-    db #$28, "        OFF", #$FF
-    db #$28, "         ON", #$FF
-    db #$28, "  OFF TO ON", #$FF
-    db #$28, "  ON TO OFF", #$FF
-    db #$FF
-
-misc_double_jump:
-    %cm_toggle_bit("Double Jump", !sram_double_jump, #$0200, init_physics_ram)
-
-init_physics_ram:
-{
-    LDA !sram_water_physics : BNE init_physics_non_vanilla
-    ; Fallthrough to init_physics_vanilla
-}
-
-init_physics_vanilla:
-{
-    LDA !SAMUS_ITEMS_EQUIPPED : ORA.l !sram_double_jump : STA !SAMUS_WATER_PHYSICS
-    RTL
-}
-
-init_physics_after_transition:
-{
-    LDA !sram_water_physics : BEQ init_physics_vanilla
-
-    ; Check if we need to toggle on-to-off or off-to-on states
-    CMP #$0004 : BMI init_physics_non_vanilla
-    EOR #$0001 : STA !sram_water_physics
-}
-
-init_physics_non_vanilla:
-{
-    CMP #$0001 : BEQ .pv
-    BIT #$0001 : BNE .on
-
-  .off
-    LDA !SAMUS_ITEMS_EQUIPPED : AND #$0200
-    ORA.l !sram_double_jump : ORA #$0020 : STA !SAMUS_WATER_PHYSICS
-    RTL
-
-  .on
-    LDA !SAMUS_ITEMS_EQUIPPED : AND #$0200
-    ORA.l !sram_double_jump : STA !SAMUS_WATER_PHYSICS
-    RTL
-
-  .pv
-    LDA !ROOM_ID : CMP #$C98D : BMI .pv_more
-    CMP #$D4EE : BMI .off : CMP #$D8C6 : BPL .pv_on
-    CMP #$D5EC : BEQ .off : CMP #$D646 : BEQ .off
-    CMP #$D69A : BEQ .off : CMP #$D6D0 : BEQ .off
-    CMP #$D86E : BEQ .off : CMP #$D8C5 : BEQ .off
-
-  .pv_on
-    LDA !SAMUS_ITEMS_EQUIPPED : AND #$0220
-    ORA.l !sram_double_jump : STA !SAMUS_WATER_PHYSICS
-    RTL
-
-  .pv_more
-    CMP #$AC00 : BEQ .off : CMP #$AB64 : BEQ .off
-    CMP #$A5EF : BPL .pv_on
-    CMP #$99FA : BPL .off : CMP #$965A : BPL .pv_on
-    CMP #$93AB : BMI .pv_on
-    BRA .off
-}
 
 misc_killenemies:
     %cm_jsl("Kill Enemies", .kill_loop, #0)
@@ -2337,443 +1374,22 @@ boss_ridley_statue:
     %cm_toggle_bit("Ridley Statue", #$7ED820, #$0080, #0)
 
 
-; --------------
-; Infohud menu
-; --------------
-
-pushpc
-org $85C000
-print pc, " mainmenu InfoHUD start"
-
-InfoHudMenu:
-    dw #ih_goto_display_mode
-    dw #ih_display_mode
-    dw #$FFFF
-    dw #ih_goto_room_strat
-    dw #ih_room_strat
-    dw #$FFFF
-    dw #ih_goto_timers
-    dw #$FFFF
-    dw #ih_top_HUD_mode
-    dw #ih_dynamic_frames_held
-    dw #ih_status_icons
-if !PRESERVE_WRAM_DURING_SPACETIME
-    dw #ih_spacetime_infohud
-endif
-    dw #ih_lag
-    dw #$FFFF
-    dw #ih_ram_watch
-    dw #$0000
-    %cm_header("INFOHUD")
-
-ih_goto_display_mode:
-    %cm_submenu("Select InfoHUD Mode", #DisplayModeMenu)
-
-DisplayModeMenu:
-    dw ihmode_enemyhp
-    dw ihmode_roomstrat
-    dw ihmode_chargetimer
-    dw ihmode_xfactor
-    dw ihmode_cooldowncounter
-    dw ihmode_shinetimer
-    dw ihmode_dashcounter
-    dw ihmode_shinetune
-    dw ihmode_iframecounter
-    dw ihmode_spikesuit
-    dw ihmode_lagcounter
-    dw ihmode_cpuusage
-    dw ihmode_xpos
-    dw ihmode_ypos
-    dw ihmode_hspeed
-    dw ihmode_vspeed
-    dw ihmode_quickdrop
-    dw ihmode_walljump
-    dw ihmode_armpump
-    dw ihmode_shottimer
-    dw ihmode_ramwatch
-    dw #$0000
-    %cm_header("INFOHUD DISPLAY MODE")
-
-ihmode_enemyhp:
-    %cm_jsl("Enemy HP", #action_select_infohud_mode, #$0000)
-
-!IH_MODE_ROOMSTRAT_INDEX = $0001
-ihmode_roomstrat:
-    %cm_jsl("Room Strat", #action_select_infohud_mode, #$0001)
-
-ihmode_chargetimer:
-    %cm_jsl("Charge Timer", #action_select_infohud_mode, #$0002)
-
-ihmode_xfactor:
-    %cm_jsl("X-Factor Timer", #action_select_infohud_mode, #$0003)
-
-ihmode_cooldowncounter:
-    %cm_jsl("Cooldown Timer", #action_select_infohud_mode, #$0004)
-
-ihmode_shinetimer:
-    %cm_jsl("Shinespark Timer", #action_select_infohud_mode, #$0005)
-
-ihmode_dashcounter:
-    %cm_jsl("Dash Counter", #action_select_infohud_mode, #$0006)
-
-!IH_MODE_SHINETUNE_INDEX = $0007
-ihmode_shinetune:
-    %cm_jsl("Shine Tune", #action_select_infohud_mode, #$0007)
-
-ihmode_iframecounter:
-    %cm_jsl("I-Frame Counter", #action_select_infohud_mode, #$0008)
-
-ihmode_spikesuit:
-    %cm_jsl("Spikesuit Trainer", #action_select_infohud_mode, #$0009)
-
-ihmode_lagcounter:
-    %cm_jsl("Realtime Lag Counter", #action_select_infohud_mode, #$000A)
-
-ihmode_cpuusage:
-    %cm_jsl("CPU Usage", #action_select_infohud_mode, #$000B)
-
-ihmode_xpos:
-    %cm_jsl("X Position", #action_select_infohud_mode, #$000C)
-
-ihmode_ypos:
-    %cm_jsl("Y Position", #action_select_infohud_mode, #$000D)
-
-ihmode_hspeed:
-    %cm_jsl("Horizontal Speed", #action_select_infohud_mode, #$000E)
-
-!IH_MODE_VSPEED_INDEX = $000F
-ihmode_vspeed:
-    %cm_jsl("Vertical Speed", #action_select_infohud_mode, #$000F)
-
-ihmode_quickdrop:
-    %cm_jsl("Quickdrop Trainer", #action_select_infohud_mode, #$0010)
-
-ihmode_walljump:
-    %cm_jsl("Walljump Trainer", #action_select_infohud_mode, #$0011)
-
-!IH_MODE_ARMPUMP_INDEX = $0012
-ihmode_armpump:
-    %cm_jsl("Armpump Trainer", #action_select_infohud_mode, #$0012)
-
-ihmode_shottimer:
-    %cm_jsl("Shot Timer", #action_select_infohud_mode, #$0013)
-
-!IH_MODE_RAMWATCH_INDEX = $0014
-ihmode_ramwatch:
-    %cm_jsl("RAM Watch", #action_select_infohud_mode, #$0014)
-
-action_select_infohud_mode:
-{
-    TYA : STA !sram_display_mode
-    JML cm_previous_menu
-}
-
-ih_display_mode:
-    dw !ACTION_CHOICE
-    dl #!sram_display_mode
-    dw #$0000
-    db #$28, "Current Mode", #$FF
-    db #$28, "   ENEMY HP", #$FF
-    db #$28, " ROOM STRAT", #$FF
-    db #$28, "     CHARGE", #$FF
-    db #$28, "   X FACTOR", #$FF
-    db #$28, "   COOLDOWN", #$FF
-    db #$28, " SHINESPARK", #$FF
-    db #$28, "       DASH", #$FF
-    db #$28, " SHINE TUNE", #$FF
-    db #$28, "   I FRAMES", #$FF
-    db #$28, "  SPIKESUIT", #$FF
-    db #$28, "LAG COUNTER", #$FF
-    db #$28, "  CPU USAGE", #$FF
-    db #$28, " X POSITION", #$FF
-    db #$28, " Y POSITION", #$FF
-    db #$28, "HORIZ SPEED", #$FF
-    db #$28, " VERT SPEED", #$FF
-    db #$28, " QUICK DROP", #$FF
-    db #$28, "  WALL JUMP", #$FF
-    db #$28, "   ARM PUMP", #$FF
-    db #$28, " SHOT TIMER", #$FF
-    db #$28, "  RAM WATCH", #$FF
-    db #$FF
-
-ih_goto_room_strat:
-    %cm_submenu("Select Room Strat", #RoomStratMenu)
-
-RoomStratMenu:
-    dw ihstrat_doorskip
-    dw ihstrat_tacotank
-    dw ihstrat_gateglitch
-    dw ihstrat_moatcwj
-    dw ihstrat_robotflush
-    dw ihstrat_shinetopb
-    dw ihstrat_elevatorcf
-    dw ihstrat_botwooncf
-    dw ihstrat_snailclip
-    dw ihstrat_mbhp
-    dw ihstrat_downbackzeb
-    dw ihstrat_draygonai
-    dw ihstrat_ridleyai
-    dw ihstrat_twocries
-    dw #$0000
-    %cm_header("INFOHUD ROOM STRAT")
-    %cm_footer("ROOM STRAT MUST BE ACTIVE")
-
-ihstrat_doorskip:
-    %cm_jsl("Parlor-Climb Door Skip", #action_select_room_strat, #$0000)
-
-ihstrat_tacotank:
-    %cm_jsl("Taco Tank", #action_select_room_strat, #$0001)
-
-ihstrat_gateglitch:
-    %cm_jsl("Gate Glitch", #action_select_room_strat, #$0002)
-
-ihstrat_moatcwj:
-    %cm_jsl("Moat CWJ", #action_select_room_strat, #$0003)
-
-ihstrat_robotflush:
-    %cm_jsl("Robot Flush", #action_select_room_strat, #$0004)
-
-ihstrat_shinetopb:
-    %cm_jsl("Shine to PB", #action_select_room_strat, #$0005)
-
-ihstrat_elevatorcf:
-    %cm_jsl("Elevator Crystal Flash", #action_select_room_strat, #$0006)
-
-ihstrat_botwooncf:
-    %cm_jsl("Botwoon Crystal Flash", #action_select_room_strat, #$0007)
-
-ihstrat_snailclip:
-    %cm_jsl("Aqueduct Snail Clip", #action_select_room_strat, #$0008)
-
-!IH_STRAT_MBHP_INDEX = $0009
-ihstrat_mbhp:
-    %cm_jsl("Mother Brain HP", #action_select_room_strat, #$0009)
-
-ihstrat_downbackzeb:
-    %cm_jsl("Downback Zeb Skip", #action_select_room_strat, #$000A)
-
-ihstrat_draygonai:
-    %cm_jsl("Draygon AI Tracker", #action_select_room_strat, #$000B)
-
-ihstrat_ridleyai:
-    %cm_jsl("Ridley AI", #action_select_room_strat, #$000C)
-
-ihstrat_twocries:
-    %cm_jsl("Two Cries Standup", #action_select_room_strat, #$000D)
-
-action_select_room_strat:
-{
-    TYA : STA !sram_room_strat
-    LDA #!IH_MODE_ROOMSTRAT_INDEX : STA !sram_display_mode
-    JML cm_previous_menu
-}
-
-ih_room_strat:
-    dw !ACTION_CHOICE
-    dl #!sram_room_strat
-    dw #.routine
-    db #$28, "Current Strat", #$FF
-    db #$28, "  DOOR SKIP", #$FF
-    db #$28, "  TACO TANK", #$FF
-    db #$28, "GATE GLITCH", #$FF
-    db #$28, "   MOAT CWJ", #$FF
-    db #$28, "ROBOT FLUSH", #$FF
-    db #$28, "SHINE TO PB", #$FF
-    db #$28, "ELEVATOR CF", #$FF
-    db #$28, " BOTWOON CF", #$FF
-    db #$28, " SNAIL CLIP", #$FF
-    db #$28, "      MB HP", #$FF
-    db #$28, "  DBACK ZEB", #$FF
-    db #$28, " DRAYGON AI", #$FF
-    db #$28, "  RIDLEY AI", #$FF
-    db #$28, "  TWO CRIES", #$FF
-    db #$FF
-    .routine
-        LDA #$0001 : STA !sram_display_mode
-        RTL
-
-ih_goto_timers:
-    %cm_submenu("Timer Settings", #IHTimerMenu)
-
-IHTimerMenu:
-    dw #ih_room_counter
-    dw #ih_lag_counter
-    dw #ih_auto_update_timers
-    dw #$FFFF
-    dw #ih_reset_seg_after_door
-    dw #ih_reset_seg_item_touch
-    dw #$0000
-    %cm_header("TIMER SETTINGS")
-
-ih_room_counter:
-    dw !ACTION_CHOICE
-    dl #!sram_frame_counter_mode
-    dw #$0000
-    db #$28, "Frame Counters", #$FF
-    db #$28, "   REALTIME", #$FF
-    db #$28, "     INGAME", #$FF
-    db #$28, "   SPEEDRUN", #$FF
-    db #$FF
-
-ih_lag_counter:
-    dw !ACTION_CHOICE
-    dl #!sram_lag_counter_mode
-    dw #$0000
-    db #$28, "Transition Lag", #$FF
-    db #$28, "       DOOR", #$FF
-    db #$28, "       FULL", #$FF
-    db #$FF
-
-ih_auto_update_timers:
-    %cm_toggle_inverted("Auto-Update Timers", !ram_timers_autoupdate, #$0001, #0)
-
-ih_reset_seg_after_door:
-    %cm_jsl("Reset Segment in Next Room", #.routine, #$0001)
-  .routine
-    TYA : STA !ram_reset_segment_later
-    %sfxconfirm()
-    RTL
-
-ih_reset_seg_item_touch:
-    %cm_jsl("Reset Segment on Item Touch", #ih_reset_seg_after_door_routine, #$8000)
-
-ih_top_HUD_mode:
-    dw !ACTION_CHOICE
-    dl #!sram_top_display_mode
-    dw #$0000
-    db #$28, "Top-Left Displa", #$FF
-    db #$28, "y    ITEM %", #$FF
-    db #$28, "y  RESERVES", #$FF
-    db #$28, "y   VANILLA", #$FF
-    db #$FF
-
-ih_dynamic_frames_held:
-    dw !ACTION_DYNAMIC
-    dl #!sram_top_display_mode
-    dw #ih_goto_frames_held
-    dw #ih_goto_frames_held
-    dw #$0000
-
-ih_goto_frames_held:
-    %cm_submenu("Frames Held Mode", #IHFramesHeldMenu)
-
-IHFramesHeldMenu:
-    dw #ih_frames_held_a
-    dw #ih_frames_held_b
-    dw #ih_frames_held_x
-    dw #ih_frames_held_y
-    dw #ih_frames_held_l
-    dw #ih_frames_held_r
-    dw #ih_frames_held_select
-    dw #ih_frames_held_start
-    dw #ih_frames_held_left
-    dw #ih_frames_held_right
-    dw #ih_frames_held_up
-    dw #ih_frames_held_down
-    dw #$0000
-    %cm_header("FRAMES HELD MODE")
-
-ih_frames_held_a:
-    %cm_toggle_bit("A", !ram_frames_held, !CTRL_A, #0)
-
-ih_frames_held_b:
-    %cm_toggle_bit("B", !ram_frames_held, !CTRL_B, #0)
-
-ih_frames_held_x:
-    %cm_toggle_bit("X", !ram_frames_held, !CTRL_X, #0)
-
-ih_frames_held_y:
-    %cm_toggle_bit("Y", !ram_frames_held, !CTRL_Y, #0)
-
-ih_frames_held_l:
-    %cm_toggle_bit("L", !ram_frames_held, !CTRL_L, #0)
-
-ih_frames_held_r:
-    %cm_toggle_bit("R", !ram_frames_held, !CTRL_R, #0)
-
-ih_frames_held_select:
-    %cm_toggle_bit("Select", !ram_frames_held, !CTRL_SELECT, #0)
-
-ih_frames_held_start:
-    %cm_toggle_bit("Start", !ram_frames_held, !IH_INPUT_START, #0)
-
-ih_frames_held_left:
-    %cm_toggle_bit("Left", !ram_frames_held, !IH_INPUT_LEFT, #0)
-
-ih_frames_held_right:
-    %cm_toggle_bit("Right", !ram_frames_held, !IH_INPUT_RIGHT, #0)
-
-ih_frames_held_up:
-    %cm_toggle_bit("Up", !ram_frames_held, !IH_INPUT_UP, #0)
-
-ih_frames_held_down:
-    %cm_toggle_bit("Down", !ram_frames_held, !IH_INPUT_DOWN, #0)
-
-ih_status_icons:
-    %cm_toggle("Status Icons", !sram_status_icons, #1, #.routine)
-  .routine
-    LDA !IH_BLANK : STA !HUD_TILEMAP+$54 : STA !HUD_TILEMAP+$56 : STA !HUD_TILEMAP+$58
-    RTL
-
-ih_spacetime_infohud:
-    dw !ACTION_CHOICE
-    dl #!ram_spacetime_infohud
-    dw #$0000
-    db #$28, "Spacetime HUD", #$FF
-    db #$28, "    VANILLA", #$FF
-    db #$28, "  PRESERVED", #$FF
-    db #$FF
-
-ih_lag:
-    %cm_numfield("Artificial Lag", !sram_artificial_lag, 0, 64, 1, 4, #0)
-
-ih_ram_watch:
-    %cm_jsl("Customize RAM Watch", #ih_prepare_ram_watch_menu, #RAMWatchMenu)
-
-incsrc ramwatchmenu.asm
-
-print pc, " mainmenu InfoHUD end"
-warnpc $85F800 ; gamemode.asm
-pullpc
-
-
-incsrc layoutmenu.asm
-
-
 ; ----------
 ; Game menu
 ; ----------
 
-pushpc
-org $B3F000
-print pc, " mainmenu GameMenu start"
-
 GameMenu:
-    dw #game_alternatetext
     dw #game_moonwalk
     dw #game_iconcancel
     dw #game_goto_controls
     dw #$FFFF
-    dw #game_cutscenes
-    dw #game_fanfare_toggle
-    dw #game_fast_doors_toggle
-    dw #game_fast_elevators
     dw #game_music_toggle
     dw #game_healthalarm
+    dw #game_skip_splash
     dw #$FFFF
     dw #game_goto_debug
-    dw #$FFFF
-    dw #game_minimap
-    dw #game_clear_minimap
     dw #$0000
     %cm_header("GAME")
-
-game_alternatetext:
-if !FEATURE_PAL
-    %cm_toggle("French Text", $7E09E2, #$0001, #0)
-else
-    %cm_toggle("Japanese Text", $7E09E2, #$0001, #0)
-endif
 
 game_moonwalk:
     %cm_toggle("Moon Walk", $7E09E4, #$0001, #0)
@@ -2784,25 +1400,13 @@ game_iconcancel:
 game_goto_controls:
     %cm_submenu("Controller Setting Mode", #ControllerSettingMenu)
 
-game_cutscenes:
-    %cm_submenu("Cutscenes and Effects", #CutscenesMenu)
-
-game_fanfare_toggle:
-    %cm_toggle_bit("Fanfare", !sram_fanfare, !FANFARE_TOGGLE, #0)
-
-game_fast_doors_toggle:
-    %cm_toggle("Fast Doors", !sram_fast_doors, #$0001, #0)
-
-game_fast_elevators:
-    %cm_toggle("Fast Elevators", !sram_fast_elevators, #$0001, #0)
-
 game_music_toggle:
     dw !ACTION_CHOICE
     dl #!sram_music_toggle
     dw .routine
     db #$28, "Music", #$FF
-    db #$28, "        OFF", #$FF
     db #$28, "         ON", #$FF
+    db #$28, "        OFF", #$FF
     db #$28, "   FAST OFF", #$FF
     db #$28, " PRESET OFF", #$FF
     db #$FF
@@ -2811,7 +1415,7 @@ game_music_toggle:
     STZ $0629 : STZ $062B : STZ $062D : STZ $062F
     STZ $0631 : STZ $0633 : STZ $0635 : STZ $0637
     STZ $0639 : STZ $063B : STZ $063D : STZ $063F
-    CMP #$0001 : BEQ .resume_music
+    CMP #$0000 : BEQ .resume_music
     STZ $2140
     RTL
   .resume_music
@@ -2824,33 +1428,14 @@ game_healthalarm:
     dl #!sram_healthalarm
     dw #$0000
     db #$28, "Low Health Alar", #$FF
-    db #$28, "m     NEVER", #$FF
     db #$28, "m   VANILLA", #$FF
     db #$28, "m    PB FIX", #$FF
     db #$28, "m  IMPROVED", #$FF
+    db #$28, "m     NEVER", #$FF
     db #$FF
 
-game_minimap:
-    %cm_toggle("Minimap", !ram_minimap, #$0001, #0)
-
-game_clear_minimap:
-    %cm_jsl("Clear Minimap", .clear_minimap, #$0000)
-
-  .clear_minimap
-    LDA #$0000 : STA !ram_map_counter : STA $7E0789
-    STA $7ED908 : STA $7ED90A : STA $7ED90C : STA $7ED90E
-    LDX #$00FE
-  .clear_minimap_loop
-    STA $7ECD52,X : STA $7ECE52,X
-    STA $7ECF52,X : STA $7ED052,X
-    STA $7ED152,X : STA $7ED252,X
-    STA $7ED352,X : STA $7ED452,X
-    STA $7ED91C,X : STA $7EDA1C,X
-    STA $7EDB1C,X : STA $7EDC1C,X
-    STA $7EDD1C,X : STA $7E07F7,X
-    DEX : DEX : BPL .clear_minimap_loop
-    %sfxreset()
-    RTL
+game_skip_splash:
+    %cm_toggle("Fast Nintendo Splash", !sram_skip_splash, #$0001, #0)
 
 game_goto_debug:
     %cm_submenu("Debug Settings", #DebugMenu)
@@ -2862,25 +1447,15 @@ game_goto_debug:
 
 DebugMenu:
     dw #game_debugmode
-if !FEATURE_PAL
-    dw #game_paldebug
-endif
     dw #game_debugbrightness
     dw #game_invincibility
-    dw #game_pacifist
     dw #game_debugplms
     dw #game_debugprojectiles
-    dw #game_debugfixscrolloffsets
     dw #$0000
     %cm_header("DEBUG SETTINGS")
 
 game_debugmode:
     %cm_toggle("Debug Mode", $7E05D1, #$0001, #0)
-
-if !FEATURE_PAL
-game_paldebug:
-    %cm_toggle_inverted("PAL Debug Movement", $7E09E6, #$0001, #0)
-endif
 
 game_debugbrightness:
     %cm_toggle("Debug CPU Brightness", $7E0DF4, #$0001, #0)
@@ -2888,107 +1463,11 @@ game_debugbrightness:
 game_invincibility:
     %cm_toggle_bit("Invincibility", $7E0DE0, #$0007, #0)
 
-game_pacifist:
-    %cm_toggle("Pacifist Mode", !ram_pacifist, #$0001, #0)
-
 game_debugplms:
     %cm_toggle_bit_inverted("Pseudo G-Mode", $7E1C23, #$8000, #0)
 
 game_debugprojectiles:
     %cm_toggle_bit("Enable Projectiles", $7E198D, #$8000, #0)
-
-game_debugfixscrolloffsets:
-    %cm_toggle_bit("Fix Scroll Offsets", !ram_fix_scroll_offsets, #$0001, #0)
-
-
-; ---------------
-; Cutscenes menu
-; ---------------
-
-CutscenesMenu:
-    dw #cutscenes_skip_splash
-    dw #cutscenes_skip_intro
-    dw #cutscenes_skip_ceres_arrival
-    dw #cutscenes_skip_g4
-    dw #cutscenes_skip_game_over
-    dw #$FFFF
-    dw #cutscenes_fast_kraid
-    dw #cutscenes_kraid_camera
-    dw #cutscenes_fast_phantoon
-    dw #cutscenes_fast_bowling
-    dw #cutscenes_fast_mb
-    dw #$FFFF
-    dw #cutscenes_suppress_crateria_lightning
-    dw #cutscenes_suppress_escape_flashing
-    dw #cutscenes_suppress_power_bomb_flash
-    dw #cutscenes_suppress_mb1_flashing
-    dw #cutscenes_suppress_boss_damage_flash
-    dw #cutscenes_suppress_earthquake
-    dw #$0000
-    %cm_header("CUTSCENES AND EFFECTS")
-
-cutscenes_skip_splash:
-    %cm_toggle_bit("Fast Nintendo splash", !sram_cutscenes, !CUTSCENE_SKIP_SPLASH, #0)
-
-cutscenes_skip_intro:
-    %cm_toggle_bit("Skip Intro", !sram_cutscenes, !CUTSCENE_SKIP_INTRO, #0)
-
-cutscenes_skip_ceres_arrival:
-    %cm_toggle_bit("Skip Ceres Arrival", !sram_cutscenes, !CUTSCENE_SKIP_CERES_ARRIVAL, #0)
-
-cutscenes_skip_g4:
-    %cm_toggle_bit("Skip G4", !sram_cutscenes, !CUTSCENE_SKIP_G4, #.routine)
-  .routine
-    BIT !CUTSCENE_SKIP_G4 : BEQ .off
-    LDA !ROOM_ID : CMP #$A5ED : BNE .done
-    ; Verify all four G4 bosses killed
-    LDA $7ED828 : BIT #$0100 : BEQ .done
-    LDA $7ED82C : BIT #$0001 : BEQ .done
-    LDA $7ED82A : AND #$0101 : CMP #$0101 : BNE .done
-    ; Set Tourian open
-    LDA $7ED820 : ORA #$0400 : STA $7ED820
-    BRA .done
-  .off
-    LDA !ROOM_ID : CMP #$A5ED : BNE .done
-    LDA $7ED820 : AND #$FBFF : STA $7ED820
-  .done
-    RTL
-
-cutscenes_skip_game_over:
-    %cm_toggle_bit("Skip Game Over", !sram_cutscenes, !CUTSCENE_SKIP_GAMEOVER, #0)
-
-cutscenes_fast_kraid:
-    %cm_toggle_bit("Skip Kraid Intro", !sram_cutscenes, !CUTSCENE_FAST_KRAID, #0)
-
-cutscenes_fast_phantoon:
-    %cm_toggle_bit("Skip Phantoon Intro", !sram_cutscenes, !CUTSCENE_FAST_PHANTOON, #0)
-
-cutscenes_kraid_camera:
-    %cm_toggle_bit("Unlock Kraid Death Cam", !sram_cutscenes, !CUTSCENE_KRAID_DEATH_CAMERA, #0)
-
-cutscenes_fast_bowling:
-    %cm_toggle_bit("Fast Bowling", !sram_cutscenes, !CUTSCENE_FAST_BOWLING, #0)
-
-cutscenes_fast_mb:
-    %cm_toggle_bit("Fast Mother Brain", !sram_cutscenes, !CUTSCENE_FAST_MB, #0)
-
-cutscenes_suppress_crateria_lightning:
-    %cm_toggle_bit_inverted("Crateria Lightning", !sram_suppress_flashing, !SUPPRESS_CRATERIA_LIGHTNING, #0)
-
-cutscenes_suppress_escape_flashing:
-    %cm_toggle_bit_inverted("Escape Flashing", !sram_suppress_flashing, !SUPPRESS_ESCAPE_FLASHING, #0)
-
-cutscenes_suppress_power_bomb_flash:
-    %cm_toggle_bit_inverted("Power Bomb Flash", !sram_suppress_flashing, !SUPPRESS_POWER_BOMB_FLASH, #0)
-
-cutscenes_suppress_mb1_flashing:
-    %cm_toggle_bit_inverted("MB1 Flashing", !sram_suppress_flashing, !SUPPRESS_MB1_FLASHING, #0)
-
-cutscenes_suppress_boss_damage_flash:
-    %cm_toggle_bit_inverted("Boss Damage Flash", !sram_suppress_flashing, !SUPPRESS_BOSS_DAMAGE_FLASH, #0)
-
-cutscenes_suppress_earthquake:
-    %cm_toggle_bit_inverted("Vanilla Earthquake", !sram_suppress_flashing, !SUPPRESS_EARTHQUAKE, #0)
 
 
 ; -------------------
@@ -3307,425 +1786,23 @@ ControllerLayoutTable:
     dw !CTRL_X, !CTRL_B, !CTRL_Y, !CTRL_SELECT, !CTRL_A,      !CTRL_L, !CTRL_R ; SMW Style (D5)
 }
 
-print pc, " mainmenu GameMenu end"
-pullpc
 
 
-; ----------
-; RNG menu
-; ----------
-
-RngMenu:
-    dw #rng_goto_phanmenu
-    dw #$FFFF
-    dw #rng_botwoon_first
-    dw #rng_botwoon_hidden
-    dw #rng_botwoon_second
-    dw #rng_botwoon_spit
-    dw #$FFFF
-    dw #rng_draygon_rng_right
-    dw #rng_draygon_rng_left
-    dw #$FFFF
-    dw #rng_crocomire_rng
-    dw #$FFFF
-    dw #rng_kraid_claw_rng
-    dw #rng_kraid_wait_rng
-    dw #$0000
-    %cm_header("BOSS RNG CONTROL")
-
-rng_goto_phanmenu:
-    %cm_jsl("Phantoon", #ih_prepare_phantoon_menu, #PhantoonMenu)
-
-rng_botwoon_first:
-    dw !ACTION_CHOICE
-    dl #!ram_cm_botwoon_first
-    dw #.routine
-    db #$28, "Botwoon First", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "  LB BOTTOM", #$FF
-    db #$28, "  LT    TOP", #$FF
-    db #$28, "  LR  RIGHT", #$FF
-    db #$28, "  LL   LEFT", #$FF
-    db #$FF
-  .routine
-    LDA !ram_cm_botwoon_first : BEQ .random
-    ; possible values are $01, $09, $11, $19
-    ; the 1s bit will be dropped, used here for convenience
-    DEC : ASL #3 : INC
-    STA !ram_botwoon_first : STA !ram_botwoon_rng
-    RTL
-  .random
-    STA !ram_botwoon_first
-    ; set _rng flag if any other patterns are set
-    LDA !ram_botwoon_second : BNE .set_rng
-    LDA !ram_botwoon_hidden
-  .set_rng
-    STA !ram_botwoon_rng
-    RTL
-
-rng_botwoon_hidden:
-    dw !ACTION_CHOICE
-    dl #!ram_cm_botwoon_hidden
-    dw #.routine
-    db #$28, "Botwoon Hidden", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "LB BL TL RL", #$FF
-    db #$28, "LT BT TB RB", #$FF
-    db #$28, "LR BR TR RT", #$FF
-    db #$FF
-  .routine
-    LDA !ram_cm_botwoon_hidden : BEQ .random
-    ; possible values are $01, $09, $11
-    ; the 1s bit will be dropped, used here for convenience
-    DEC : ASL #3 : INC
-    STA !ram_botwoon_hidden : STA !ram_botwoon_rng
-    RTL
-  .random
-    STA !ram_botwoon_hidden
-    ; set _rng flag if any other patterns are set
-    LDA !ram_botwoon_first : BNE .set_rng
-    LDA !ram_botwoon_second
-  .set_rng
-    STA !ram_botwoon_rng
-    RTL
-
-rng_botwoon_second:
-    dw !ACTION_CHOICE
-    dl #!ram_cm_botwoon_second
-    dw #.routine
-    db #$28, "Botwoon Second", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "LB BL TL RL", #$FF
-    db #$28, "LT BT TB RB", #$FF
-    db #$28, "LR BR TR RT", #$FF
-    db #$28, "LL BB TT RR", #$FF
-    db #$FF
-  .routine
-    LDA !ram_cm_botwoon_second : BEQ .random
-    ; possible values are $01, $09, $11, $19
-    ; the 1s bit will be dropped, used here for convenience
-    DEC : ASL #3 : INC
-    STA !ram_botwoon_second : STA !ram_botwoon_rng
-    RTL
-  .random
-    STA !ram_botwoon_second
-    ; set _rng flag if any other patterns are set
-    LDA !ram_botwoon_first : BNE .set_rng
-    LDA !ram_botwoon_hidden
-  .set_rng
-    STA !ram_botwoon_rng
-    RTL
-
-rng_botwoon_spit:
-    dw !ACTION_CHOICE
-    dl #!ram_cm_botwoon_spit
-    dw #.routine
-    db #$28, "Botwoon Spit", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, " NEVER SPIT", #$FF
-    db #$28, "ALWAYS SPIT", #$FF
-    db #$FF
-  .routine
-    ; 0-4 = no spit, 6-E = spit
-    LDA !ram_cm_botwoon_spit : ASL #2 : STA !ram_botwoon_spit
-    RTL
-
-rng_draygon_rng_right:
-    dw !ACTION_CHOICE
-    dl #!ram_draygon_rng_right
-    dw #$0000
-    db #$28, "Draygon from Ri", #$FF
-    db #$28, "ght  RANDOM", #$FF
-    db #$28, "ght    GOOP", #$FF
-    db #$28, "ght   SWOOP", #$FF
-    db #$FF
-
-rng_draygon_rng_left:
-    dw !ACTION_CHOICE
-    dl #!ram_draygon_rng_left
-    dw #$0000
-    db #$28, "Draygon from Le", #$FF
-    db #$28, "ft   RANDOM", #$FF
-    db #$28, "ft     GOOP", #$FF
-    db #$28, "ft    SWOOP", #$FF
-    db #$FF
-
-rng_crocomire_rng:
-    dw !ACTION_CHOICE
-    dl #!ram_crocomire_rng
-    dw #$0000
-    db #$28, "Crocomire RNG", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "       STEP", #$FF
-    db #$28, "      SWIPE", #$FF
-    db #$FF
-
-rng_kraid_claw_rng:
-    dw !ACTION_CHOICE
-    dl #!ram_kraid_claw_rng
-    dw #$0000
-    db #$28, "Kraid Claw RNG", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "      LAGGY", #$FF
-    db #$28, "    LAGGIER", #$FF
-    db #$FF
-
-rng_kraid_wait_rng:
-    dw !ACTION_CHOICE
-    dl #!ram_kraid_wait_rng
-    dw #$0000
-    db #$28, "Kraid Wait RNG", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "         64", #$FF
-    db #$28, "        128", #$FF
-    db #$28, "        192", #$FF
-    db #$28, "        256", #$FF
-    db #$28, "        320", #$FF
-    db #$28, "        384", #$FF
-    db #$28, "        448", #$FF
-    db #$FF
-
-
-; --------------
-; Phantoon Menu
-; --------------
-ih_prepare_phantoon_menu:
-    LDA !ram_phantoon_rng_inverted : PHA
-    JSL phan_set_phan_first_phase
-    JSL phan_set_phan_second_phase
-    PLA : STA !ram_phantoon_rng_inverted
-    %setmenubank()
-    JML action_submenu
-
-PhantoonMenu:
-    dw #phan_first_phase
-    dw #phan_fast_left_1
-    dw #phan_mid_left_1
-    dw #phan_slow_left_1
-    dw #phan_fast_right_1
-    dw #phan_mid_right_1
-    dw #phan_slow_right_1
-    dw #$FFFF
-    dw #phan_second_phase
-    dw #phan_fast_left_2
-    dw #phan_mid_left_2
-    dw #phan_slow_left_2
-    dw #phan_fast_right_2
-    dw #phan_mid_right_2
-    dw #phan_slow_right_2
-    dw #phan_second_phase_inverted
-    dw #$FFFF
-    dw #phan_eyeclose
-    dw #phan_flamepattern
-    dw #phan_next_flamepattern
-    dw #phan_flame_direction
-    dw #$0000
-    %cm_header("PHANTOON CONTROL")
-
-
-phan_phase_1_table:
-    dw #$003F, #$0020, #$0004, #$0002, #$0010, #$0008, #$0001
-    dw #$0030, #$000C, #$0003, #$002A, #$0015, #$003C, #$0000
-
-phan_phase_2_table:
-    dw #$003F, #$0020, #$0008, #$0002, #$0010, #$0004, #$0001
-    dw #$0030, #$000C, #$0003, #$002A, #$0015, #$0024, #$0000
-
-phan_set_phan_first_phase:
-    LDX #$0000
-    LDA !ram_phantoon_rng_round_1 : BEQ .end_first_loop
-  .first_loop
-    CMP.l phan_phase_1_table,X : BEQ .end_first_loop
-    INX : INX : CPX #$0018 : BNE .first_loop
-  .end_first_loop
-    TXA : LSR : STA !ram_cm_phan_first_phase
-    RTL
-
-phan_set_phan_second_phase:
-    LDX #$0000
-    LDA !ram_phantoon_rng_round_2 : BEQ .end_second_loop
-  .second_loop
-    CMP.l phan_phase_2_table,X : BEQ .end_second_loop
-    INX : INX : CPX #$0018 : BNE .second_loop
-  .end_second_loop
-    TXA : LSR : STA !ram_cm_phan_second_phase
-    BEQ .set_inverted : TXA : BEQ .set_inverted
-    LDA #$0002
-  .set_inverted
-    STA !ram_phantoon_rng_inverted
-    RTL
-
-
-phan_first_phase:
-    dw !ACTION_CHOICE
-    dl #!ram_cm_phan_first_phase
-    dw .routine
-    db #$28, "Phan 1st Phase", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "  FAST LEFT", #$FF
-    db #$28, "   MID LEFT", #$FF
-    db #$28, "  SLOW LEFT", #$FF
-    db #$28, " FAST RIGHT", #$FF
-    db #$28, "  MID RIGHT", #$FF
-    db #$28, " SLOW RIGHT", #$FF
-    db #$28, "       FAST", #$FF
-    db #$28, "        MID", #$FF
-    db #$28, "       SLOW", #$FF
-    db #$28, "       LEFT", #$FF
-    db #$28, "      RIGHT", #$FF
-    db #$28, "   NO SLOWS", #$FF
-    db #$28, "     CUSTOM", #$FF
-    db #$FF
-  .routine
-    ASL : TAX
-    LDA.l phan_phase_1_table,X : STA !ram_phantoon_rng_round_1
-    RTL
-
-phan_fast_left_1:
-    %cm_toggle_bit("#1 Fast Left", !ram_phantoon_rng_round_1, #$0020, phan_set_phan_first_phase)
-
-phan_mid_left_1:
-    %cm_toggle_bit("#1 Mid  Left", !ram_phantoon_rng_round_1, #$0004, phan_set_phan_first_phase)
-
-phan_slow_left_1:
-    %cm_toggle_bit("#1 Slow Left", !ram_phantoon_rng_round_1, #$0002, phan_set_phan_first_phase)
-
-phan_fast_right_1:
-    %cm_toggle_bit("#1 Fast Right", !ram_phantoon_rng_round_1, #$0010, phan_set_phan_first_phase)
-
-phan_mid_right_1:
-    %cm_toggle_bit("#1 Mid  Right", !ram_phantoon_rng_round_1, #$0008, phan_set_phan_first_phase)
-
-phan_slow_right_1:
-    %cm_toggle_bit("#1 Slow Right", !ram_phantoon_rng_round_1, #$0001, phan_set_phan_first_phase)
-
-
-phan_second_phase:
-    dw !ACTION_CHOICE
-    dl #!ram_cm_phan_second_phase
-    dw .routine
-    db #$28, "Phan 2nd Phase", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "  FAST LEFT", #$FF
-    db #$28, "   MID LEFT", #$FF
-    db #$28, "  SLOW LEFT", #$FF
-    db #$28, " FAST RIGHT", #$FF
-    db #$28, "  MID RIGHT", #$FF
-    db #$28, " SLOW RIGHT", #$FF
-    db #$28, "       FAST", #$FF
-    db #$28, "        MID", #$FF
-    db #$28, "       SLOW", #$FF
-    db #$28, "       LEFT", #$FF
-    db #$28, "      RIGHT", #$FF
-    db #$28, "   NO SLOWS", #$FF
-    db #$28, "     CUSTOM", #$FF
-    db #$FF
-  .routine
-    ASL : TAX
-    LDA.l phan_phase_2_table,X : STA !ram_phantoon_rng_round_2
-    BEQ .set_inverted : TXA : BEQ .set_inverted
-    LDA #$0002
-  .set_inverted
-    STA !ram_phantoon_rng_inverted
-    RTL
-
-phan_fast_left_2:
-    %cm_toggle_bit("#2 Fast Left", !ram_phantoon_rng_round_2, #$0020, phan_set_phan_second_phase)
-
-phan_mid_left_2:
-    %cm_toggle_bit("#2 Mid  Left", !ram_phantoon_rng_round_2, #$0008, phan_set_phan_second_phase)
-
-phan_slow_left_2:
-    %cm_toggle_bit("#2 Slow Left", !ram_phantoon_rng_round_2, #$0002, phan_set_phan_second_phase)
-
-phan_fast_right_2:
-    %cm_toggle_bit("#2 Fast Right", !ram_phantoon_rng_round_2, #$0010, phan_set_phan_second_phase)
-
-phan_mid_right_2:
-    %cm_toggle_bit("#2 Mid  Right", !ram_phantoon_rng_round_2, #$0004, phan_set_phan_second_phase)
-
-phan_slow_right_2:
-    %cm_toggle_bit("#2 Slow Right", !ram_phantoon_rng_round_2, #$0001, phan_set_phan_second_phase)
-
-
-phan_second_phase_inverted:
-    dw !ACTION_CHOICE
-    dl #!ram_phantoon_rng_inverted
-    dw #$0000
-    db #$28, "2nd Phase Inver", #$FF
-    db #$28, "t   VANILLA", #$FF
-    db #$28, "t        ON", #$FF
-    db #$28, "t       OFF", #$FF
-    db #$28, "t    RANDOM", #$FF
-    db #$FF
-
-phan_eyeclose:
-    dw !ACTION_CHOICE
-    dl #!ram_phantoon_rng_eyeclose
-    dw #$0000
-    db #$28, "Phan Eye Close", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "       SLOW", #$FF
-    db #$28, "        MID", #$FF
-    db #$28, "       FAST", #$FF
-    db #$FF
-
-phan_flamepattern:
-    dw !ACTION_CHOICE
-    dl #!ram_phantoon_rng_flames
-    dw #$0000
-    db #$28, "Phantoon Flames", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "      22222", #$FF
-    db #$28, "        111", #$FF
-    db #$28, "    3333333", #$FF
-    db #$28, "    1424212", #$FF
-    db #$FF
-
-phan_next_flamepattern:
-    dw !ACTION_CHOICE
-    dl #!ram_phantoon_rng_next_flames
-    dw #$0000
-    db #$28, "Next Flames", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "      22222", #$FF
-    db #$28, "        111", #$FF
-    db #$28, "    3333333", #$FF
-    db #$28, "    1424212", #$FF
-    db #$FF
-
-phan_flame_direction:
-    dw !ACTION_CHOICE
-    dl #!ram_phantoon_flame_direction
-    dw #$0000
-    db #$28, "Flame Direction", #$FF
-    db #$28, "     RANDOM", #$FF
-    db #$28, "       LEFT", #$FF
-    db #$28, "      RIGHT", #$FF
-    db #$FF
-
-
+if !FEATURE_SD2SNES
 ; --------------
 ; Savestate Menu
 ; --------------
 
 SavestateMenu:
     dw #save_rerandomize
-    dw #save_freeze
     dw #save_middoorsave
     dw #save_alwayssave
-if !FEATURE_DEV
-    dw #$FFFF
     dw #save_delete
-endif
     dw #$0000
     %cm_header("SAVESTATE SETTINGS")
 
 save_rerandomize:
     %cm_toggle("Rerandomize", !sram_rerandomize, #$0001, #0)
-
-save_freeze:
-    %cm_toggle("Freeze on Load State", !ram_freeze_on_load, #$0001, #0)
 
 save_middoorsave:
     %cm_toggle("Auto-Save Mid-Door", !ram_auto_save_state, #$0001, #0)
@@ -3734,11 +1811,12 @@ save_alwayssave:
     %cm_toggle("Auto-Save Every Door", !ram_auto_save_state+1, #$80, #0)
 
 save_delete:
-    %cm_jsl("DEV Delete Savestate", .routine, #$DEAD)
+    %cm_jsl("Delete Savestate", .routine, #$DEAD)
   .routine
     TYA : STA !SRAM_SAVED_STATE
     %sfxconfirm()
     RTL
+endif
 
 
 ; ----------
@@ -3752,18 +1830,10 @@ if !FEATURE_SD2SNES
     dw #ctrl_load_state
     dw #ctrl_auto_save_state
 endif
-    dw #ctrl_load_last_preset
-    dw #ctrl_random_preset
+if !FEATURE_PRESETS
     dw #ctrl_save_custom_preset
     dw #ctrl_load_custom_preset
-    dw #ctrl_inc_custom_preset
-    dw #ctrl_dec_custom_preset
-    dw #ctrl_reset_segment_timer
-    dw #ctrl_reset_segment_later
-    dw #ctrl_full_equipment
-    dw #ctrl_kill_enemies
-    dw #ctrl_toggle_tileviewer
-    dw #ctrl_update_timers
+endif
     dw #$FFFF
     dw #ctrl_clear_shortcuts
     dw #ctrl_reset_defaults
@@ -3774,9 +1844,7 @@ endif
 ctrl_menu:
     %cm_ctrl_shortcut("Main menu", !sram_ctrl_menu)
 
-ctrl_load_last_preset:
-    %cm_ctrl_shortcut("Reload Preset", !sram_ctrl_load_last_preset)
-
+if !FEATURE_SD2SNES
 ctrl_save_state:
     %cm_ctrl_shortcut("Save State", !sram_ctrl_save_state)
 
@@ -3785,60 +1853,25 @@ ctrl_load_state:
 
 ctrl_auto_save_state:
     %cm_ctrl_shortcut("Auto Save State", !sram_ctrl_auto_save_state)
+endif
 
-ctrl_reset_segment_timer:
-    %cm_ctrl_shortcut("Reset Seg Timer", !sram_ctrl_reset_segment_timer)
-
-ctrl_reset_segment_later:
-    %cm_ctrl_shortcut("Reset Seg Later", !sram_ctrl_reset_segment_later)
-
-ctrl_full_equipment:
-    %cm_ctrl_shortcut("Full Equipment", !sram_ctrl_full_equipment)
-
-ctrl_kill_enemies:
-    %cm_ctrl_shortcut("Kill Enemies", !sram_ctrl_kill_enemies)
-
-ctrl_random_preset:
-    %cm_ctrl_shortcut("Random Preset", !sram_ctrl_random_preset)
-
+if !FEATURE_PRESETS
 ctrl_save_custom_preset:
     %cm_ctrl_shortcut("Save Cust Preset", !sram_ctrl_save_custom_preset)
 
 ctrl_load_custom_preset:
     %cm_ctrl_shortcut("Load Cust Preset", !sram_ctrl_load_custom_preset)
-
-ctrl_inc_custom_preset:
-    %cm_ctrl_shortcut("Next Preset Slot", !sram_ctrl_inc_custom_preset)
-
-ctrl_dec_custom_preset:
-    %cm_ctrl_shortcut("Prev Preset Slot", !sram_ctrl_dec_custom_preset)
-
-ctrl_toggle_tileviewer:
-    %cm_ctrl_shortcut("Toggle OOB Tiles", !sram_ctrl_toggle_tileviewer)
-
-ctrl_update_timers:
-    %cm_ctrl_shortcut("Update Timers", !sram_ctrl_update_timers)
+endif
 
 ctrl_clear_shortcuts:
     %cm_jsl("Clear All Shortcuts", .routine, #$0000)
   .routine
     TYA
-    STA !ram_game_mode_extras
     STA !sram_ctrl_save_state
     STA !sram_ctrl_load_state
     STA !sram_ctrl_auto_save_state
-    STA !sram_ctrl_load_last_preset
-    STA !sram_ctrl_full_equipment
-    STA !sram_ctrl_kill_enemies
-    STA !sram_ctrl_random_preset
     STA !sram_ctrl_save_custom_preset
     STA !sram_ctrl_load_custom_preset
-    STA !sram_ctrl_inc_custom_preset
-    STA !sram_ctrl_dec_custom_preset
-    STA !sram_ctrl_reset_segment_timer
-    STA !sram_ctrl_reset_segment_later
-    STA !sram_ctrl_toggle_tileviewer
-    STA !sram_ctrl_update_timers
     ; menu to default, Start + Select
     LDA #$3000 : STA !sram_ctrl_menu
     %sfxconfirm()
@@ -3848,40 +1881,5 @@ ctrl_reset_defaults:
     %cm_jsl("Reset to Defaults", .routine, #$0000)
   .routine
     %sfxreset()
-    JML init_sram_upto9_controller_shortcuts
-
-GameModeExtras:
-{
-    ; Check if any less common shortcuts are configured
-    LDA !sram_ctrl_reset_segment_timer : BNE .enabled
-    LDA !sram_ctrl_reset_segment_later : BNE .enabled
-    LDA !sram_ctrl_kill_enemies : BNE .enabled
-    LDA !sram_ctrl_full_equipment : BNE .enabled
-    LDA !sram_ctrl_save_custom_preset : BNE .enabled
-    LDA !sram_ctrl_load_custom_preset : BNE .enabled
-    LDA !sram_ctrl_inc_custom_preset : BNE .enabled
-    LDA !sram_ctrl_dec_custom_preset : BNE .enabled
-    LDA !sram_ctrl_toggle_tileviewer : BNE .enabled
-    LDA !sram_ctrl_update_timers : BNE .enabled
-
-  .enabled
-    STA !ram_game_mode_extras
-    RTL
-}
-
-init_wram_based_on_sram:
-{
-    JSL init_suit_properties_ram
-    JSL init_physics_ram
-
-    ; Check if any less common controller shortcuts are configured
-    JML GameModeExtras
-}
-
-
-; ------------------
-; Menu Customization
-; ------------------
-
-incsrc customizemenu.asm
+   JML init_controller_shortcuts
 

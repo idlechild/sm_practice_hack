@@ -34,11 +34,7 @@ macro item_index_to_vram_index()
 endmacro
 
 macro presetslotsize()
-if !FEATURE_TINYSTATES
-    XBA : TAX       ; multiply by $100
-else
     ASL : XBA : TAX ; multiply by $200
-endif
 endmacro
 
 macro setmenubank()
@@ -126,11 +122,7 @@ endmacro
 macro cm_version_header(title)
 ; header text with automatic version number appended
 table ../resources/header.tbl
-if !VERSION_REV
-    db #$28, "<title> !VERSION_MAJOR.!VERSION_MINOR.!VERSION_BUILD.!VERSION_REV", #$FF
-else
-    db #$28, "<title> !VERSION_MAJOR.!VERSION_MINOR.!VERSION_BUILD", #$FF
-endif
+    db #$28, "<title> !VERSION_MAJOR.!VERSION_MINOR!VERSION_BUILD.!VERSION_REV", #$FF
 table ../resources/normal.tbl
 endmacro
 
@@ -176,6 +168,15 @@ macro cm_numfield_hex_word(title, addr, bitmask, jsltarget)
     dl <addr> ; 24bit RAM address to display/manipulate
     dw <bitmask> ; 16bit mask to cap value (for colors)
     dw <jsltarget> ; 16bit address to code in the same bank as current menu/submenu
+table ../resources/normal.tbl
+    db #$28, "<title>", #$FF
+endmacro
+
+macro cm_numfield_readonly(title, addr)
+; Allows editing a 16-bit value at the specified address
+    dw !ACTION_NUMFIELD_READONLY
+    dl <addr> ; 24bit RAM address to display/manipulate
+    dw #$0000, #$0000, #$0000, #$0000, #$0000
 table ../resources/normal.tbl
     db #$28, "<title>", #$FF
 endmacro
@@ -277,11 +278,6 @@ macro cm_adjacent_submenu(title, target)
   .routine
     JSL cm_previous_menu
     JML action_submenu
-endmacro
-
-macro cm_preset(title, target)
-; runs action_load_preset to set the bank of the preset menu that matches the current category
-    %cm_jsl_submenu("<title>", #action_load_preset, <target>)
 endmacro
 
 macro cm_custompreset(slot)

@@ -101,12 +101,10 @@ for line in template_lines:
    if len(line) < 3:
       f_menu_output.write(line)
    elif line == "LayoutMenu:\n":
-      areaboss_door_count = len(portal_tables["area_boss"])
       left_door_count = len(portal_tables["left"])
       right_door_count = len(portal_tables["right"])
       up_door_count = len(portal_tables["up"])
       down_door_count = len(portal_tables["down"])
-      f_menu_output.write("!layout_areaboss_door_count = #$%s\n" % f'{areaboss_door_count:04X}')
       f_menu_output.write("!layout_left_door_count = #$%s\n" % f'{left_door_count:04X}')
       f_menu_output.write("!layout_right_door_count = #$%s\n" % f'{right_door_count:04X}')
       f_menu_output.write("!layout_up_door_count = #$%s\n" % f'{up_door_count:04X}')
@@ -161,10 +159,7 @@ for line in template_lines:
                door_count = 0
             for data in menus[key]:
                door_menu_label = "%s_%s" % (door_prefix, data[0])
-               if door_prefix == "areaboss" and len(data[2]) > 0:
-                  f_menu_output.write("    dw #doormenu_%s %s\n" % (f'{door_menu_label:14}', data[2]))
-               else:
-                  f_menu_output.write("    dw #doormenu_%s\n" % door_menu_label)
+               f_menu_output.write("    dw #doormenu_%s\n" % door_menu_label)
             has_page2 = False
             key2 = key + "2"
             if key2 in menus:
@@ -176,12 +171,8 @@ for line in template_lines:
                has_page3 = True
                f_menu_output.write("    dw #doormenu_%s%s_goto_page3\n" % (goto_prefix, door_prefix))
             f_menu_output.write("    dw #$0000\n")
-            if door_prefix == "areaboss":
-               door_select_text = "SELECT DOOR"
-               door_menu_select = "doormenu_select"
-            else:
-               door_select_text = "SELECT %s DOOR" % door_prefix.upper()
-               door_menu_select = "doorsubmenu_select"
+            door_select_text = "SELECT %s DOOR" % door_prefix.upper()
+            door_menu_select = "doorsubmenu_select"
             f_menu_output.write("    %ccm_header(\"%s\")\n" % ('%', door_select_text))
             if has_page2:
                f_menu_output.write("\n%s:\n" % key2)
@@ -254,20 +245,19 @@ for key, table in portal_tables.items():
    f_table_output.write("\nportals_%s_vanilla_table:" % key.replace('_', ''))
    for addr, data in table.items():
       inconsistencies = ""
-      if key != "area_boss":
-         if addr in all_door_addrs:
-            inconsistencies += "(dup addr?) "
+      if addr in all_door_addrs:
+         inconsistencies += "(dup addr?) "
+      else:
+         all_door_addrs.append(addr)
+      if " --> " not in data[1]:
+         inconsistencies += "(-->?)"
+      else:
+         i = data[1].index(" --> ")
+         desc = data[1][:i].strip('(')
+         if desc in all_door_descs:
+            inconsistencies += "(dup door?) "
          else:
-            all_door_addrs.append(addr)
-         if " --> " not in data[1]:
-            inconsistencies += "(-->?)"
-         else:
-            i = data[1].index(" --> ")
-            desc = data[1][:i].strip('(')
-            if desc in all_door_descs:
-               inconsistencies += "(dup door?) "
-            else:
-               all_door_descs.append(desc)
+            all_door_descs.append(desc)
       f_table_output.write("\n    dw $%s %s   ; %s" % (addr, inconsistencies, data[1]))
    f_table_output.write("\n\n; Above table with portals inverted")
    f_table_output.write("\nportals_%s_vanilla_inverted_table:" % key.replace('_', ''))
@@ -310,6 +300,14 @@ for key, table in portal_tables.items():
             j += 5
             inverted_src_desc = inverted_desc[:i].strip('(')
             inverted_dest_desc = inverted_desc[j:].strip(')')
+            if inverted_src_desc.endswith(" custom"):
+               inverted_src_desc = inverted_src_desc[:-7]
+            if inverted_dest_desc.endswith(" custom"):
+               inverted_dest_desc = inverted_dest_desc[:-7]
+            if dest_desc.endswith(" custom"):
+               inverted_src_desc += " custom"
+            if src_desc.endswith(" custom"):
+               inverted_dest_desc += " custom"
             if inverted_src_desc != dest_desc:
                inconsistencies += "(%s door?) " % dest_desc
             if inverted_dest_desc != src_desc:
@@ -322,15 +320,6 @@ for key, table in portal_tables.items():
          f_table_output.write("\n    dw $%s %s   ; %s" % (inverted_addr, inconsistencies, extra_table[inverted_addr][1]))
       else:
          f_table_output.write("\n    dw $%s" % inverted_addr)
-   if key == "area_boss":
-      f_table_output.write("\n\n; Above table with custom portals")
-      f_table_output.write("\nportals_%s_custom_inverted_table:" % key.replace('_', ''))
-      for addr, data in table.items():
-         door_name = table[data[0]][1].split('-')[0].strip().replace(' ','_').replace("_door_","_door").lower()
-         if len(data[2]) > 0:
-            f_table_output.write("\n    dw #door_custom_%s_%s %s" % (data[0], f'{door_name:34}', data[2]))
-         else:
-            f_table_output.write("\n    dw #door_custom_%s_%s" % (data[0], door_name))
 
 f_table_output.write("\n\n")
 f_table_output.close()

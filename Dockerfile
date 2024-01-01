@@ -18,19 +18,20 @@ RUN wget https://github.com/RPGHacker/asar/archive/v1.81.tar.gz \
  && cp asar/asar-standalone /app/tools/asar
 
 RUN mkdir -p /app/build \
+ && mkdir -p /app/layout \
  && mkdir -p /app/names \
  && mkdir -p /app/resources \
  && mkdir -p /app/src
 
 COPY build.sh /app/build.sh
-COPY build_dev.sh /app/build_dev.sh
-COPY build_PAL.sh /app/build_PAL.sh
 
 ARG now
 
 WORKDIR /app
 RUN rm -rf build
 RUN mkdir -p build
+RUN rm -rf layout
+COPY layout/ layout/
 RUN rm -rf names
 COPY names/ names/
 RUN rm -rf resources
@@ -38,8 +39,6 @@ COPY resources/ resources/
 RUN rm -rf src
 COPY src/ src/
 
-RUN ./build_dev.sh
-RUN ./build_PAL.sh
 RUN ./build.sh
 
 FROM scratch AS export-stage

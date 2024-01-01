@@ -215,8 +215,19 @@ COPHandler:
     JMP CrashHandler_fixStack
 }
 
+transfer_cgram_long:
+{
+    PHP
+    %a16() : %i8()
+    LDX #$80 : STX $2100 ; forced blanking
+    JSR $933A
+    LDX #$0F : STX $2100
+    PLP
+    RTL
+}
+
 print pc, " crash handler bank80 end"
-warnpc $80F000 ; presets.asm
+warnpc $80EA00
 
 pullpc
 print pc, " crash handler bank89 start"
@@ -1072,11 +1083,7 @@ crash_read_inputs:
 
 CrashTextHeader:
 table ../resources/header.tbl
-if !VERSION_REV
-    db "CRASH HANDLER !VERSION_MAJOR.!VERSION_MINOR.!VERSION_BUILD.!VERSION_REV", $FF
-else
-    db "CRASH HANDLER !VERSION_MAJOR.!VERSION_MINOR.!VERSION_BUILD", $FF
-endif
+db "CRASH HANDLER !VERSION_MAJOR.!VERSION_MINOR!VERSION_BUILD.!VERSION_REV", $FF
 table ../resources/normal.tbl
 
 CrashTextFooter1:

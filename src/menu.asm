@@ -1,4 +1,8 @@
 
+org $9AB200      ; graphics for HUD
+hudgfx_bin:
+
+
 org $85FD00
 print pc, " menu bank85 start"
 
@@ -28,8 +32,16 @@ maybe_trigger_pause_long:
     JSR $80FA
     RTL
 
+kll_enemies:
+{
+    TDC
+  .kill_loop
+    TAX : LDA $0F86,X : ORA #$0200 : STA $0F86,X
+    TXA : CLC : ADC #$0040 : CMP #$0400 : BNE .kill_loop
+    RTL
+}
+
 print pc, " menu bank85 end"
-warnpc $85FE00 ; fanfare.asm
 
 
 org $89B000
@@ -63,20 +75,6 @@ cm_start:
     JSL cm_transfer_original_tileset
     JSL cm_transfer_original_cgram
 
-    ; Update HUD (in case we added missiles etc.)
-    LDA !ram_gametime_room : STA $C1
-    LDA !ram_last_gametime_room : STA $C3
-    JSL $809A79 ; Initialize HUD
-    LDA $C1 : STA !ram_gametime_room
-    LDA $C3 : STA !ram_last_gametime_room
-    JSL $809B44 ; Handle HUD tilemap
-    JSL ih_update_hud_code
-
-    LDA !ram_seed_X : STA !sram_seed_X
-    LDA !ram_seed_Y : STA !sram_seed_Y
-    JSL init_heat_damage_ram
-    JSL init_physics_ram
-    JSL GameLoopExtras ; check if game_loop_extras needs to be disabled
     JSL restore_ppu_long ; Restore PPU registers and tilemaps
 
     ; skip sound effects if not gameplay ($7-13 allowed)
@@ -111,11 +109,9 @@ cm_init:
 
     ; Set up menu state
     %a16()
-    LDA #$0000
-    STA !ram_cm_stack_index : STA !ram_cm_cursor_stack
+    TDC : STA !ram_cm_stack_index : STA !ram_cm_cursor_stack
     STA !ram_cm_horizontal_cursor
-    STA !ram_cm_leave : STA !ram_load_preset
-    STA !ram_cm_ctrl_mode : STA !ram_cm_ctrl_timer
+    STA !ram_cm_leave : STA !ram_cm_ctrl_mode : STA !ram_cm_ctrl_timer
     STA !IH_CONTROLLER_PRI_NEW : STA !IH_CONTROLLER_PRI
 
     LDA !FRAME_COUNTER : STA !ram_cm_input_counter
@@ -129,8 +125,8 @@ cm_init:
 
 cm_set_etanks_and_reserve:
 {
-    LDA !SAMUS_HP_MAX : JSR cm_divide_100 : STA !ram_cm_etanks
-    LDA !SAMUS_RESERVE_MAX : JSR cm_divide_100 : STA !ram_cm_reserve
+    LDA !SAMUS_HP_MAX : JSR cm_divide_50 : DEC : STA !ram_cm_etanks
+    LDA !SAMUS_RESERVE_MAX : JSR cm_divide_50 : STA !ram_cm_reserve
     RTL
 }
 
@@ -185,12 +181,8 @@ cm_transfer_original_tileset:
     %a16()
     LDA !ROOM_ID : CMP #$A59F : BEQ .kraid_vram
 
-    %a8()
-    LDA !ram_minimap : CMP #$00 : BEQ .normal_vram
-    BRL .minimap_vram
-
-  .normal_vram
     ; Load in normal vram to normal BG3 location
+    %a8()
     LDA #$80 : STA $802100 ; enable forced blanking
     LDA #$04 : STA $210C ; BG3 starts at $4000 (8000 in vram)
     LDA #$80 : STA $2115 ; word-access, incr by 1
@@ -206,48 +198,14 @@ cm_transfer_original_tileset:
     RTL
 
   .kraid_vram
-    %a8()
-    LDA !ram_minimap : CMP #$00 : BNE .kraid_minimap_vram
-
     ; Load in normal vram to kraid BG3 location
+    %a8()
     LDA #$80 : STA $802100 ; enable forced blanking
     LDA #$02 : STA $210C ; BG3 starts at $2000 (4000 in vram)
     LDA #$80 : STA $2115 ; word-access, incr by 1
     LDX #$2000 : STX $2116 ; VRAM address (4000 in vram)
     LDX.w #hudgfx_bin : STX $4302 ; Source offset
     LDA.b #hudgfx_bin>>16 : STA $4304 ; Source bank
-    LDX #$1000 : STX $4305 ; Size (0x10 = 1 tile)
-    LDA #$01 : STA $4300 ; word, normal increment (DMA MODE)
-    LDA #$18 : STA $4301 ; destination (VRAM write)
-    LDA #$01 : STA $420B ; initiate DMA (channel 1)
-    LDA #$0F : STA $0F2100 ; disable forced blanking
-    PLP
-    RTL
-
-  .minimap_vram
-    ; Load in minimap vram to normal BG3 location
-    LDA #$80 : STA $802100 ; enable forced blanking
-    LDA #$04 : STA $210C ; BG3 starts at $4000 (8000 in vram)
-    LDA #$80 : STA $2115 ; word-access, incr by 1
-    LDX #$4000 : STX $2116 ; VRAM address (8000 in vram)
-    LDX.w #mapgfx_bin : STX $4302 ; Source offset
-    LDA.b #mapgfx_bin>>16 : STA $4304 ; Source bank
-    LDX #$1000 : STX $4305 ; Size (0x10 = 1 tile)
-    LDA #$01 : STA $4300 ; word, normal increment (DMA MODE)
-    LDA #$18 : STA $4301 ; destination (VRAM write)
-    LDA #$01 : STA $420B ; initiate DMA (channel 1)
-    LDA #$0F : STA $0F2100 ; disable forced blanking
-    PLP
-    RTL
-
-  .kraid_minimap_vram
-    ; Load in minimap vram to kraid BG3 location
-    LDA #$80 : STA $802100 ; enable forced blanking
-    LDA #$02 : STA $210C ; BG3 starts at $2000 (4000 in vram)
-    LDA #$80 : STA $2115 ; word-access, incr by 1
-    LDX #$2000 : STX $2116 ; VRAM address (4000 in vram)
-    LDX.w #mapgfx_bin : STX $4302 ; Source offset
-    LDA.b #mapgfx_bin>>16 : STA $4304 ; Source bank
     LDX #$1000 : STX $4305 ; Size (0x10 = 1 tile)
     LDA #$01 : STA $4300 ; word, normal increment (DMA MODE)
     LDA #$18 : STA $4301 ; destination (VRAM write)
@@ -374,13 +332,10 @@ cm_tilemap_bg:
     LDA !sram_menu_background : BNE .fillInterior
     ; but sometimes forced for readability
     ; Paused, game states $C-11
-    LDA !GAMEMODE : CMP #$000C : BMI .checkCeres : BEQ .fillInterior
+    LDA !GAMEMODE : CMP #$000C : BMI .done : BEQ .fillInterior
     CMP #$0012 : BMI .fillInterior
     ; Game over, $1A
-    CMP #$001A : BEQ .fillInterior
-  .checkCeres
-    ; Ceres elevator room, $DF45
-    LDA !ROOM_ID : CMP #$DF45 : BNE .done
+    CMP #$001A : BNE .done
 
   .fillInterior
     LDX #$0000
@@ -388,7 +343,6 @@ cm_tilemap_bg:
     LDA !MENU_BLANK ; blank background tile
 
   .loopBackground
-;    STA !ram_tilemap_buffer+$004,X
     STA !ram_tilemap_buffer+$084,X
     STA !ram_tilemap_buffer+$0C4,X
     STA !ram_tilemap_buffer+$104,X
@@ -535,6 +489,7 @@ cm_draw_action_table:
     dw draw_numfield_hex
     dw draw_numfield_word
     dw draw_numfield_hex_word
+    dw draw_numfield_word
     dw draw_numfield_color
     dw draw_numfield_sound
     dw draw_choice
@@ -544,9 +499,9 @@ cm_draw_action_table:
     dw draw_jsl
     dw draw_submenu
     dw draw_custom_preset
-    dw draw_ram_watch
     dw draw_dynamic
     dw draw_manage_presets
+    dw draw_arcade_timer
 
 draw_toggle:
 {
@@ -1097,6 +1052,7 @@ draw_submenu:
 
 draw_custom_preset:
 {
+if !FEATURE_PRESETS
     %a8()
     ; store slot index in !DP_ToggleValue
     LDA [!DP_CurrentMenu] : STA !DP_ToggleValue
@@ -1112,12 +1068,13 @@ draw_custom_preset:
     JSR cm_draw_text
 
     ; get preset slot offset
-    LDA !DP_ToggleValue : %presetslotsize()
-    ; store preset slot index in !DP_Address
+    LDA !DP_ToggleValue
+    %presetslotsize()
+    ; store preset slot offset in !DP_Address
     STX !DP_Address
 
     ; check if slot has valid data
-    LDA $703000,X : CMP #$5AFE : BEQ .validPreset
+    LDA !PRESET_SLOTS_START,X : CMP #$5AFE : BEQ .validPreset
     ; slot is EMPTY, fix bank and exit
     LDA !DP_MenuIndices+2 : STA !DP_CurrentMenu+2
     RTS
@@ -1257,15 +1214,13 @@ draw_custom_preset:
     LDA !DP_SecondDigit : CLC : ADC !DP_Palette : STA !ram_tilemap_buffer,X
 
   .done
+endif
     RTS
-
-pushpc
-incsrc roomnames.asm
-pullpc
 }
 
 draw_manage_presets:
 {
+if !FEATURE_PRESETS
     LDA [!DP_CurrentMenu] : AND #$00FF : PHA
     ; draw it normally first
     JSR draw_custom_preset
@@ -1283,91 +1238,7 @@ draw_manage_presets:
     LDA !MENU_ARROW_RIGHT : STA !ram_tilemap_buffer,X
 
   .done
-    RTS
-}
-
-draw_ram_watch:
-{
-    PHB : PHK : PLB
-
-    ; Draw the text
-    %item_index_to_vram_index()
-    JSR cm_draw_text
-
-    ; Draw $ signs in the appropriate places
-    LDX #$2C00|'$'
-    LDA !ram_watch_write_mode : BNE .both_8bit
-    TXA : STA !ram_tilemap_buffer+$5D0 : STA !ram_tilemap_buffer+$5E6
-    BRA .draw_hex
-  .both_8bit
-    TXA : STA !ram_tilemap_buffer+$5D4 : STA !ram_tilemap_buffer+$5EA
-
-    ; Draw hexidecimal numbers
-  .draw_hex
-    LDX #$05D2 ; position for left hex
-    LDA !ram_watch_left : CLC : ADC !ram_watch_left_index : STA !DP_Address
-    LDA !ram_watch_bank : STA !DP_Address+2
-    LDA [!DP_Address] : STA !DP_DrawValue
-
-    ; check if 8-bit mode
-    LDA !ram_watch_write_mode : BEQ .draw_left
-    LDA !DP_DrawValue : AND #$00FF : STA !DP_DrawValue
-    BRA .left_8bit
-
-  .draw_left
-    ; (X000)
-    LDA !DP_DrawValue : AND #$F000 : XBA : LSR #3 : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer,X
-    ; (0X00)
-    LDA !DP_DrawValue : AND #$0F00 : XBA : ASL : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer+2,X
-  .left_8bit
-    ; (00X0)
-    LDA !DP_DrawValue : AND #$00F0 : LSR #3 : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer+4,X
-    ; (000X)
-    LDA !DP_DrawValue : AND #$000F : ASL : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer+6,X
-
-    ; Draw left decimal number
-    LDX #$0610 ; position for left decimal
-    JSR cm_hex2dec_draw5
-
-    LDX #$05E8 ; position for right hex
-    LDA !ram_watch_right : CLC : ADC !ram_watch_right_index : STA !DP_Address
-    LDA [!DP_Address] : STA !DP_DrawValue
-
-    ; check if 8-bit mode
-    LDA !ram_watch_write_mode : BEQ .draw_right
-    LDA !DP_DrawValue : AND #$00FF : STA !DP_DrawValue
-    BRA .right_8bit
-
-  .draw_right
-    ; (X000)
-    LDA !DP_DrawValue : AND #$F000 : XBA : LSR #3 : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer,X
-    ; (0X00)
-    LDA !DP_DrawValue : AND #$0F00 : XBA : ASL : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer+2,X
-  .right_8bit
-    ; (00X0)
-    LDA !DP_DrawValue : AND #$00F0 : LSR #3 : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer+4,X
-    ; (000X)
-    LDA !DP_DrawValue : AND #$000F : ASL : TAY
-    LDA.w HexMenuGFXTable,Y : STA !ram_tilemap_buffer+6,X
-
-    ; Draw right decimal number
-    LDX #$0626 ; position for right decimal
-    JSR cm_hex2dec_draw5
-
-    ; adjust max cursor position to prevent selecting display item
-    LDA !DP_MenuIndices : PHA
-    JSL cm_calculate_max
-    PLA : STA !DP_MenuIndices
-    LDA !ram_cm_cursor_max : SEC : SBC #$0004 : STA !ram_cm_cursor_max
-
-    PLB
+endif
     RTS
 }
 
@@ -1401,6 +1272,62 @@ draw_dynamic:
     JMP (cm_draw_action_table,X)
 
   .skip
+    RTS
+}
+
+draw_arcade_timer:
+{
+    ; grab the memory address (long)
+    LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : INC !DP_CurrentMenu : STA !DP_Address
+    LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : STA !DP_Address+2
+
+    ; skip maximum value
+    INC !DP_CurrentMenu : INC !DP_CurrentMenu
+
+    ; increment past JSL
+    INC !DP_CurrentMenu : INC !DP_CurrentMenu
+
+    ; Draw the text
+    %item_index_to_vram_index()
+    PHX : JSR cm_draw_text : PLX
+
+    ; set position for the number
+    TXA : CLC : ADC #$002C : TAX
+
+    ; convert value to decimal
+    LDA [!DP_Address] : BEQ .draw
+    SEC : SBC $7FFF88
+
+  .draw
+    JSR cm_hex2dec
+
+    ; Clear out the area
+    LDA !MENU_BLANK : STA !ram_tilemap_buffer+0,X
+                      STA !ram_tilemap_buffer+2,X
+                      STA !ram_tilemap_buffer+4,X
+                      STA !ram_tilemap_buffer+6,X
+
+    ; Set palette
+    %a8()
+    LDA #$24 : ORA !DP_Palette : STA !DP_Palette+1
+    LDA #$70 : STA !DP_Palette ; number tiles are 70-79
+
+    ; Draw numbers
+    %a16()
+    ; ones
+    LDA !DP_ThirdDigit : CLC : ADC !DP_Palette : STA !ram_tilemap_buffer+6,X
+    ; tens
+    LDA !DP_SecondDigit : ORA !DP_FirstDigit
+    ORA !DP_Temp : BEQ .done
+    LDA !DP_SecondDigit : CLC : ADC !DP_Palette : STA !ram_tilemap_buffer+4,X
+    ; hundreds
+    LDA !DP_FirstDigit : ORA !DP_Temp : BEQ .done
+    LDA !DP_FirstDigit : CLC : ADC !DP_Palette : STA !ram_tilemap_buffer+2,X
+    ; thousands
+    LDA !DP_Temp : BEQ .done
+    CLC : ADC !DP_Palette : STA !ram_tilemap_buffer,X
+
+  .done
     RTS
 }
 
@@ -1566,7 +1493,6 @@ cm_loop:
     JSL wait_for_lag_frame_long
     JSL $808F0C ; Music queue
     JSL $8289EF ; Sound fx queue
-    JSL MenuRNG
 
     LDA !ram_cm_leave : BEQ .check_ctrl_mode
     RTS ; Exit menu loop
@@ -1662,7 +1588,6 @@ cm_ctrl_mode:
 
     ; Store controller input to SRAM
     LDA !IH_CONTROLLER_PRI : STA [!DP_CtrlInput]
-    JSL GameModeExtras
     %sfxconfirm()
     BRA .exit
 
@@ -2558,6 +2483,7 @@ cm_execute_action_table:
     dw execute_numfield_hex
     dw execute_numfield_word
     dw execute_numfield_hex_word
+    dw execute_nop
     dw execute_numfield_color
     dw execute_numfield_sound
     dw execute_choice
@@ -2567,9 +2493,12 @@ cm_execute_action_table:
     dw execute_jsl
     dw execute_submenu
     dw execute_custom_preset
-    dw execute_ram_watch
     dw execute_dynamic
     dw execute_manage_presets
+    dw execute_arcade_timer
+
+execute_nop:
+    RTS
 
 execute_toggle:
 {
@@ -2680,20 +2609,20 @@ execute_numfield:
     ; determine dpad direction
     LDA !ram_cm_controller : BIT #$0200 : BNE .pressed_left
     ; pressed right, inc
-    LDA [!DP_Address] : CLC : ADC !DP_Increment
+    %a8() : LDA [!DP_Address] : CLC : ADC !DP_Increment
     CMP !DP_Maximum : BCS .set_to_min
-    %a8() : STA [!DP_Address] : BRA .jsl
+    STA [!DP_Address] : BRA .jsl
 
   .pressed_left ; dec
-    LDA [!DP_Address] : SEC : SBC !DP_Increment : BMI .set_to_max
+    %a8() : LDA [!DP_Address] : SEC : SBC !DP_Increment : BMI .set_to_max
     CMP !DP_Minimum : BCC .set_to_max
-    %a8() : STA [!DP_Address] : BRA .jsl
+    STA [!DP_Address] : BRA .jsl
 
   .set_to_min
-    LDA !DP_Minimum : %a8() : STA [!DP_Address] : BRA .jsl
+    LDA !DP_Minimum : STA [!DP_Address] : BRA .jsl
 
   .set_to_max
-    LDA !DP_Maximum : DEC : %a8() : STA [!DP_Address]
+    LDA !DP_Maximum : DEC : STA [!DP_Address]
 
   .jsl
     %a16()
@@ -3020,7 +2949,7 @@ execute_ctrl_shortcut:
     RTS
 
   .reset_shortcut
-    LDA.w #!sram_ctrl_menu : CMP !DP_CtrlInput : BEQ .end
+    LDA.w !sram_ctrl_menu : CMP !DP_CtrlInput : BEQ .end
     %sfxconfirm()
 
     LDA #$0000 : STA [!DP_CtrlInput]
@@ -3113,6 +3042,7 @@ execute_submenu:
 
 execute_custom_preset:
 {
+if !FEATURE_PRESETS
     ; check if X or Y newly pressed
     LDA !IH_CONTROLLER_PRI_NEW : BIT !CTRL_Y : BNE .toggleDisplay
     LDA !IH_CONTROLLER_PRI_NEW : BIT !CTRL_X : BEQ .checkLeftRight
@@ -3162,18 +3092,12 @@ execute_custom_preset:
 
     ; set preset slot and return to the previous menu
     LDA [!DP_CurrentMenu] : AND #$00FF : STA !sram_custom_preset_slot
-    LDA !sram_last_preset : BMI .sfx
-    LDA #$0000 : STA !sram_last_preset
   .sfx
     %sfxconfirm()
     JSL cm_previous_menu
     RTS
 
   .flipPage
-if !FEATURE_TINYSTATES
-    ; TinyStates only has one page
-    RTS
-endif
     ; flip to the next/prev page
     BIT !IH_INPUT_LEFT : BNE .decPage
     LDA [!DP_CurrentMenu] : AND #$00FF : CMP #$0010 : BMI .loadPage2
@@ -3193,16 +3117,14 @@ endif
   .done
     JSL cm_previous_menu
     JSL action_submenu
+endif
     RTS
 }
 
 execute_manage_presets:
 {
+if !FEATURE_PRESETS
     LDA !IH_CONTROLLER_PRI : BIT !IH_INPUT_LEFTRIGHT : BEQ .manageSlots
-if !FEATURE_TINYSTATES
-    ; TinyStates only has one page
-    RTS
-endif
     ; flip to the next/prev page
     BIT !IH_INPUT_LEFT : BNE .decPage
     LDA [!DP_CurrentMenu] : AND #$00FF : CMP #$0010 : BMI .loadPage2
@@ -3229,7 +3151,7 @@ endif
     ; check if preset exists
     LDA [!DP_CurrentMenu] : AND #$00FF : STA !ram_cm_selected_slot
     %presetslotsize()
-    LDA $703000,X : CMP #$5AFE : BNE .failSFX
+    LDA !PRESET_SLOTS_START,X : CMP #$5AFE : BNE .failSFX
     ; open confirmation screen before deleting preset
     LDY.w #ManagePresetsConfirm
     ; set bank for manual submenu jump
@@ -3253,14 +3175,16 @@ endif
   .swapSlots
     PHB
     ; put source address for slot 1 in !DP_Address
-    LDA !ram_cm_selected_slot : %presetslotsize()
-    CLC : ADC.w #$3000 : STA !DP_Address
+    LDA !ram_cm_selected_slot
+    %presetslotsize()
+    CLC : ADC #!PRESET_SLOTS_START : STA !DP_Address
 
     ; get preset slot #
-    LDA [!DP_CurrentMenu] : AND #$00FF : %presetslotsize()
+    LDA [!DP_CurrentMenu] : AND #$00FF
+    %presetslotsize()
 
     ; put source address for slot 2 in !DP_JSLTarget
-    CLC : ADC.w #$3000 : STA !DP_JSLTarget
+    CLC : ADC #!PRESET_SLOTS_START : STA !DP_JSLTarget
 
     ; slot 1 to buffer
     LDX !DP_Address
@@ -3309,17 +3233,10 @@ endif
     LDA !sram_custom_preset_safewords,X : TYX : STA !sram_custom_preset_safewords,X
     LDX !DP_Temp : LDA !DP_Address : STA !sram_custom_preset_safewords,X
 
-    LDA #$0000 : STA !ram_cm_manage_slots
-    LDA !sram_last_preset : BMI .done
-    LDA #$0000 : STA !sram_last_preset
+    TDC : STA !ram_cm_manage_slots
   .done
     PLB
-    RTS
-}
-
-execute_ram_watch:
-{
-    ; do nothing
+endif
     RTS
 }
 
@@ -3356,6 +3273,80 @@ execute_dynamic:
     RTS
 }
 
+execute_arcade_timer:
+{
+    ; grab the memory address (long)
+    LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : INC !DP_CurrentMenu : STA !DP_DigitAddress
+    LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : STA !DP_DigitAddress+2
+
+    ; grab maximum (!DP_DigitMaximum) value
+    LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : INC !DP_CurrentMenu : INC : STA !DP_DigitMaximum ; INC for convenience
+
+    ; add 30 to maximum if hyper beam active
+    LDA !SAMUS_HYPER_BEAM : BEQ .pastMaxValue
+    LDA !DP_DigitMaximum : CLC : ADC #$001E : STA !DP_DigitMaximum
+  .pastMaxValue
+
+    ; initialize minimum value and normal increment
+    TDC : STA !DP_DigitMinimum : INC : STA !DP_Increment
+
+    ; check for Y pressed to skip inc/dec
+    LDA !ram_cm_controller : BIT !CTRL_Y : BNE .skip_inc
+
+    ; check for held inputs
+    BIT !IH_INPUT_HELD : BEQ .pastFastValue
+    ; input held, grab faster increment
+    LDA #$0014 : STA !DP_Increment
+  .pastFastValue
+
+    ; grab JSL address
+    LDA [!DP_CurrentMenu] : STA !DP_JSLTarget
+
+    ; grab and push value
+    LDA [!DP_DigitAddress] : BEQ .pastValue
+    SEC : SBC $7FFF88
+  .pastValue
+    PHA
+
+    ; check direction held
+    LDA !ram_cm_controller : BIT #$0200 : BNE .pressed_left
+    ; pressed right, inc
+    PLA : CLC : ADC !DP_Increment
+    CMP !DP_DigitMaximum : BCS .set_to_min
+    CLC : ADC $7FFF88 : STA [!DP_DigitAddress]
+    
+  .skip_inc
+    BRA .jsl
+
+  .pressed_left ; dec
+    PLA : SEC : SBC !DP_Increment
+    CMP !DP_DigitMinimum : BMI .set_to_max
+    CMP !DP_DigitMaximum : BCS .set_to_max
+    CLC : ADC $7FFF88 : STA [!DP_DigitAddress] : BRA .jsl
+
+  .set_to_min
+    LDA !DP_DigitMinimum : STA [!DP_DigitAddress] : BRA .jsl
+
+  .set_to_max
+    LDA !DP_DigitMaximum : DEC : CLC : ADC $7FFF88 : STA [!DP_DigitAddress]
+
+  .jsl
+    ; skip if JSL target is zero
+    LDA !DP_JSLTarget : BEQ .end
+
+    ; Set return address for indirect JSL
+    LDA !ram_cm_menu_bank : STA !DP_JSLTarget+2
+    PHK : PEA .end-1
+
+    ; addr in A
+    LDA [!DP_Address] : LDX #$0000
+    JML.w [!DP_JSLTarget]
+
+  .end
+    %ai16()
+    %sfxnumber()
+    RTS
+}
 
 cm_hex2dec:
 {
@@ -3418,64 +3409,18 @@ cm_reverse_hex2dec:
     RTS
 }
 
-cm_divide_100:
+cm_divide_50:
 {
     STA $4204
     %a8()
-    ; divide by 100
-    LDA #$64 : STA $4206
+    ; divide by 50
+    LDA #$32 : STA $4206
     %a16()
     PEA $0000 : PLA ; wait for math
     ; 16-bit result
     LDA $4214
     RTS
 }
-
-MenuRNG:
-; Generates new random number
-; 32-bit period (uses two 16-bit seeds)
-; Make sure ram_seed_X and ram_seed_Y is initialized to something other than zero
-{
-    LDA !ram_seed_X : ASL #5
-    EOR !ram_seed_X : STA $C1
-
-    LDA !ram_seed_Y : STA !ram_seed_X
-
-    LDA $C1 : LSR #3
-    EOR $C1 : STA $C1
-
-    LDA !ram_seed_Y : LSR
-    EOR !ram_seed_Y : EOR $C1
-    STA !ram_seed_Y
-
-    ; return y (in a)
-    RTL    
-}
-
-MenuRNG2:
-; 16-bit period xorshift (uses only ram_seed_X)
-; Make sure ram_seed_X is not zero
-{
-    LDA !ram_seed_X
-    STA $C1
-    ASL #2 : EOR $C1 : STA $C1
-    LSR #5 : EOR $C1 : STA $C1
-    ASL : EOR $C1
-    STA !ram_seed_X
-    RTL
-}
-
-
-; -----------
-; Main menu
-; -----------
-
-pushpc
-org $B88000
-print pc, " mainmenu start"
-incsrc mainmenu.asm
-print pc, " mainmenu end"
-pullpc
 
 
 ; ----------
@@ -3496,3 +3441,22 @@ print pc, " menu end"
 ; -------------
 
 incsrc crash.asm
+
+
+; -----------
+; Main menu
+; -----------
+
+org $85A000
+print pc, " mainmenu start"
+
+incsrc mainmenu.asm
+incsrc arcademenu.asm
+
+print pc, " mainmenu end"
+
+
+incsrc customizemenu.asm
+incsrc layoutmenu.asm
+incsrc roomnames.asm
+

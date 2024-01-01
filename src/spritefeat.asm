@@ -74,11 +74,7 @@ update_sprite_features:
     PLP : PLY : PLX : PLA
 
   .done
-if !FEATURE_PAL
-    JSL $A0885D
-else
     JSL $A0884D
-endif
     RTL
 }
 

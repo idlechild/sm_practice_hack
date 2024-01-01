@@ -1,64 +1,41 @@
 lorom
 
-!FEATURE_SD2SNES ?= 1
-!FEATURE_TINYSTATES ?= 0
-!FEATURE_DEV ?= 0
-!FEATURE_PAL ?= 1
-!INFOHUD_ALWAYS_SHOW_X_Y ?= 0
-!ORIGINAL_MESSAGE_TEXT ?= 0
-!PRESERVE_WRAM_DURING_SPACETIME ?= 1
-!RAW_TILE_GRAPHICS ?= 1
-
-!VERSION_MAJOR = 2
-!VERSION_MINOR = 5
-!VERSION_BUILD = 10
-!VERSION_REV   = 1
+!VERSION_MAJOR = 1
+!VERSION_MINOR = 0
+!VERSION_BUILD = 6
 
 table ../resources/normal.tbl
 
 incsrc macros.asm
+incsrc arcademacros.asm
 incsrc defines.asm
 
 print ""
 
 if !FEATURE_SD2SNES
     print "SD2SNES ENABLED"
+    !FEATURE_PRESETS = 1
     incsrc save.asm
-    !FEATURE_TINYSTATES = 0
 else
-if !FEATURE_TINYSTATES
-    print "TINYSTATES ENABLED"
-    incsrc tinystates.asm
-    !FEATURE_SD2SNES = 1       ; Set this to enable savestate features
+if !FEATURE_PRESETS
+    print "PRESETS ENABLED"
 else
-    print "SD2SNES AND TINYSTATES DISABLED"
+    print "PRESETS DISABLED"
 endif
 endif
 
 incsrc gamemode.asm
-incsrc minimap.asm
 incsrc menu.asm
-incsrc infohud.asm
-incsrc rng.asm
-incsrc custompresets.asm
-incsrc presets.asm
 incsrc damage.asm
-incsrc physics.asm
 incsrc misc.asm
 incsrc layout.asm
-incsrc cutscenes.asm
 incsrc init.asm
-incsrc fanfare.asm
 incsrc spriteprio.asm
 incsrc spritefeat.asm
-if !RAW_TILE_GRAPHICS
-    incsrc tilegraphics.asm
-endif
 
-if !FEATURE_DEV
+if !FEATURE_PRESETS
+    incsrc arcadepresets.asm
+    incsrc presets.asm
     incsrc symbols.asm
 endif
-
-; Make sure the ROM expands to 4MB
-org $FFFFFF : db $FF
 

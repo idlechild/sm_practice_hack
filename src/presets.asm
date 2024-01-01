@@ -1,4 +1,5 @@
-org $82FA80
+
+org $82FC00
 print pc, " presets bank82 start"
 
 preset_load:
@@ -11,13 +12,9 @@ preset_load:
     JSR $819B    ; Initialize IO registers
     JSR $82E2    ; Load standard BG3 tiles and sprite tiles, clear tilemaps
     JSR $82C5    ; Load initial palette
-if !FEATURE_PAL
-    JSL $91DF72  ; Initialize Samus
-else
     JSL $91E00D  ; Initialize Samus
-endif
 
-    JSL preset_load_preset
+    JSL custom_preset_load
 
     JSL preset_start_gameplay  ; Start gameplay
 
@@ -29,22 +26,21 @@ endif
 
   .doneBG2
     JSL $809A79  ; HUD routine when game is loading
+    JSL preset_hud_fixes
     JSL $90AD22  ; Reset projectile data
 
-    PHP : %ai16()
+    TDC : TAX
     LDY #$0020
-    LDX #$0000
   .paletteLoop
     ; Target Samus' palette = [Samus' palette]
     LDA $7EC180,X : STA $7EC380,X
-    INX #2
-    DEY #2 : BNE .paletteLoop
-    PLP
+    INX : INX
+    DEY : DEY : BNE .paletteLoop
 
-    LDA #$0000
+    TDC
     STA $7EC400  ; Used as door fade timer
     STA $0727    ; Pause menu index
-    LDA #$0001
+    INC
     STA $0723    ; Screen fade delay = 1
     STA $0725    ; Screen fade counter = 1
 
@@ -59,11 +55,7 @@ endif
 
     LDA #$0006 : STA $0DA0
   .loopSomething
-if !FEATURE_PAL
-    JSL $A08CE7  ; Transfer enemy tiles to VRAM and initialize enemies
-else
     JSL $A08CD7  ; Transfer enemy tiles to VRAM and initialize enemies
-endif
     JSL $808338  ; Wait for NMI
     DEC $0DA0    ; Decrement $0DA0
     BPL .loopSomething
@@ -72,62 +64,39 @@ endif
     LDA #$0008 : STA !GAMEMODE
     %a8() : LDA #$0F : STA $51 : %a16()
 
-    PHP : %ai16()
+    TDC : TAX
     LDY #$0200
-    LDX #$0000
-  .paletteLoop2
+  .secondPaletteLoop
     ; Palettes = [target palettes]
     LDA $7EC200,X : STA $7EC000,X
-    INX #2
-    DEY #2 : BNE .paletteLoop2
-    PLP
+    INX : INX
+    DEY : DEY : BNE .secondPaletteLoop
 
     ; Fix Samus' palette
-if !FEATURE_PAL
-    JSL $91DE1F
-else
     JSL $91DEBA
-endif
 
     ; Re-upload OOB viewer tiles if needed
     LDA !ram_sprite_feature_flags : BIT !SPRITE_OOB_WATCH : BEQ .done_upload_sprite_oob_tiles
     JSL upload_sprite_oob_tiles
 
   .done_upload_sprite_oob_tiles
-    JSL reset_all_counters
     STZ $0795 : STZ $0797 ; clear door transition flags
 
-    ; Clear minimap tiles
-    LDA !sram_preset_options : BIT !PRESETS_CLEAR_MAP_TILES : BEQ .clear_enemies
-    JSL game_clear_minimap_clear_minimap
-
-  .clear_enemies
     ; Clear enemies if not in BT or MB rooms
     LDA !ROOM_ID : CMP #$9804 : BEQ .done_clearing_enemies
-    CMP #$DD58 : BEQ .set_mb_state
-    LDA !sram_preset_options : BIT !PRESETS_PRESERVE_ENEMIES : BNE .done_clearing_enemies
+    CMP #$DD58 : BEQ .done_clearing_enemies
+    LDA !sram_preset_preserve_enemies : BNE .done_clearing_enemies
     JSR clear_all_enemies
 
   .done_clearing_enemies
     PLP
     RTL
-
-  .set_mb_state
-    ; If glass is broken, assume we should skip MB1
-    LDA $7ED820 : BIT #$0004 : BEQ .done_clearing_enemies
-    ; Set health to 1 as a hint this was done by a preset
-    LDA #$0001 : STA $0FCC
-    ; Reset segment timer now
-    LDA #$0000 : STA !ram_reset_segment_later
-    STA !ram_seg_rt_frames : STA !ram_seg_rt_seconds
-    STA !ram_seg_rt_minutes
-    BRA .done_clearing_enemies
 }
 
 clear_all_enemies:
 {
     ; Clear enemies (8000 = solid to Samus, 0400 = Ignore Samus projectiles, 0100 = Invisible)
-    LDA #$0000
+    TDC
   .loop
     TAX : LDA $0F86,X : BIT #$8500 : BNE .done_clearing
     ORA #$0200 : STA $0F86,X
@@ -144,224 +113,26 @@ preset_load_destination_state_and_tiles:
     %ai16()
     PEA $8F00
     PLB : PLB
-    JSR $DDF1  ; Load destination room CRE bitset
+
+    ; Load destination room CRE bitset from $82DDF1
+    PHB : PHX
+    PEA $8F00 : PLB : PLB
+    LDX $078D : LDA $830000,X : TAX
+    LDA $07B3 : STA $07B1
+    LDA $0008,X : AND #$00FF : STA $07B3
+    PLX : PLB
+
     JSR $DE12  ; Load door header
     JSR $DE6F  ; Load room header
     JSR $DEF2  ; Load state header
-if !RAW_TILE_GRAPHICS
-    JML load_raw_tile_graphics
-else
     JMP $E78C
-endif
 }
-
-if !RAW_TILE_GRAPHICS
-; This is similar to $82E97C except we overwrite the door dependent transfer to VRAM
-preset_load_library_background:
-{
-    PHP : PHB : %ai16()
-    JSL $80A29C ; Clear FX tilemap
-    LDA $1964 : BEQ .done_fx
-
-    STA $4312 ; src addr
-    LDA #$008A : STA $4314 ; src bank
-    LDA #$5BE0 : STA $2116 ; VRAM addr
-    LDA #$1801 : STA $4310 ; VRAM write, word
-    LDA #$0840 : STA $4315 ; size
-    %a8()
-    LDA #$80 : STA $2115 ; inc on low byte
-    LDA #$02 : STA $420B ; initiate DMA channel 1
-    %a16() : CLC
-
-  .done_fx
-    PEA $8F00 : PLB : PLB
-    %a16()
-    LDX !STATE_POINTER
-    LDY $0016,X : BPL .done
-
-  .load_loop
-    LDX $0000,Y : INY : INY
-    JSR (preset_load_background_jump_table,X)
-    BCC .load_loop
-
-  .done
-    PLB : PLP : RTL
-}
-
-preset_load_background_jump_table:
-    dw $E9E5, $E9F9, $EA2D, $EA4E, $EA66, $EA56, $EA5E, preset_start_transfer_to_vram
-
-preset_start_transfer_to_vram:
-    JML preset_transfer_to_vram
-
-preset_end_transfer_to_vram:
-    RTS
-endif
-
-reset_all_counters:
-{
-    LDA #$0000
-    STA !ram_room_has_set_rng
-    STA !IGT_FRAMES : STA !IGT_SECONDS : STA !IGT_MINUTES : STA !IGT_HOURS
-    STA !ram_seg_rt_frames : STA !ram_seg_rt_seconds : STA !ram_seg_rt_minutes
-    STA !ram_realtime_room : STA !ram_last_realtime_room
-    STA !ram_gametime_room : STA !ram_last_gametime_room
-    STA !ram_last_room_lag : STA !ram_last_door_lag_frames : STA !ram_transition_counter
-    RTL
-}
-
-startgame_seg_timer:
-{
-    ; seg timer will be 1:50 (1 second, 50 frames) behind by the time it appears
-    ; 20 frames more if the file was new
-    ; initializing to 1:50 for now
-    LDA #$0032 : STA !ram_seg_rt_frames
-    LDA #$0001 : STA !ram_seg_rt_seconds
-    LDA #$0000 : STA !ram_seg_rt_minutes
-    JSL $808924    ; overwritten code
-    RTL
-}
-
-preset_load_preset:
-{
-    PHB
-    LDA #$0000
-    STA !SAMUS_ITEM_SELECTED : STA !SAMUS_AUTO_CANCEL
-    LDA #$5AFE : STA !LAYER2_X ; Load garbage into Layer 2 X position
-
-    ; check if segment timer should be reset now or after a door
-    LDA !sram_preset_options : BIT !PRESETS_AUTO_SEGMENT_OFF : BNE .check_load
-    LDA #$FFFF : STA !ram_reset_segment_later
-
-  .check_load
-    ; check if custom preset is being loaded
-    LDA !ram_custom_preset : BEQ .category_preset
-
-  .custom_preset
-    JSL custom_preset_load
-    LDA #$5AFE : STA !sram_last_preset
-    LDA #$0000 : STA !ram_load_preset
-    BRA .done
-
-  .category_preset
-    LDA !ram_load_preset : CMP #$5AFE : BEQ .custom_preset
-    JSR category_preset_load
-
-  .done
-    PLB
-    RTL
-}
-
-category_preset_load:
-{
-    ; Get offset into preset data table
-    LDA !sram_preset_category : STA $C3
-    ASL : CLC : ADC $C3 : TAX
-
-    ; Get starting preset data bank into $C5
-    INX : LDA.l category_preset_data_table,X : STA $C4 : DEX
-
-    ; Get preset address to load into $C3
-    LDA !ram_load_preset : STA !sram_last_preset : STA $C3 : STA $7F0002
-    LDA #$0000 : STA !ram_load_preset
-
-    ; Get start of preset data into $C1
-    LDA.l category_preset_data_table,X : LDX #$0000 : STA $C1
-
-    ; If start of preset data is greater than preset address,
-    ; then our preset address is in the next bank
-    CMP $C3 : BCC .buildLoop : BEQ .buildLoop
-    INC $C5
-
-  .buildLoop
-    ; Build list of presets to traverse
-    LDA [$C3] : BEQ .traversePrep
-    INX : INX : STA $7F0002,X
-    CMP $C3 : STA $C3 : BCC .buildLoop
-    ; We just crossed back into the starting bank
-    DEC $C5
-    BRA .buildLoop
-
-  .traversePrep
-    ; Set bank to read data from
-    STZ $00 : %a8() : LDA $C5 : PHA : PLB
-    ; Set bank to store data to
-    LDA #$7E : STA $C5 : %a16()
-
-  .crossBankTraverseLoop
-    ; Now traverse from the first preset until the last one
-    LDA $7F0002,X : TAY : CMP $C1 : BCC .incBankInnerLoop
-    INY : INY
-    BRA .crossBankLoadAddr
-
-    ; For each preset, load and store address and value pairs
-  .crossBankInnerLoop
-    STA $C3 : INY : INY
-    CPY #$0000 : BEQ .incBankLoadValue
-    LDA ($00),Y : STA [$C3] : INY : INY
-
-  .crossBankLoadAddr
-    CPY #$0000 : BEQ .incBankLoadAddr
-    LDA ($00),Y : CMP #$FFFF : BNE .crossBankInnerLoop
-
-    DEX : DEX : BPL .crossBankTraverseLoop
-    RTS
-
-  .incBankInnerLoop
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    INY : INY
-    BRA .simpleLoadAddr
-
-  .incBankLoadAddr
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    LDY #$8000
-    BRA .simpleLoadAddr
-
-  .incBankLoadValue
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    LDY #$8000
-    BRA .simpleLoadValue
-
-  .simpleTraverseLoop
-    ; Continue traversing from the first preset until the last one
-    LDA $7F0002,X : TAY : INY : INY
-    BRA .simpleLoadAddr
-
-    ; For each preset, load and store address and value pairs
-  .simpleInnerLoop
-    STA $C3 : INY : INY
-  .simpleLoadValue
-    LDA ($00),Y : STA [$C3] : INY : INY
-  .simpleLoadAddr
-    LDA ($00),Y : CMP #$FFFF : BNE .simpleInnerLoop
-
-    DEX : DEX : BPL .simpleTraverseLoop
-    RTS
-}
-
-category_preset_data_table:
-    dl preset_prkd_crateria_ceres_elevator
-    dl preset_kpdr21_crateria_ceres_elevator
-    dl preset_hundo_bombs_ceres_elevator
-    dl preset_100early_crateria_ceres_elevator
-    dl preset_rbo_bombs_ceres_elevator
-    dl preset_pkrd_crateria_ceres_elevator
-    dl preset_kpdr25_bombs_ceres_elevator
-    dl preset_gtclassic_crateria_ceres_elevator
-    dl preset_gtmax_crateria_ceres_elevator
-    dl preset_14ice_crateria_ceres_elevator
-    dl preset_14speed_crateria_ceres_elevator
-    dl preset_100map_bombs_ceres_elevator
-    dl preset_nintendopower_crateria_ceres_elevator
-    dl preset_allbosskpdr_crateria_ceres_elevator
-    dl preset_allbosspkdr_crateria_ceres_elevator
-    dl preset_allbossprkd_crateria_ceres_elevator
 
 print pc, " presets bank82 end"
-warnpc $82FE00 ; tinystates.asm
+warnpc $82FD40
 
 
-org $80F000
+org $80FB00
 print pc, " presets bank80 start"
 
 ; This method is very similar to $80A07B (start gameplay)
@@ -388,15 +159,15 @@ preset_start_gameplay:
     ; Set Samus last pose same as current pose if not shinesparking
     LDA !SAMUS_POSE_DIRECTION : STA !SAMUS_PREVIOUS_POSE_DIRECTION
     STA !SAMUS_LAST_DIFFERENT_POSE_DIRECTION
-    LDA !SAMUS_POSE : CMP #$00C9 : BMI .store_prev_pose
-    CMP #$00CF : BPL .store_prev_pose
+    LDA !SAMUS_POSE : CMP #$00C9 : BMI .storePreviousPose
+    CMP #$00CF : BPL .storePreviousPose
     ; Set timer type to shinespark
     LDA #$0006 : STA !SAMUS_SHINE_TIMER_TYPE
     ; Set timer very high in case player holds inputs before spark moves
     LDA #$7FFF : STA !SAMUS_SHINE_TIMER
     ; Clear previous pose
-    LDA #$0000
-  .store_prev_pose
+    TDC
+  .storePreviousPose
     STA !SAMUS_PREVIOUS_POSE : STA !SAMUS_LAST_DIFFERENT_POSE
 
     ; Clear potential pose flags
@@ -414,26 +185,6 @@ preset_start_gameplay:
     LDA !SAMUS_Y : STA !SAMUS_PREVIOUS_Y
     LDA !SAMUS_Y_SUBPX : STA !SAMUS_PREVIOUS_Y_SUBPX
 
-    ; Set loading game state for Ceres
-    LDA #$001F : STA $7ED914
-    ; Set delay for first falling tile in Ceres
-    LDA #$0022 : STA $07E1
-    LDA !AREA_ID : CMP #$0006 : BEQ .end_load_game_state
-    ; Set loading game state for Zebes
-    LDA #$0005 : STA $7ED914
-    LDA !SAMUS_POSE : BNE .end_load_game_state
-    LDA !ROOM_ID : CMP #$91F8 : BNE .end_load_game_state
-    ; If default pose at landing site then assume we are arriving on Zebes
-    LDA #$0022 : STA $7ED914
-if !FEATURE_PAL
-    LDA #$E8CA : STA !SAMUS_LOCKED_HANDLER   ; Lock Samus
-    LDA #$E867 : STA !SAMUS_MOVEMENT_HANDLER ; Lock Samus
-else
-    LDA #$E8CD : STA !SAMUS_LOCKED_HANDLER   ; Lock Samus
-    LDA #$E8DC : STA !SAMUS_MOVEMENT_HANDLER ; Lock Samus
-endif
-  .end_load_game_state
-
     ; Preserve layer 2 values we may have loaded from presets
     LDA !LAYER2_Y : PHA
     LDA !LAYER2_X : PHA
@@ -444,77 +195,37 @@ endif
     JSL $8DC4D8  ; Clear palette FX objects
     JSL $90AC8D  ; Update beam graphics
     JSL $82E139  ; Load target colours for common sprites, beams and slashing enemies / pickups
-if !FEATURE_PAL
-    JSL $A08A2E  ; Load enemies
-else
     JSL $A08A1E  ; Load enemies
-endif
     JSL $80A23F  ; Clear BG2 tilemap
-if !RAW_TILE_GRAPHICS
     JSL preset_load_level
-else
-    JSL $82E7D3  ; Load level data, CRE, tile table, scroll data, create PLMs and execute door ASM and room setup ASM
-endif
     JSL preset_scroll_fixes
 
-    LDA !sram_preset_options : BIT !PRESETS_CLOSE_BLUE_DOORS : BNE .done_opening_doors
-    LDA !SAMUS_POSE : BEQ .done_opening_doors ; facing forward
-    CMP #$009B : BEQ .done_opening_doors ; facing forward with suit
+    LDA !sram_preset_close_doors : BNE .doneOpeningDoors
+    LDA !SAMUS_POSE : BEQ .doneOpeningDoors ; facing forward
+    CMP #$009B : BEQ .doneOpeningDoors ; facing forward with suit
     JSR preset_open_all_blue_doors
-  .done_opening_doors
+  .doneOpeningDoors
 
     JSL $89AB82  ; Load FX
-if !RAW_TILE_GRAPHICS
-    JSL preset_load_library_background
-else
     JSL $82E97C  ; Load library background
-endif
 
-    ; Pull layer 2 values, and use them if they are valid
-    PLA : CMP #$5AFE : BEQ .calculate_layer_2
-    STA !LAYER2_X
+    ; Pull layer 2 values
+    PLA : STA !LAYER2_X
     PLA : STA !LAYER2_Y
-    BRA .layer_2_loaded
-
-  .calculate_layer_2
-    PLA ; Pull other layer 2 value but do not use it
-    JSR $A2F9 ; Calculate layer 2 X position
-    JSR $A33A ; Calculate layer 2 Y position
-    LDA !LAYER2_X : STA !BG2_X_SCROLL ; BG2 X scroll = layer 2 X scroll position
-    LDA !LAYER2_Y : STA !BG2_Y_SCROLL ; BG2 Y scroll = layer 2 Y scroll position
-
-  .layer_2_loaded
     JSR $A37B    ; Calculate BG positions
 
     ; Fix BG2 Y offsets for rooms with scrolling sky
     ; Also fix rooms that need to be handled before door scroll
-    LDA !ROOM_ID : CMP #$CF80 : BEQ .eastTunnel
-    CMP #$D646 : BEQ .pantsRoom : CMP #$D6FD : BEQ .aqueductFarmsAndPitRoom
-    CMP #$91F8 : BEQ .bg_offsets_scrolling_sky
-    CMP #$93FE : BEQ .bg_offsets_scrolling_sky
-    CMP #$94FD : BEQ .bg_offsets_scrolling_sky
-    BRA .bg_offsets_calculated
+    LDA !ROOM_ID : CMP #$91F8 : BEQ .bgOffsetsScrollingSky
+    CMP #$93FE : BEQ .bgOffsetsScrollingSky
+    CMP #$94FD : BEQ .bgOffsetsScrollingSky
+    BRA .bgOffsetsCalculated
 
-  .eastTunnel
-    LDA !sram_room_layout : BIT !ROOM_LAYOUT_AREA_RANDO : BEQ .bg_offsets_calculated
-    JSL layout_asm_easttunnel_external
-    BRA .bg_offsets_calculated
-
-  .pantsRoom
-    LDA !sram_room_layout : BIT !ROOM_LAYOUT_DASH_RECALL : BEQ .bg_offsets_calculated
-    JSL layout_asm_pants_external
-    BRA .bg_offsets_calculated
-
-  .aqueductFarmsAndPitRoom
-    LDA !sram_room_layout : BIT !ROOM_LAYOUT_AREA_RANDO : BEQ .bg_offsets_calculated
-    JSL layout_asm_aqueductfarmsandpit_external
-    BRA .bg_offsets_calculated
-
-  .bg_offsets_scrolling_sky
+  .bgOffsetsScrollingSky
     LDA !LAYER1_Y : STA !LAYER2_Y : STA $B7
     STZ !BG2_Y_SCROLL
 
-  .bg_offsets_calculated
+  .bgOffsetsCalculated
     JSL $80A176  ; Display the viewable part of the room
 
     ; Enable sounds
@@ -527,41 +238,39 @@ endif
     STZ $0639 : STZ $063B : STZ $063D : STZ $063F
 
     ; If music fast off or preset off, treat music as already loaded
-    LDA !sram_music_toggle : CMP #$0002 : BPL .done_music
+    LDA !sram_music_toggle : CMP #$0002 : BPL .doneMusic
 
     ; Compare to currently loaded music data
-    LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BEQ .done_load_music_data
+    LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BEQ .doneLoadMusicData
 
     ; Clear track if necessary
-    LDA !SRAM_MUSIC_TRACK : BEQ .load_music_data
-    LDA #$0000 : JSL !MUSIC_ROUTINE
+    LDA !SRAM_MUSIC_TRACK : BEQ .loadMusicData
+    TDC : JSL !MUSIC_ROUTINE
 
-  .load_music_data
+  .loadMusicData
     LDA !MUSIC_DATA : TAX
     LDA !SRAM_MUSIC_DATA : STA !MUSIC_DATA
     TXA : CLC : ADC #$FF00 : JSL !MUSIC_ROUTINE
-    BRA .load_music_track
+    BRA .loadMusicTrack
 
-  .done_load_music_data
+  .doneLoadMusicData
     ; Compare to currently playing music
-    LDA !SRAM_MUSIC_TRACK : CMP !MUSIC_TRACK : BEQ .done_music
+    LDA !SRAM_MUSIC_TRACK : CMP !MUSIC_TRACK : BEQ .doneMusic
 
-  .load_music_track
+  .loadMusicTrack
     LDA !MUSIC_TRACK : TAX
     LDA !SRAM_MUSIC_TRACK : STA !MUSIC_TRACK
     TXA : JSL !MUSIC_ROUTINE
 
-  .done_music
+  .doneMusic
     JSL $80834B  ; Enable NMI
 
     LDA #$0004 : STA $A7  ; Set optional next interrupt to Main gameplay
 
     JSL $80982A  ; Enable horizontal and vertical timer interrupts
 
-    LDA $7ED914 : CMP #$0022 : BEQ .done_unlock_samus
     LDA #$E695 : STA !SAMUS_LOCKED_HANDLER   ; Unlock Samus
     LDA #$E725 : STA !SAMUS_MOVEMENT_HANDLER ; Unlock Samus
-  .done_unlock_samus
     LDA #$9F55 : STA $0A6C ; Set X speed table pointer
 
     STZ !ELEVATOR_PROPERTIES
@@ -570,26 +279,10 @@ endif
     STZ !MESSAGE_BOX_INDEX
     STZ $1E75 ; Save Station Lockout flag
     STZ $0795 : STZ $0797  ; Clear door transition flags
-    TDC : STA !ram_transition_flag
-    JSL init_heat_damage_ram
-    JSL init_physics_ram
     JSL init_controller_bindings
 
     LDA #$E737 : STA $099C ; Pointer to next frame's room transition code = $82:E737
-
-if !RAW_TILE_GRAPHICS
-    LDX !STATE_POINTER : LDA $8F0018,X
-    CMP #$91C9 : BEQ .post_preset_scrolling_sky
-    CMP #$91CE : BEQ .post_preset_scrolling_sky
-    CMP #layout_landing_site_setup_asm : BEQ .post_preset_scrolling_sky
-    CMP #layout_asm_westocean : BEQ .post_preset_scrolling_sky
-    CMP #layout_asm_eastocean : BEQ .post_preset_scrolling_sky
     PLB : PLP : RTL
-  .post_preset_scrolling_sky
-    JML layout_execute_setup_asm_execute
-else
-    PLB : PLP : RTL
-endif
 }
 
 preset_clear_BG2_tilemap:
@@ -722,132 +415,6 @@ preset_execute_plm_instruction:
     JML [$00C1]
 }
 
-preset_room_setup_asm_fixes:
-{
-    ; Start with original logic
-    PHP : PHB
-    %ai16()
-    LDX !STATE_POINTER
-    LDA $0018,X : BEQ .end
-
-    ; Check if this is scrolling sky
-    CMP #$91C9 : BEQ .scrolling_sky
-    CMP #$91CE : BEQ .scrolling_sky
-    CMP #layout_landing_site_setup_asm : BEQ .scrolling_sky
-    CMP #layout_asm_westocean : BEQ .scrolling_sky
-    CMP #layout_asm_eastocean : BEQ .scrolling_sky
-
-  .execute_setup_asm
-    ; Resume execution
-    JML layout_execute_setup_asm_execute
-
-  .scrolling_sky
-    ; If we got here through normal gameplay, allow scrolling sky
-    LDA !GAMEMODE : CMP #$0006 : BEQ .execute_setup_asm
-    CMP #$001F : BEQ .execute_setup_asm
-    CMP #$0028 : BEQ .execute_setup_asm
-
-if !RAW_TILE_GRAPHICS
-    ; Defer scrolling sky asm until later
-else
-    ; Disable scrolling sky asm
-    STZ $07DF
-    ; Clear layer 2 library bits (change 0181 to 0080)
-    LDA #$0080 : STA $091B
-endif
-
-  .end
-    PLB : PLP : RTL
-}
-
-transfer_cgram_long:
-{
-    PHP
-    %a16() : %i8()
-    LDX #$80 : STX $2100 ; forced blanking
-    JSR $933A
-    LDX #$0F : STX $2100
-    PLP
-    RTL
-}
-
-add_grapple_and_xray_to_hud:
-{
-    ; Copied from $809AB1 to $809AC9
-    LDA $09A2 : BIT #$8000 : BEQ $04
-    JSL $809A3E            ; Add x-ray to HUD tilemap
-    LDA $09A2 : BIT #$4000 : BEQ $04
-    JSL $809A2E            ; Add grapple to HUD tilemap
-    JMP resume_infohud_icon_initialization
-}
-
 print pc, " presets bank80 end"
-warnpc $80F600 ; save.asm or tinystates.asm
-
-
-; $80:9AB1: Add x-ray and grapple HUD items if necessary
-org $809AB1
-    ; Skip x-ray and grapple if max HP is a multiple of 4,
-    ; which is only possible if GT code was used
-    LDA $09C4 : AND #$0003 : BEQ resume_infohud_icon_initialization
-    JMP add_grapple_and_xray_to_hud
-
-warnpc $809AC9
-
-; $80:9AC9: Resume original logic
-org $809AC9
-resume_infohud_icon_initialization:
-
-
-
-; -------------------
-; Category Menus/Data
-; -------------------
-
-org $EAE000
-check bankcross off
-print pc, " preset data crossbank start"
-  incsrc presets/14ice_data.asm
-  incsrc presets/14speed_data.asm
-  incsrc presets/100early_data.asm
-  incsrc presets/100map_data.asm
-  incsrc presets/allbosskpdr_data.asm
-  incsrc presets/allbosspkdr_data.asm
-  incsrc presets/allbossprkd_data.asm
-  incsrc presets/gtclassic_data.asm
-  incsrc presets/gtmax_data.asm
-  incsrc presets/hundo_data.asm
-  incsrc presets/kpdr21_data.asm
-  incsrc presets/kpdr25_data.asm
-  incsrc presets/nintendopower_data.asm
-  incsrc presets/pkrd_data.asm
-  incsrc presets/prkd_data.asm
-  incsrc presets/rbo_data.asm
-print pc, " preset data crossbank end"
-warnpc $F08000 ; infohud.asm
-check bankcross on
-
-org $F18000
-print pc, " preset menu bankF1 start"
-  incsrc presets/14ice_menu.asm
-  incsrc presets/14speed_menu.asm
-  incsrc presets/100early_menu.asm
-  incsrc presets/100map_menu.asm
-  incsrc presets/allbosskpdr_menu.asm
-  incsrc presets/allbosspkdr_menu.asm
-  incsrc presets/allbossprkd_menu.asm
-  incsrc presets/gtclassic_menu.asm
-print pc, " preset menu bankF1 end"
-
-org $F28000
-print pc, " preset menu bankF2 start"
-  incsrc presets/gtmax_menu.asm
-  incsrc presets/hundo_menu.asm
-  incsrc presets/kpdr21_menu.asm
-  incsrc presets/kpdr25_menu.asm
-  incsrc presets/nintendopower_menu.asm
-  incsrc presets/pkrd_menu.asm
-  incsrc presets/prkd_menu.asm
-  incsrc presets/rbo_menu.asm
-print pc, " preset menu bankF2 end"
+warnpc $80FFC0
 

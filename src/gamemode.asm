@@ -27,14 +27,12 @@ gamemode_start:
     %ai16()
     PHP
 
+if !FEATURE_PRESETS
     ; don't load presets if we're in credits
     LDA !GAMEMODE : CMP #$0027 : BEQ .skip_load
-
-    LDA !ram_custom_preset : BNE .preset_load
-    LDA !ram_load_preset : BEQ .skip_load
-
-  .preset_load
+    LDA !ram_custom_preset : BEQ .skip_load
     JSL preset_load
+endif
 
   .skip_load
     LDA !GAMEMODE : AND #$00FF
@@ -81,7 +79,7 @@ if !FEATURE_SD2SNES
 endif
 
     LDA !IH_CONTROLLER_PRI_NEW : BNE .check_shortcuts
-    ; No shortcuts configured, CLC so we won't skip normal gameplay
+    ; CLC so we won't skip normal gameplay
     CLC : RTS
   .check_shortcuts
 
@@ -102,70 +100,17 @@ if !FEATURE_SD2SNES
   .skip_auto_save_state
 endif
 
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_load_last_preset : CMP !sram_ctrl_load_last_preset : BNE .skip_load_last_preset
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_load_last_preset
-    JMP .load_last_preset
-  .skip_load_last_preset
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_random_preset : CMP !sram_ctrl_random_preset : BNE .skip_random_preset
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_random_preset
-    JMP .random_preset
-  .skip_random_preset
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_save_custom_preset : CMP !sram_ctrl_save_custom_preset : BNE .skip_save_custom_preset
+if !FEATURE_PRESETS
+    LDA !IH_CONTROLLER_PRI : CMP !sram_ctrl_save_custom_preset : BNE .skip_save_custom_preset
     AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_save_custom_preset
     JMP .save_custom_preset
   .skip_save_custom_preset
 
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_load_custom_preset : CMP !sram_ctrl_load_custom_preset : BNE .skip_load_custom_preset
+    LDA !IH_CONTROLLER_PRI : CMP !sram_ctrl_load_custom_preset : BNE .skip_load_custom_preset
     AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_load_custom_preset
     JMP .load_custom_preset
   .skip_load_custom_preset
-
-    ; Check if any less common shortcuts are configured
-    LDA !ram_game_mode_extras : BNE .check_less_common_shortcuts
-    JMP .check_menu
-  .check_less_common_shortcuts
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_inc_custom_preset : CMP !sram_ctrl_inc_custom_preset : BNE .skip_next_preset_slot
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_next_preset_slot
-    JMP .next_preset_slot
-  .skip_next_preset_slot
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_dec_custom_preset : CMP !sram_ctrl_dec_custom_preset : BNE .skip_prev_preset_slot
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_prev_preset_slot
-    JMP .prev_preset_slot
-  .skip_prev_preset_slot
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_kill_enemies : CMP !sram_ctrl_kill_enemies : BNE .skip_kill_enemies
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_kill_enemies
-    JMP .kill_enemies
-  .skip_kill_enemies
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_reset_segment_timer : CMP !sram_ctrl_reset_segment_timer : BNE .skip_reset_segment_timer
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_reset_segment_timer
-    JMP .reset_segment_timer
-  .skip_reset_segment_timer
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_reset_segment_later : CMP !sram_ctrl_reset_segment_later : BNE .skip_reset_segment_later
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_reset_segment_later
-    JMP .reset_segment_later
-  .skip_reset_segment_later
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_full_equipment : CMP !sram_ctrl_full_equipment : BNE .skip_full_equipment
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_full_equipment
-    JMP .full_equipment
-  .skip_full_equipment
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_toggle_tileviewer : CMP !sram_ctrl_toggle_tileviewer : BNE .skip_toggle_tileviewer
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_toggle_tileviewer
-    JMP .toggle_tileviewer
-  .skip_toggle_tileviewer
-
-    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_update_timers : CMP !sram_ctrl_update_timers : BNE .skip_update_timers
-    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_update_timers
-    JMP .update_timers
-  .skip_update_timers
+endif
 
   .check_menu
     LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_menu : CMP !sram_ctrl_menu : BNE .skip_check_menu
@@ -178,17 +123,6 @@ endif
 
 if !FEATURE_SD2SNES
   .save_state
-; This if statement is to prevent an assembler error from an unknown method. The one on the call to this
-; prevents the button combo from being intercepted by the non-sd2snes rom
-if !FEATURE_TINYSTATES
-    ; Disallow tiny states outside of gameplay
-    ; Most other gamemodes will crash on load
-    LDA !GAMEMODE : CMP #$0020 : BEQ .save ; end of Ceres allowed
-    CMP #$0007 : BMI .fail
-    CMP #$001C : BPL .fail
-
-  .save
-endif
     JSL save_state
     %ai16()
     LDA !ram_auto_save_state : BMI .clc
@@ -215,59 +149,7 @@ endif
     CLC : RTS
 endif
 
-  .kill_enemies
-    JSL kill_enemies
-    ; CLC to continue normal gameplay after killing enemies
-    CLC : JMP skip_pause
-
-  .load_last_preset
-    ; Choose a random preset if zero
-    LDA !sram_last_preset : BEQ .random_preset : STA !ram_load_preset
-    ; SEC to skip normal gameplay for one frame after loading preset
-    SEC : RTS
-
-  .reset_segment_timer
-    LDA !sram_frame_counter_mode : BEQ .reset_segment_timer_rta
-    STZ !IGT_FRAMES : STZ !IGT_SECONDS
-    STZ !IGT_MINUTES : STZ !IGT_HOURS
-
-  .reset_segment_timer_rta
-    LDA #$0000 : STA !ram_seg_rt_frames
-    STA !ram_seg_rt_seconds : STA !ram_seg_rt_minutes
-    ; CLC to continue normal gameplay after resetting segment timer
-    CLC : JMP skip_pause
-
-  .reset_segment_later
-    LDA #$FFFF : STA !ram_reset_segment_later
-    ; CLC to continue normal gameplay after setting segement timer reset
-    CLC : JMP skip_pause
-
-  .full_equipment
-    LDA !SAMUS_HP_MAX : STA !SAMUS_HP
-    LDA !SAMUS_MISSILES_MAX : STA !SAMUS_MISSILES
-    LDA !SAMUS_SUPERS_MAX : STA !SAMUS_SUPERS
-    LDA !SAMUS_PBS_MAX : STA !SAMUS_PBS
-    LDA !SAMUS_RESERVE_MAX : STA !SAMUS_RESERVE_ENERGY
-    ; CLC to continue normal gameplay after equipment refill
-    CLC : JMP skip_pause
-
-  .toggle_tileviewer
-    LDA !ram_sprite_feature_flags : BIT !SPRITE_OOB_WATCH : BEQ .turnOnTileViewer
-    EOR !SPRITE_OOB_WATCH : STA !ram_sprite_feature_flags
-    ; CLC to continue normal gameplay after disabling OoB Tile Viewer
-    CLC : JMP skip_pause
-
-  .turnOnTileViewer
-    ORA !SPRITE_OOB_WATCH : STA !ram_sprite_feature_flags
-    JSL upload_sprite_oob_tiles
-    ; CLC to continue normal gameplay after enabling OOB Tile Viewer
-    CLC : JMP skip_pause
-
-  .random_preset
-    JSL LoadRandomPreset
-    ; SEC to skip normal gameplay for one frame after loading preset
-    SEC : RTS
-
+if !FEATURE_PRESETS
   .save_custom_preset
     ; check gamestate first
     LDA $0998 : CMP #$0008 : BEQ .save_safe
@@ -283,12 +165,8 @@ endif
   .load_custom_preset
     ; check if slot is populated first
     LDA !sram_custom_preset_slot
-if !FEATURE_TINYSTATES
-    XBA : TAX                    ; multiply by 100h (slot offset)
-else
-    ASL : XBA : TAX              ; multiply by 200h (slot offset)
-endif
-    LDA $703000,X : CMP #$5AFE : BEQ .load_safe
+    %presetslotsize()
+    LDA !PRESET_SLOTS_START,X : CMP #$5AFE : BEQ .load_safe
 
   .not_safe
     %sfxfail()
@@ -300,34 +178,7 @@ endif
     JSL preset_load
     ; SEC to skip normal gameplay for one frame after loading preset
     SEC : RTS
-
-  .next_preset_slot
-    LDA !sram_custom_preset_slot : CMP !TOTAL_PRESET_SLOTS : BNE .increment_slot
-    LDA #$FFFF
-  .increment_slot
-    INC : STA !sram_custom_preset_slot
-    ASL : TAX : LDA.l NumberGFXTable,X : STA !HUD_TILEMAP+$7C
-    LDA !sram_last_preset : BMI .done_preset_slot
-    LDA #$0000 : STA !sram_last_preset
-    ; CLC to continue normal gameplay after incrementing preset slot
-    CLC : JMP skip_pause
-
-  .prev_preset_slot
-    LDA !sram_custom_preset_slot : BNE .decrement_slot
-    LDA !TOTAL_PRESET_SLOTS+1
-  .decrement_slot
-    DEC : STA !sram_custom_preset_slot
-    ASL : TAX : LDA.l NumberGFXTable,X : STA !HUD_TILEMAP+$7C
-    LDA !sram_last_preset : BMI .done_preset_slot
-    LDA #$0000 : STA !sram_last_preset
-  .done_preset_slot
-    ; CLC to continue normal gameplay after decrementing preset slot
-    CLC : JMP skip_pause
-
-  .update_timers
-    JSL ih_update_hud_early
-    ; CLC to continue normal gameplay after updating HUD timers
-    CLC : JMP skip_pause
+endif
 
   .menu
     ; Set IRQ vector
