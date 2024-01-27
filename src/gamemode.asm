@@ -9,6 +9,13 @@ org $82896E
 end_of_normal_gameplay:
 
 if !FEATURE_SD2SNES
+org $828B18
+hook_door_transition_load_sprites:
+    JML gamemode_door_transtion_load_sprites
+
+org $82E4A2
+    LDA #hook_door_transition_load_sprites
+
 org $82E526
     JSL gamemode_door_transition : NOP
 endif
@@ -19,6 +26,13 @@ print pc, " gamemode start"
 
 gamemode_start:
 {
+    LDA !IH_CONTROLLER_PRI_NEW : BNE .check_shortcuts
+    ; Overwritten logic
+    LDA !GAMEMODE : AND #$00FF
+    ; CLC so we won't skip normal gameplay
+    CLC : RTL
+
+  .check_shortcuts
     PHB
     PHK : PLB
 
@@ -35,6 +49,7 @@ if !FEATURE_PRESETS
 endif
 
   .skip_load
+    ; Overwritten logic
     LDA !GAMEMODE : AND #$00FF
     PLP
     PLB
@@ -65,24 +80,24 @@ skip_pause:
     RTS
 }
 
-gamemode_shortcuts:
-{
 if !FEATURE_SD2SNES
+gamemode_door_transtion_load_sprites:
+{
     ; Check for auto-save mid-transition
-    LDA !ram_auto_save_state : BEQ .check_inputs
-    LDA !DOOR_FUNCTION_POINTER : CMP #$E4A9 : BNE .check_inputs
-    LDA !ram_auto_save_state : BMI .auto_save
-    LDA #$0000 : STA !ram_auto_save_state
+    LDA !ram_auto_save_state : BEQ .done : BMI .auto_save
+    TDC : STA !ram_auto_save_state
   .auto_save
-    JMP .save_state
-  .check_inputs
+    PHP : PHB
+    PHK : PLB
+    JSL save_state
+    PLB : PLP
+  .done
+    JML $82E4A9
+}
 endif
 
-    LDA !IH_CONTROLLER_PRI_NEW : BNE .check_shortcuts
-    ; CLC so we won't skip normal gameplay
-    CLC : RTS
-  .check_shortcuts
-
+gamemode_shortcuts:
+{
 if !FEATURE_SD2SNES
     LDA !IH_CONTROLLER_PRI : CMP !sram_ctrl_save_state : BNE .skip_save_state
     AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_save_state
