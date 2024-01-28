@@ -1,12 +1,7 @@
 ; $82:8963 AD 98 09    LDA $0998  [$7E:0998]
 ; $82:8966 29 FF 00    AND #$00FF
 org $828963
-    ; gamemode_shortcuts will either CLC or SEC
-    ; to control if normal gameplay will happen on this frame
-    JSL gamemode_start : BCS end_of_normal_gameplay
-
-org $82896E
-end_of_normal_gameplay:
+    JMP gamemode_start
 
 if !FEATURE_SD2SNES
 org $828B18
@@ -21,40 +16,41 @@ org $82E526
 endif
 
 
-org $85F800
-print pc, " gamemode start"
-
+org $82A3D9
 gamemode_start:
 {
     LDA !IH_CONTROLLER_PRI_NEW : BNE .check_shortcuts
     ; Overwritten logic
     LDA !GAMEMODE : AND #$00FF
-    ; CLC so we won't skip normal gameplay
-    CLC : RTL
+    JMP $8969
 
   .check_shortcuts
     PHB
-    PHK : PLB
-
-    JSR gamemode_shortcuts
+    JSL gamemode_shortcuts
   .return
     %ai16()
-    PHP
-
-if !FEATURE_PRESETS
-    ; don't load presets if we're in credits
-    LDA !GAMEMODE : CMP #$0027 : BEQ .skip_load
-    LDA !ram_custom_preset : BEQ .skip_load
-    JSL preset_load
-endif
-
-  .skip_load
+    BCS .skip_gameplay
+    PLB
     ; Overwritten logic
     LDA !GAMEMODE : AND #$00FF
-    PLP
+    JMP $8969
+
+  .skip_gameplay
+if !FEATURE_PRESETS
+    LDA !ram_custom_preset : BEQ .skip_preset_load
+    ; don't load presets if we're in credits
+    LDA !GAMEMODE : CMP #$0027 : BEQ .skip_preset_load
+    JSL preset_load
+  .skip_preset_load
+endif
     PLB
-    RTL
+    JMP $896E
 }
+warnpc $82A425
+
+
+org $85F800
+print pc, " gamemode start"
 
 ; If the current game mode is $C (fading out to pause), set it to $8 (normal), so that
 ;  shortcuts involving the start button don't trigger accidental pauses.
@@ -77,7 +73,7 @@ skip_pause:
     STA $0051   ; Brightness = $F (max)
   .done:
     PLP
-    RTS
+    RTL
 }
 
 if !FEATURE_SD2SNES
@@ -98,6 +94,8 @@ endif
 
 gamemode_shortcuts:
 {
+    PHK : PLB
+
 if !FEATURE_SD2SNES
     LDA !IH_CONTROLLER_PRI : CMP !sram_ctrl_save_state : BNE .skip_save_state
     AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_save_state
@@ -134,7 +132,7 @@ endif
   .skip_check_menu
 
     ; No shortcuts matched, CLC so we won't skip normal gameplay
-    CLC : RTS
+    CLC : RTL
 
 if !FEATURE_SD2SNES
   .save_state
@@ -142,17 +140,17 @@ if !FEATURE_SD2SNES
     %ai16()
     LDA !ram_auto_save_state : BMI .clc
     ; SEC to skip normal gameplay for one frame after saving state
-    SEC : RTS
+    SEC : RTL
   .clc
     ; CLC to continue normal gameplay after auto-saving in a door transition
-    CLC : RTS
+    CLC : RTL
 
   .load_state
     ; check if a saved state exists
     LDA !SRAM_SAVED_STATE : CMP #$5AFE : BNE .fail
     JSL load_state
     ; SEC to skip normal gameplay for one frame after loading state
-    SEC : RTS
+    SEC : RTL
 
   .fail
     ; CLC to continue normal gameplay
@@ -161,7 +159,7 @@ if !FEATURE_SD2SNES
   .auto_save_state
     LDA #$0001 : STA !ram_auto_save_state
     ; CLC to continue normal gameplay after setting savestate flag
-    CLC : RTS
+    CLC : RTL
 endif
 
 if !FEATURE_PRESETS
@@ -192,7 +190,7 @@ if !FEATURE_PRESETS
     STA !ram_custom_preset
     JSL preset_load
     ; SEC to skip normal gameplay for one frame after loading preset
-    SEC : RTS
+    SEC : RTL
 endif
 
   .menu
@@ -200,7 +198,7 @@ endif
     LDA $AB : PHA
     LDA #$0004 : STA $AB
 
-    JSR skip_pause
+    JSL skip_pause
 
     ; Enter MainMenu
     JSL cm_start
@@ -209,7 +207,7 @@ endif
     PLA : STA $AB
 
     ; SEC to skip normal gameplay for one frame after handling the menu
-    SEC : RTS
+    SEC : RTL
 }
 
 if !FEATURE_SD2SNES
