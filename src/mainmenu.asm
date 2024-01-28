@@ -731,8 +731,31 @@ action_category:
     JSL cm_set_etanks_and_reserve
     LDA !SAMUS_ITEMS_EQUIPPED
     JSL ti_grapple_check
+
+    LDA !SAMUS_ITEMS_COLLECTED : BIT #$0004 : BEQ .noMorph
+    LDA !SAMUS_ITEMS_EQUIPPED : BIT #$0004 : BNE .equipMorph
+    ; unequip
+    LDA #$0002 : STA !ram_cm_morph : BRA .doneMorph
+  .equipMorph
+    LDA #$0001 : STA !ram_cm_morph : BRA .doneMorph
+  .noMorph
+    LDA #$0000 : STA !ram_cm_morph
+  .doneMorph
+    JSL arcade_morphball_routine
+
+    LDA !SAMUS_BEAMS_COLLECTED : BIT #$1000 : BEQ .noCharge
+    LDA !SAMUS_BEAMS_EQUIPPED : BIT #$1000 : BNE .equipCharge
+    ; unequip Charge
+    LDA #$0002 : STA !ram_cm_charge : BRA .doneCharge
+  .equipCharge
+    LDA #$0001 : STA !ram_cm_charge : BRA .doneCharge
+  .noCharge
+    LDA #$0000 : STA !ram_cm_charge
+  .doneCharge
+    JSL arcade_chargebeam_routine
+
     %sfxconfirm()
-    JML $90AC8D ; update beam gfx
+    RTL
 
   .table
     ;  Items,  Beams,  Health, Miss,   Supers, PBs,    Reserv, Dummy
@@ -852,7 +875,7 @@ ToggleItemsMenu:
     dw #ti_gravitysuit
     dw #arcade_gravitytimer
     dw #$FFFF
-    dw #ti_morphball
+    dw #arcade_morphball
     dw #ti_bomb
     dw #ti_springball
     dw #ti_screwattack
@@ -872,9 +895,6 @@ ti_variasuit:
 
 ti_gravitysuit:
     %cm_equipment_item("Gravity Suit", !ram_cm_gravity, #$0020, #$FFDF)
-
-ti_morphball:
-    %cm_equipment_item("Morph Ball", !ram_cm_morph, #$0004, #$FFFB)
 
 ti_bomb:
     %cm_equipment_item("Bombs", !ram_cm_bombs, #$1000, #$EFFF)
@@ -997,7 +1017,7 @@ setup_beams_ram:
 }
 
 ToggleBeamsMenu:
-    dw #tb_chargebeam
+    dw #arcade_chargebeam
     dw #tb_icebeam
     dw #tb_wavebeam
     dw #tb_spazerbeam
@@ -1007,9 +1027,6 @@ ToggleBeamsMenu:
     dw #tb_glitchedbeams
     dw #$0000
     %cm_header("TOGGLE BEAMS")
-
-tb_chargebeam:
-    %cm_equipment_beam("Charge", !ram_cm_charge, #$1000, #$EFFF, #$100F)
 
 tb_icebeam:
     %cm_equipment_beam("Ice", !ram_cm_ice, #$0002, #$FFFD, #$100F)
@@ -1209,133 +1226,12 @@ sprites_oob_viewer:
 ; Events menu
 ; -----------
 EventsMenu:
-    dw #events_resetevents
-    dw #events_resetdoors
-    dw #events_resetitems
-    dw #$FFFF
-    dw #events_goto_bosses
-    dw #$FFFF
-    dw #events_zebesawake
-    dw #events_maridiatubebroken
-    dw #events_chozoacid
-    dw #events_shaktool
-    dw #events_tourian
-    dw #events_metroid1
-    dw #events_metroid2
-    dw #events_metroid3
-    dw #events_metroid4
-    dw #events_mb1glass
-    dw #events_zebesexploding
-    dw #events_animals
-    dw #$0000
-    %cm_header("EVENTS")
-
-events_resetevents:
-    %cm_jsl("Reset All Events", .routine, #$0000)
-  .routine
-    LDA #$0000
-    STA $7ED820 : STA $7ED822
-    %sfxreset()
-    RTL
-
-events_resetdoors:
-    %cm_jsl("Reset All Doors", .routine, #$0000)
-  .routine
-    PHP : %ai8()
-    LDX #$B0
-    LDA #$00
-  .loop
-    STA $7ED800,X
-    INX : CPX #$D0 : BNE .loop
-    PLP
-    %sfxreset()
-    RTL
-
-events_resetitems:
-    %cm_jsl("Reset All Items", .routine, #$0000)
-  .routine
-    PHP : %ai8()
-    LDX #$70
-    LDA #$00
-  .loop
-    STA $7ED800,X
-    INX : CPX #$90 : BNE .loop
-    PLP
-    %sfxreset()
-    RTL
-
-events_goto_bosses:
-    %cm_submenu("Bosses", #BossesMenu)
-
-events_zebesawake:
-    %cm_toggle_bit("Zebes Awake", $7ED820, #$0001, #0)
-
-events_maridiatubebroken:
-    %cm_toggle_bit("Maridia Tube Broken", $7ED820, #$0800, #0)
-
-events_shaktool:
-    %cm_toggle_bit("Shaktool Done Digging", $7ED820, #$2000, #0)
-
-events_chozoacid:
-    %cm_toggle_bit("Chozo Lowered Acid", $7ED821, #$0010, #0)
-
-events_tourian:
-    %cm_toggle_bit("Tourian Open", $7ED820, #$0400, #0)
-
-events_metroid1:
-    %cm_toggle_bit("1st Metroids Cleared", $7ED822, #$0001, #0)
-
-events_metroid2:
-    %cm_toggle_bit("2nd Metroids Cleared", $7ED822, #$0002, #0)
-
-events_metroid3:
-    %cm_toggle_bit("3rd Metroids Cleared", $7ED822, #$0004, #0)
-
-events_metroid4:
-    %cm_toggle_bit("4th Metroids Cleared", $7ED822, #$0008, #0)
-
-events_mb1glass:
-    %cm_toggle_bit("MB1 Glass Broken", $7ED820, #$0004, #0)
-
-events_zebesexploding:
-    %cm_toggle_bit("Zebes Set Ablaze", $7ED820, #$4000, #0)
-
-events_animals:
-    %cm_toggle_bit("Animals Saved", $7ED820, #$8000, #0)
-
-
-; ------------
-; Bosses menu
-; ------------
-
-BossesMenu:
-    dw #boss_ceresridley
-    dw #boss_bombtorizo
-    dw #boss_spospo
     dw #boss_kraid
     dw #boss_phantoon
-    dw #boss_botwoon
-    dw #boss_draygon
-    dw #boss_crocomire
-    dw #boss_gt
-    dw #boss_ridley
-    dw #boss_mb
     dw #$FFFF
-    dw #boss_kraid_statue
-    dw #boss_phantoon_statue
-    dw #boss_draygon_statue
-    dw #boss_ridley_statue
+    dw #events_zebesawake
     dw #$0000
-    %cm_header("BOSSES")
-
-boss_ceresridley:
-    %cm_toggle_bit("Ceres Ridley", #$7ED82E, #$0001, #0)
-
-boss_bombtorizo:
-    %cm_toggle_bit("Bomb Torizo", #$7ED828, #$0004, #0)
-
-boss_spospo:
-    %cm_toggle_bit("Spore Spawn", #$7ED828, #$0200, #0)
+    %cm_header("EVENTS")
 
 boss_kraid:
     %cm_toggle_bit("Kraid", #$7ED828, #$0100, #0)
@@ -1343,35 +1239,8 @@ boss_kraid:
 boss_phantoon:
     %cm_toggle_bit("Phantoon", #$7ED82A, #$0100, #0)
 
-boss_botwoon:
-    %cm_toggle_bit("Botwoon", #$7ED82C, #$0002, #0)
-
-boss_draygon:
-    %cm_toggle_bit("Draygon", #$7ED82C, #$0001, #0)
-
-boss_crocomire:
-    %cm_toggle_bit("Crocomire", #$7ED82A, #$0002, #0)
-
-boss_gt:
-    %cm_toggle_bit("Golden Torizo", #$7ED82A, #$0004, #0)
-
-boss_ridley:
-    %cm_toggle_bit("Ridley", #$7ED82A, #$0001, #0)
-
-boss_mb:
-    %cm_toggle_bit("Mother Brain", #$7ED82C, #$0200, #0)
-
-boss_kraid_statue:
-    %cm_toggle_bit("Kraid Statue", #$7ED820, #$0200, #0)
-
-boss_phantoon_statue:
-    %cm_toggle_bit("Phantoon Statue", #$7ED820, #$0040, #0)
-
-boss_draygon_statue:
-    %cm_toggle_bit("Draygon Statue", #$7ED820, #$0100, #0)
-
-boss_ridley_statue:
-    %cm_toggle_bit("Ridley Statue", #$7ED820, #$0080, #0)
+events_zebesawake:
+    %cm_toggle_bit("Zebes Awake", $7ED820, #$0001, #0)
 
 
 ; ----------

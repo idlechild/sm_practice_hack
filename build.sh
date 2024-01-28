@@ -4,7 +4,7 @@
 success=0
 trap success=1 ERR
 
-VERSION_REV=1
+VERSION_REV=2
 SIMPLE_NAME=smarcadehack_v1.06.${VERSION_REV}_simple
 SAVELESS_NAME=smarcadehack_v1.06.${VERSION_REV}_saveless
 SD2SNES_NAME=smarcadehack_v1.06.${VERSION_REV}_sd2snes
