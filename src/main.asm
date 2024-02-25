@@ -1,4 +1,4 @@
-asar 1.81
+asar 1.90
 lorom
 
 !FEATURE_SD2SNES ?= 1

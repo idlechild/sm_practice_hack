@@ -2611,9 +2611,9 @@ local function save_preset(step)
     preset_output = preset_output .. "\npreset_" .. CAT .. '_' .. step['full_slug'] .. ":\n"
 
     if last_step then
-        preset_output = preset_output .. "    dw #preset_" .. CAT .. '_' .. last_step['full_slug'] .. " ; " .. last_step['full_name'] .. "\n"
+        preset_output = preset_output .. "    dw preset_" .. CAT .. '_' .. last_step['full_slug'] .. " ; " .. last_step['full_name'] .. "\n"
     else
-        preset_output = preset_output .. "    dw #$0000\n"
+        preset_output = preset_output .. "    dw $0000\n"
     end
 
     last_step = step
@@ -2635,7 +2635,7 @@ local function save_preset(step)
         end
     end
 
-    preset_output = preset_output .. "    dw #$FFFF\n"
+    preset_output = preset_output .. "    dw $FFFF\n"
     -- preset_output = preset_output .. ".after\n"
 end
 
@@ -2648,24 +2648,24 @@ local function save_preset_file()
 
     file:write('PresetsMenu' .. ucfirst(CAT) .. ':\n')
     for _, segment in pairs(SEGMENTS[CAT]) do
-        file:write('    dw #presets_goto_' .. CAT .. '_' .. segment['slug'] .. '\n')
+        file:write('    dw presets_goto_' .. CAT .. '_' .. segment['slug'] .. '\n')
     end
-    file:write('    dw #$0000\n')
+    file:write('    dw $0000\n')
     file:write('    %cm_header("PRESETS FOR ' .. CAT:upper() .. '")\n')
     file:write('\n')
 
     for _, segment in pairs(SEGMENTS[CAT]) do
         file:write('presets_goto_' .. CAT .. '_' .. segment['slug'] .. ':\n')
-        file:write('    %cm_submenu("' .. segment['name'] .. '", #presets_submenu_' .. CAT .. '_' .. segment['slug'] .. ')\n')
+        file:write('    %cm_submenu("' .. segment['name'] .. '", presets_submenu_' .. CAT .. '_' .. segment['slug'] .. ')\n')
         file:write('\n')
     end
 
     for _, segment in pairs(SEGMENTS[CAT]) do
         file:write('presets_submenu_' .. CAT .. '_' .. segment['slug'] .. ':\n')
         for _, step in pairs(segment['steps']) do
-            file:write('    dw #presets_' .. CAT .. '_' .. step['full_slug'] .. '\n')
+            file:write('    dw presets_' .. CAT .. '_' .. step['full_slug'] .. '\n')
         end
-        file:write('    dw #$0000\n')
+        file:write('    dw $0000\n')
         file:write('    %cm_header("' .. segment['name']:upper() .. '")\n')
         file:write('\n')
     end
@@ -2674,7 +2674,7 @@ local function save_preset_file()
         file:write('; ' .. segment['name'] .. '\n')
         for _, step in pairs(segment['steps']) do
             file:write('presets_' .. CAT .. '_' .. step['full_slug'] .. ':\n')
-            file:write('    %cm_preset("' .. step['name'] .. '", #preset_' .. CAT .. '_' .. step['full_slug'] .. ')\n\n')
+            file:write('    %cm_preset("' .. step['name'] .. '", preset_' .. CAT .. '_' .. step['full_slug'] .. ')\n\n')
         end
         file:write("\n")
     end

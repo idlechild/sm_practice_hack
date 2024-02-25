@@ -9,13 +9,13 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 WORKDIR /app/asar
-RUN wget https://github.com/RPGHacker/asar/archive/v1.81.tar.gz \
- && tar xfz v1.81.tar.gz \
- && cd asar-1.81 \
+RUN wget https://github.com/RPGHacker/asar/archive/v1.90.tar.gz \
+ && tar xfz v1.90.tar.gz \
+ && cd asar-1.90 \
  && cmake src \
  && make \
  && mkdir -p /app/tools \
- && cp asar/asar-standalone /app/tools/asar
+ && cp asar/bin/asar /app/tools/asar
 
 RUN mkdir -p /app/build \
  && mkdir -p /app/layout \
