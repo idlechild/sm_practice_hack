@@ -14,13 +14,6 @@ incsrc wram_symbols.asm
 ; Freespace ORGs
 ; ---------------
 
-;!ORG_MENU_GFX = $F0D700 ; unused, $900, can be used to reduce menu code size
-;!ORG_MISC_TILE_GRAPHICS = $8BFA00 ; unused, $140
-;!ORG_ROOMNAMES = $E70000 ; whole bank pointer style
-;!ORG_CLEAR_ENEMIES = $E70000 ; whole bank pointer style
-;!ORG_CUSTOMIZEMENU = $AFEC00
-;!ORG_PALETTEPROFILES = $AEFD20
-
 ; ---------
 ; Work RAM
 ; ---------
@@ -118,7 +111,6 @@ ram_kraid_adjust_timer = !ram_kraid_adjust_timer ; !WRAM_START+$80
 ram_metronome = !ram_metronome ; !WRAM_PERSIST_START+$00
 ram_minimap = !ram_minimap ; !WRAM_PERSIST_START+$02
 
-ram_fix_scroll_offsets = !ram_fix_scroll_offsets ; !WRAM_PERSIST_START+$04
 ram_random_preset_rng = !ram_random_preset_rng ; !WRAM_PERSIST_START+$06
 ram_random_preset_value = !ram_random_preset_value ; !WRAM_PERSIST_START+$08
 
@@ -321,8 +313,7 @@ sram_metronome_sfx = !sram_metronome_sfx ; !SRAM_START+$3A
 sram_status_icons = !sram_status_icons ; !SRAM_START+$3C
 sram_fanfare_timer_adjust = !sram_fanfare_timer_adjust ; !SRAM_START+$3E
 sram_top_display_mode = !sram_top_display_mode ; !SRAM_START+$40
-sram_healthalarm = !sram_healthalarm ; !SRAM_START+$42
-sram_room_layout = !sram_room_layout ; !SRAM_START+$44
+
 sram_cutscenes = !sram_cutscenes ; !SRAM_START+$46
 sram_preset_options = !sram_preset_options ; !SRAM_START+$48
 sram_lag_counter_mode = !sram_lag_counter_mode ; !SRAM_START+$4A

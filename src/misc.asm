@@ -21,14 +21,6 @@ org $8B92DE
     JSR cutscenes_nintendo_logo_hijack
     NOP
 
-; Skip intro
-; $82:EEDF A9 95 A3    LDA #$A395 (original code)
-;  (skip to Ceres)     LDA #$C100 (skip to Ceres)
-;  (skip to Zebes)     LDA #$CDAF (skip to Zebes)
-;                      LDA #Intro_Skip_to_Zebes
-org $82EEDF
-    LDA #$C100
-
 org !ORG_MISC_BANK8B
 print pc, " misc bank8B start"
 Intro_Skip_to_Zebes:
@@ -70,54 +62,6 @@ cutscenes_nintendo_logo_hijack:
     JML $808482  ; finish boot code; another hijack will launch the menu
 }
 print pc, " misc bank8B end"
-
-
-; Enable version display
-org $8B8697
-    NOP
-
-org $8B871D
-if !FEATURE_SD2SNES
-if !FEATURE_TINYSTATES
-    LDA #$39E3 ; T
-else
-    LDA #$39E2 ; S
-endif
-else
-    LDA #$04F0 ; blank
-endif
-
-org $8B8731
-    LDA #$04F0 ; blank
-
-org $8BF754
-hook_version_data:
-cleartable ; ASCII
-if !VERSION_MAJOR > 9
-    db ' ', $30+(!VERSION_MAJOR/10), $30+(!VERSION_MAJOR%10)
-else
-    db ' ', $30+!VERSION_MAJOR
-endif
-if !VERSION_MINOR > 9
-    db '.', $30+(!VERSION_MINOR/10), $30+(!VERSION_MINOR%10)
-else
-    db '.', $30+!VERSION_MINOR
-endif
-if !VERSION_BUILD > 9
-    db '.', $30+(!VERSION_BUILD/10), $30+(!VERSION_BUILD%10)
-else
-    db '.', $30+!VERSION_BUILD
-endif
-if !VERSION_REV > 9
-    db '.', $30+(!VERSION_REV/10), $30+(!VERSION_REV%10)
-else
-if !VERSION_REV
-    db '.', $30+!VERSION_REV
-endif
-endif
-    db $00
-table ../resources/normal.tbl
-warnpc $8BF760
 
 
 ; Skips the waiting time after teleporting
@@ -178,15 +122,6 @@ org $8FE0C0
 ; Ceres Ridley room setup asm when timer is not running
 org $8FE0DF
     dw layout_asm_ceres_ridley_no_timer
-
-
-; Continue drawing escape timer after reaching ship
-org $90E908
-    JSR preserve_escape_timer
-
-; Stop drawing timer when its VRAM is overwritten
-org $A2ABFD
-    JML clear_escape_timer
 
 
 ;org $8FEA00 ; free space for door asm
@@ -461,33 +396,6 @@ EnemyDamagePowerBomb:
     JMP $A63C
 
 print pc, " misc bankA0 end"
-
-
-org !ORG_MISC_BANK90
-print pc, " misc bank90 start"
-
-preserve_escape_timer:
-{
-    ; check if timer is active
-    LDA $0943 : AND #$0006 : BEQ .done
-    JSL $809F6C ; Draw timer
-
-  .done
-    JMP $EA7F ; overwritten code
-}
-
-clear_escape_timer:
-{
-    ; clear timer status
-    STZ $0943
-
-    ; overwritten code
-    LDA #$AC1B : STA $0FB2,X
-    STZ $0DEC
-    RTL
-}
-warnpc $908EA9 ; overwrites unused vanilla routine
-print pc, " misc bank90 end"
 
 
 if !RAW_TILE_GRAPHICS

@@ -1,7 +1,7 @@
 @echo off
 
-set HACK_NAME=HACK
-set HACK_BUILD_VERSION=2.6.0
+set HACK_NAME=OpenDoors
+set HACK_BUILD_VERSION=2.6.0.1
 
 echo Building %HACK_NAME% Practice Hack
 if not exist build mkdir build
@@ -46,3 +46,10 @@ python create_ips.py ..\build\00.sfc ..\build\ff.sfc ..\build\%HACK_NAME%_InfoHU
 
 del 00.sfc ff.sfc ..\build\00.sfc ..\build\ff.sfc ..\build\symbols.sym
 cd ..
+
+if exist build\%HACK_NAME%_InfoHUD_Savestates_%HACK_BUILD_VERSION%.sfc del build\%HACK_NAME%_InfoHUD_Savestates_%HACK_BUILD_VERSION%.sfc
+if not exist build\%HACK_NAME%_InfoHUD_Savestates_%HACK_BUILD_VERSION%.ips goto end_patch_dev
+copy "build\Super Metroid Open Doors.sfc" build\%HACK_NAME%_InfoHUD_Savestates_%HACK_BUILD_VERSION%.sfc
+"tools\Lunar IPS.exe" -ApplyIPS build\%HACK_NAME%_InfoHUD_Savestates_%HACK_BUILD_VERSION%.ips build\%HACK_NAME%_InfoHUD_Savestates_%HACK_BUILD_VERSION%.sfc
+:end_patch_dev
+

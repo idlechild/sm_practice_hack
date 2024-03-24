@@ -51,16 +51,16 @@ hudgfx_bin:
 incbin ../resources/hudgfx.bin
 
 
-; Place minimap graphics in bank FD
-org !ORG_MINIMAP_BANKFD
-print pc, " minimap bankFD start"
+; Place minimap graphics in bank F3
+org !ORG_MINIMAP_BANKF3
+print pc, " minimap bankF3 start"
 mapgfx_bin:
 incbin ../resources/mapgfx.bin
 
 ; Next block needs to be all zeros to clear a tilemap
 fillbyte $00
 fill 4096
-print pc, " minimap bankFD end"
+print pc, " minimap bankF3 end"
 
 
 ; The default HUD minimap should be cleared

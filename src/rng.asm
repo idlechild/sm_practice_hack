@@ -499,7 +499,7 @@ org $A6A360
     LDA #ridley_init_hook
 
 ; Fix ceres ridley door instruction list to keep door visible when skipping ridley fight
-org $A6F55C
+org $A6F55E
 hook_ceres_ridley_door_instructions:
     dw $F678, ridley_ceres_door_original_instructions
     dw $80ED, ridley_ceres_door_escape_instructions
@@ -554,14 +554,14 @@ ceres_ridley_draw_metroid:
 ridley_ceres_door_original_instructions:
     dw $F6A6
     dw #$0002, $FA13
-    dw $F66A, $F55C
+    dw $F66A, $F55E
     dw $F6B0
     dw $80ED, $F598
 
 ridley_ceres_door_escape_instructions:
     dw $F6B0
     dw #$0002, $FA13
-    dw $F66A, $F55C
+    dw $F66A, $F55E
     dw $80ED, $F598
 
 print pc, " ridley rng end"

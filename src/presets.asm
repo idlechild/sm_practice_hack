@@ -192,6 +192,19 @@ preset_start_transfer_to_vram:
 preset_end_transfer_to_vram:
     RTS
 endif
+category_preset_data_table:
+    dl preset_gtmax_crateria_ceres_elevator
+
+print pc, " presets bank82 end"
+;warnpc $82FE00 ; tinystates.asm
+
+
+org $82E8D5
+    JML preset_room_setup_asm_fixes
+
+
+org !ORG_PRESETS_BANK80
+print pc, " presets bank80 start"
 
 reset_all_counters:
 {
@@ -240,113 +253,12 @@ preset_load_preset:
 
   .category_preset
     LDA !ram_load_preset : CMP #$5AFE : BEQ .custom_preset
-    JSR category_preset_load
+    JSL category_preset_load
 
   .done
     PLB
     RTL
 }
-
-category_preset_load:
-{
-    ; Get offset into preset data table
-    LDA !sram_preset_category : STA $C3
-    ASL : CLC : ADC $C3 : TAX
-
-    ; Get starting preset data bank into $C5
-    INX : LDA.l category_preset_data_table,X : STA $C4 : DEX
-
-    ; Get preset address to load into $C3
-    LDA !ram_load_preset : STA !sram_last_preset : STA $C3 : STA $7F0002
-    LDA #$0000 : STA !ram_load_preset
-
-    ; Get start of preset data into $C1
-    LDA.l category_preset_data_table,X : LDX #$0000 : STA $C1
-
-    ; If start of preset data is greater than preset address,
-    ; then our preset address is in the next bank
-    CMP $C3 : BCC .buildLoop : BEQ .buildLoop
-    INC $C5
-
-  .buildLoop
-    ; Build list of presets to traverse
-    LDA [$C3] : BEQ .traversePrep
-    INX : INX : STA $7F0002,X
-    CMP $C3 : STA $C3 : BCC .buildLoop
-    ; We just crossed back into the starting bank
-    DEC $C5
-    BRA .buildLoop
-
-  .traversePrep
-    ; Set bank to read data from
-    STZ $00 : %a8() : LDA $C5 : PHA : PLB
-    ; Set bank to store data to
-    LDA #$7E : STA $C5 : %a16()
-
-  .crossBankTraverseLoop
-    ; Now traverse from the first preset until the last one
-    LDA $7F0002,X : TAY : CMP $C1 : BCC .incBankInnerLoop
-    INY : INY
-    BRA .crossBankLoadAddr
-
-    ; For each preset, load and store address and value pairs
-  .crossBankInnerLoop
-    STA $C3 : INY : INY
-    CPY #$0000 : BEQ .incBankLoadValue
-    LDA ($00),Y : STA [$C3] : INY : INY
-
-  .crossBankLoadAddr
-    CPY #$0000 : BEQ .incBankLoadAddr
-    LDA ($00),Y : CMP #$FFFF : BNE .crossBankInnerLoop
-
-    DEX : DEX : BPL .crossBankTraverseLoop
-    RTS
-
-  .incBankInnerLoop
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    INY : INY
-    BRA .simpleLoadAddr
-
-  .incBankLoadAddr
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    LDY #$8000
-    BRA .simpleLoadAddr
-
-  .incBankLoadValue
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    LDY #$8000
-    BRA .simpleLoadValue
-
-  .simpleTraverseLoop
-    ; Continue traversing from the first preset until the last one
-    LDA $7F0002,X : TAY : INY : INY
-    BRA .simpleLoadAddr
-
-    ; For each preset, load and store address and value pairs
-  .simpleInnerLoop
-    STA $C3 : INY : INY
-  .simpleLoadValue
-    LDA ($00),Y : STA [$C3] : INY : INY
-  .simpleLoadAddr
-    LDA ($00),Y : CMP #$FFFF : BNE .simpleInnerLoop
-
-    DEX : DEX : BPL .simpleTraverseLoop
-    RTS
-}
-
-category_preset_data_table:
-    dl preset_prkd_crateria_ceres_elevator
-
-print pc, " presets bank82 end"
-;warnpc $82FE00 ; tinystates.asm
-
-
-org $82E8D9
-    JSL preset_room_setup_asm_fixes
-
-
-org !ORG_PRESETS_BANK80
-print pc, " presets bank80 start"
 
 ; This method is very similar to $80A07B (start gameplay)
 preset_start_gameplay:
@@ -431,12 +343,6 @@ else
     JSL $82E7D3  ; Load level data, CRE, tile table, scroll data, create PLMs and execute door ASM and room setup ASM
 endif
     JSL preset_scroll_fixes
-
-    LDA !sram_preset_options : BIT !PRESETS_CLOSE_BLUE_DOORS : BNE .doneOpeningDoors
-    LDA !SAMUS_POSE : BEQ .doneOpeningDoors ; facing forward
-    CMP #$009B : BEQ .doneOpeningDoors ; facing forward with suit
-    JSR preset_open_all_blue_doors
-  .doneOpeningDoors
 
     JSL $89AB82  ; Load FX
 if !RAW_TILE_GRAPHICS
@@ -569,112 +475,12 @@ preset_clear_BG2_tilemap:
     RTL
 }
 
-preset_open_all_blue_doors:
-{
-    PHP : PHB : PHX : PHY
-    LDA #$8484 : STA $C3 : PHA : PLB : PLB
-
-    ; First resolve all door PLMs where the door has previously been opened
-    LDX #$004E
-  .plmSearchLoop
-    LDA $1C37,X : BEQ .plmSearchDone
-    LDY $1D27,X : LDA $0000,Y : CMP #$8A72 : BEQ .plmDoorFound
-  .plmSearchResume
-    DEX : DEX : BRA .plmSearchLoop
-
-  .plmDoorFound
-    LDA $1DC7,X : BMI .plmSearchResume
-    PHX : JSL $80818E : LDA $7ED8B0,X : PLX
-    AND $05E7 : BEQ .plmSearchResume
-
-    ; Door has been previously opened
-    ; Execute the next PLM instruction to set the BTS as a blue door
-    LDA $0002,Y : TAY
-    LDA $0000,Y : CMP #$86BC : BEQ .plmDelete
-    INY : INY
-    JSL preset_execute_plm_instruction
-
-  .plmDelete
-    STZ $1C37,X
-    BRA .plmSearchResume
-
-  .plmSearchDone
-    ; Now search all of the room BTS for doors
-    LDA !ROOM_WIDTH_SCROLLS : STA $C7
-    LDA !ROOM_WIDTH_BLOCKS : STA $C1 : ASL : STA $C3
-    LDA $7F0000 : LSR : TAY
-    STZ $C5 : TDC : %a8() : LDA #$7F : PHA : PLB
-
-  .btsSearchLoop
-    LDA $6401,Y : AND #$FC : CMP #$40 : BEQ .btsFound
-  .btsContinue
-    DEY : BNE .btsSearchLoop
-
-    ; All blue doors opened
-    PLY : PLX : PLB : PLP : RTS
-
-  .btsFound
-    ; Convert BTS index to tile index
-    ; Also verify this is a door and not a slope or half-tile
-    %a16() : TYA : ASL : TAX : %a8()
-    LDA $0001,X : BIT #$30 : BNE .btsContinue
-
-    ; If this door has a red scroll, then leave it closed
-    ; Most of the work is to determine the scroll index
-    %a16() : TYA : DEC : LSR : LSR : LSR : LSR : STA $004204
-    %a8() : LDA $C7 : STA $004206
-    %a16() : PHA : PLA : PHA : PLA
-    LDA $004216 : STA $C8
-    LDA $004214 : LSR : LSR : LSR : LSR
-    %a8() : STA $004202
-    LDA $C7 : STA $004203
-    PHA : PLA : TDC
-    LDA $004216 : CLC : ADC $C8
-    PHX : TAX : LDA $7ECD20,X : PLX
-    CMP #$00 : BEQ .btsContinue
-
-    ; Check what type of door we need to open
-    LDA $6401,Y : BIT #$02 : BNE .btsCheckUpDown
-    BIT #$01 : BEQ .btsFacingLeftRight
-    LDA #$04 : STA $C6
-
-  .btsFacingLeftRight
-    %a16() : LDA #$0082 : ORA $C5 : STA $0000,X
-    TXA : CLC : ADC $C3 : TAX : LDA #$00A2 : ORA $C5 : STA $0000,X
-    TXA : CLC : ADC $C3 : TAX : LDA #$08A2 : ORA $C5 : STA $0000,X
-    TXA : CLC : ADC $C3 : TAX : LDA #$0882 : ORA $C5 : STA $0000,X
-    TDC : %a8() : STA $C6 : STA $6401,Y
-    %a16() : TYA : CLC : ADC $C1 : TAX : TDC : %a8() : STA $6401,X
-    %a16() : TXA : CLC : ADC $C1 : TAX : TDC : %a8() : STA $6401,X
-    %a16() : TXA : CLC : ADC $C1 : TAX : TDC : %a8() : STA $6401,X
-    BRL .btsContinue
-
-  .btsCheckUpDown
-    BIT #$01 : BEQ .btsFacingUpDown
-    LDA #$08 : STA $C6
-
-  .btsFacingUpDown
-    %a16() : LDA #$0084 : ORA $C5 : STA $0006,X
-    DEC : STA $0004,X : ORA #$0400 : STA $0002,X : INC : STA $0000,X
-    TDC : %a8() : STA $C6 : STA $6401,Y
-    STA $6402,Y : STA $6403,Y : STA $6404,Y
-    BRL .btsContinue
-}
-
-preset_execute_plm_instruction:
-{
-    ; A = Bank 84 PLM instruction to execute
-    ; $C3 already set to $84
-    STA $C1
-    ; PLM instruction ends with an RTS, but we need an RTL
-    ; Have the RTS return to $848031 which is an RTL
-    PEA $8030
-    JML [$00C1]
-}
-
 preset_room_setup_asm_fixes:
 {
-    ; Start with original logic
+    ; Overwritten routine
+    JSL $8FE8A3
+
+    ; Start with original room asm logic
     PHP : PHB
     %ai16()
     LDX !STATE_POINTER
@@ -686,7 +492,8 @@ preset_room_setup_asm_fixes:
 
   .execute_setup_asm
     ; Resume execution
-    JML $8FE89B
+    JSL presets_simple_execute_room_asm
+    BRA .end
 
   .scrolling_sky
     ; If we got here through normal gameplay, allow scrolling sky
@@ -704,7 +511,15 @@ else
 endif
 
   .end
-    PLB : PLP : RTL
+    ; Open Doors replaces the next JSL with a JSR to routine
+    ; where the first instruction is a JSL to execute room asm
+    ; Since we've already done that, jump directly into the JSR
+    ; just past the first instruction, setting the return address first
+    LDA #$8282 : STA $C9
+    LDA.l $82E8DA : INC : INC : INC : INC : STA $C7
+    PLB : PLP
+    PEA $E8DC
+    JML [$00C7]
 }
 
 transfer_cgram_long:
@@ -718,31 +533,132 @@ transfer_cgram_long:
     RTL
 }
 
-;add_grapple_and_xray_to_hud:
-;{
-;    ; Copied from $809AB1 to $809AC9
-;    LDA $09A2 : BIT #$8000 : BEQ $04
-;    JSL $809A3E            ; Add x-ray to HUD tilemap
-;    LDA $09A2 : BIT #$4000 : BEQ $04
-;    JSL $809A2E            ; Add grapple to HUD tilemap
-;    JMP resume_infohud_icon_initialization
-;}
+add_grapple_and_xray_to_hud:
+{
+    ; Copied from $809AB1 to $809AC9
+    LDA $09A2 : BIT #$8000 : BEQ $04
+    JSL $809A3E            ; Add x-ray to HUD tilemap
+    LDA $09A2 : BIT #$4000 : BEQ $04
+    JSL $809A2E            ; Add grapple to HUD tilemap
+    JMP resume_infohud_icon_initialization
+}
 
 print pc, " presets bank80 end"
-;warnpc $80F600 ; save.asm or tinystates.asm
+warnpc $80F600 ; save.asm or tinystates.asm
 
 
 ; $80:9AB1: Add x-ray and grapple HUD items if necessary
-;org $809AB1
-;    ; Skip x-ray and grapple if max HP is a multiple of 4,
-;    ; which is only possible if GT code was used
-;    LDA !SAMUS_HP_MAX : AND #$0003 : BEQ resume_infohud_icon_initialization
-;    JMP add_grapple_and_xray_to_hud
-;warnpc $809AC9
+org $809AB1
+    ; Skip x-ray and grapple if max HP is a multiple of 4,
+    ; which is only possible if GT code was used
+    LDA !SAMUS_HP_MAX : AND #$0003 : BEQ resume_infohud_icon_initialization
+    JMP add_grapple_and_xray_to_hud
+
+warnpc $809AC9
 
 ; $80:9AC9: Resume original logic
-;org $809AC9
-;resume_infohud_icon_initialization:
+org $809AC9
+resume_infohud_icon_initialization:
+
+
+org $8FFF00
+print pc, " presets bank8F start"
+
+presets_simple_execute_room_asm:
+{
+    PHK : PLB
+    JSR ($0018,X)
+    RTL
+}
+
+category_preset_load:
+{
+    ; Get offset into preset data table
+    LDA !sram_preset_category : STA $C3
+    ASL : CLC : ADC $C3 : TAX
+
+    ; Get starting preset data bank into $C5
+    INX : LDA.l category_preset_data_table,X : STA $C4 : DEX
+
+    ; Get preset address to load into $C3
+    LDA !ram_load_preset : STA !sram_last_preset : STA $C3 : STA $7F0002
+    LDA #$0000 : STA !ram_load_preset
+
+    ; Get start of preset data into $C1
+    LDA.l category_preset_data_table,X : LDX #$0000 : STA $C1
+
+    ; If start of preset data is greater than preset address,
+    ; then our preset address is in the next bank
+    CMP $C3 : BCC .buildLoop : BEQ .buildLoop
+    INC $C5
+
+  .buildLoop
+    ; Build list of presets to traverse
+    LDA [$C3] : BEQ .traversePrep
+    INX : INX : STA $7F0002,X
+    CMP $C3 : STA $C3 : BCC .buildLoop
+    ; We just crossed back into the starting bank
+    DEC $C5
+    BRA .buildLoop
+
+  .traversePrep
+    ; Set bank to read data from
+    STZ $00 : %a8() : LDA $C5 : PHA : PLB
+    ; Set bank to store data to
+    LDA #$7E : STA $C5 : %a16()
+
+  .crossBankTraverseLoop
+    ; Now traverse from the first preset until the last one
+    LDA $7F0002,X : TAY : CMP $C1 : BCC .incBankInnerLoop
+    INY : INY
+    BRA .crossBankLoadAddr
+
+    ; For each preset, load and store address and value pairs
+  .crossBankInnerLoop
+    STA $C3 : INY : INY
+    CPY #$0000 : BEQ .incBankLoadValue
+    LDA ($00),Y : STA [$C3] : INY : INY
+
+  .crossBankLoadAddr
+    CPY #$0000 : BEQ .incBankLoadAddr
+    LDA ($00),Y : CMP #$FFFF : BNE .crossBankInnerLoop
+
+    DEX : DEX : BPL .crossBankTraverseLoop
+    RTL
+
+  .incBankInnerLoop
+    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
+    INY : INY
+    BRA .simpleLoadAddr
+
+  .incBankLoadAddr
+    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
+    LDY #$8000
+    BRA .simpleLoadAddr
+
+  .incBankLoadValue
+    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
+    LDY #$8000
+    BRA .simpleLoadValue
+
+  .simpleTraverseLoop
+    ; Continue traversing from the first preset until the last one
+    LDA $7F0002,X : TAY : INY : INY
+    BRA .simpleLoadAddr
+
+    ; For each preset, load and store address and value pairs
+  .simpleInnerLoop
+    STA $C3 : INY : INY
+  .simpleLoadValue
+    LDA ($00),Y : STA [$C3] : INY : INY
+  .simpleLoadAddr
+    LDA ($00),Y : CMP #$FFFF : BNE .simpleInnerLoop
+
+    DEX : DEX : BPL .simpleTraverseLoop
+    RTL
+}
+
+print pc, " presets bank8F end"
 
 
 ; -------------------
@@ -753,13 +669,13 @@ print pc, " presets bank80 end"
 org !ORG_PRESETS_DATA
 check bankcross off
 print pc, " preset data crossbank start"
-  incsrc presets/prkd_data.asm
+  incsrc presets/gtmax_data.asm
 print pc, " preset data crossbank end"
 ;warnpc $F08000 ; infohud.asm
 check bankcross on
 
 org !ORG_PRESETS_MENU
 print pc, " preset menu bankFE start"
-  incsrc presets/prkd_menu.asm
+  incsrc presets/gtmax_menu.asm
 print pc, " preset menu bankFE end"
 

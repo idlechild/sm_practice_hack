@@ -9,12 +9,6 @@ org $8094DF
     PLP          ; patch out resetting of controller 2 buttons and enable debug mode
     RTL
 
-org $80ADB5      ; fix for scroll offset misalignment when going down through door
-    JSR ih_fix_scroll_down_offsets
-
-org $80AE29      ; fix for scroll offset misalignment
-    JSR ih_fix_scroll_offsets
-
 org $828B4B      ; disable debug functions
     JML ih_debug_routine
 
@@ -34,8 +28,8 @@ org $9493B8      ; hijack, runs when Samus hits a door BTS
 org $9493FB      ; hijack, runs when Samus hits a door BTS
     JSL ih_before_room_transition
 
-org $82E764      ; hijack, runs when Samus is coming out of a room transition
-    JSL ih_after_room_transition : RTS
+org $82E75E      ; hijack, runs when Samus is coming out of a room transition
+    JML ih_after_room_transition
 
 org $809B48      ; hijack, HUD routine (game timer by Quote58)
     JSL ih_hud_code
@@ -106,11 +100,19 @@ org $A0BB6C      ; update timers when Draygon drops spawn
 org $AAE582      ; update timers when statue grabs Samus
     JSL ih_chozo_segment
 
-org $89AD0A      ; update timers when Samus escapes Ceres
-    JSL ih_ceres_elevator_segment
+org $89AD07      ; update timers when Samus escapes Ceres
+    JSR ih_ceres_elevator_segment
 
 org $A2AA20      ; update timers when Samus enters ship
     JSL ih_ship_elevator_segment
+
+
+org $89AF00
+ih_ceres_elevator_segment:
+{
+    JSL ih_update_hud_early
+    RTS
+}
 
 
 ; Main bank stuff
@@ -299,8 +301,8 @@ ih_after_room_transition:
 
   .skipKraidTimer
     ; original hijacked code
-    LDA #$0008 : STA !GAMEMODE
-    RTL
+    STZ $0795 : STZ $0797
+    JML $82E764
 }
 
 ih_before_room_transition:
@@ -458,12 +460,6 @@ ih_drops_segment:
 ih_chozo_segment:
 {
     JSL $8090CB ; overwritten code
-    JML ih_update_hud_early
-}
-
-ih_ceres_elevator_segment:
-{
-    JSL $90F084 ; overwritten code
     JML ih_update_hud_early
 }
 
@@ -1550,44 +1546,6 @@ print pc, " infohud end"
 ; Stuff that needs to be placed in bank 80
 org !ORG_INFOHUD_BANK80
 print pc, " infohud bank80 start"
-
-ih_fix_scroll_offsets:
-{
-    ; Custom doors are defined for incompatible door alignment,
-    ; which sometimes breakings the scroll offsets
-    ; Per layout.asm, these door definitions begin at 83:C000,
-    ; so BIT #$4000 can be used to detect them
-    LDA !DOOR_ID : BIT #$4000 : BNE .fix
-    LDA !ram_fix_scroll_offsets : BEQ .nofix
-
-  .fix
-    LDA $B3 : AND #$FF00 : STA $B3
-    LDA $B1 : AND #$FF00
-    SEC
-    RTS
-
-  .nofix
-    LDA $B1 : SEC
-    RTS
-}
-
-ih_fix_scroll_down_offsets:
-{
-    ; Same fix as above, except $B3 must end in #$20
-    LDA !DOOR_ID : BIT #$4000 : BNE .fix
-    LDA !ram_fix_scroll_offsets : BEQ .nofix
-
-  .fix
-    LDA $B3 : AND #$FF00 : ORA #$0020 : STA $B3
-    LDA $B1 : AND #$FF00
-    SEC
-    ; From here, we need to jump into the AE29 method
-    JMP $AE2C
-
-  .nofix
-    LDA $B1 : SEC
-    JMP $AE2C
-}
 
 ih_hud_code_paused:
 {

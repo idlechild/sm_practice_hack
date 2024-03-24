@@ -61,13 +61,13 @@ endif
 
 preset_category_submenus:
 {
-    dw #PresetsMenuPrkd
+    dw #PresetsMenuGtmax
     dw #$0000
 }
 
 preset_category_banks:
 {
-    dw #PresetsMenuPrkd>>16
+    dw #PresetsMenuGtmax>>16
     dw #$0000
 }
 
@@ -82,7 +82,7 @@ preset_category_banks:
 
 MainMenu:
     dw #mm_goto_equipment
-;    dw #mm_goto_presets
+    dw #mm_goto_presets
     dw #mm_goto_presets_menu
     dw #mm_goto_teleport
     dw #mm_goto_events
@@ -103,7 +103,7 @@ endif
 
 MainMenuBanks:
     dw #EquipmentMenu>>16
-;    dw #preset_category_banks>>16 ; dummy
+    dw #preset_category_banks>>16 ; dummy
     dw #PresetsMenu>>16
     dw #TeleportMenu>>16
     dw #EventsMenu>>16
@@ -169,20 +169,19 @@ endif
 ; -------------------
 
 PresetsMenu:
-;    dw #presets_goto_select_preset_category
-;    dw #presets_current
-;    dw #$FFFF
+    dw #presets_goto_select_preset_category
+    dw #presets_current
+    dw #$FFFF
     dw #presets_custom_preset_slot
     dw #presets_save_custom_preset
     dw #presets_load_custom_preset
     dw #$FFFF
-;    dw #presets_reload_last
-;    dw #presets_load_random
-;if !FEATURE_DEV
-;    dw #presets_random_preset_rng
-;endif
-;    dw #$FFFF
-    dw #presets_open_blue_doors
+    dw #presets_reload_last
+    dw #presets_load_random
+if !FEATURE_DEV
+    dw #presets_random_preset_rng
+endif
+    dw #$FFFF
     dw #presets_load_with_enemies
     dw #presets_clear_map_tiles
     dw #presets_auto_segment_reset
@@ -286,9 +285,6 @@ presets_random_preset_rng:
     %cm_toggle_inverted("Random Preset RNG", !ram_random_preset_rng, #$0001, #0)
 endif
 
-presets_open_blue_doors:
-    %cm_toggle_bit_inverted("Open Blue Doors", !sram_preset_options, !PRESETS_CLOSE_BLUE_DOORS, #0)
-
 presets_load_with_enemies:
     %cm_toggle_bit("Load with Enemies", !sram_preset_options, !PRESETS_PRESERVE_ENEMIES, #0)
 
@@ -312,7 +308,7 @@ endif
 SelectPresetCategoryMenu:
     dw #presets_current
     dw #$FFFF
-    dw #precat_prkd
+    dw #precat_gtmax
     dw #$0000
     %cm_header("SELECT PRESET CATEGORY")
 
@@ -321,14 +317,14 @@ presets_current:
     dl #!sram_preset_category
     dw #.routine
     db #$28, "CURRENT PRESET", #$FF
-    db #$28, "       PRKD", #$FF
+    db #$28, "    GT MAX%", #$FF
     db #$FF
   .routine
     LDA #$0000 : STA !sram_last_preset
     RTL
 
-precat_prkd:
-    %cm_jsl("Any% PRKD", #action_select_preset_category, #$0000)
+precat_gtmax:
+    %cm_jsl("GT Max%", #action_select_preset_category, #$0000)
 
 action_select_preset_category:
 {
@@ -844,28 +840,28 @@ eq_reservemode:
     RTL
 
 eq_currentmissiles:
-    %cm_numfield_word("Current Missiles", !SAMUS_MISSILES, 0, 230, 1, 20, #0)
+    %cm_numfield_word("Current Missiles", !SAMUS_MISSILES, 0, 330, 1, 20, #0)
 
 eq_setmissiles:
-    %cm_numfield_word("Missiles", !SAMUS_MISSILES_MAX, 0, 230, 5, 20, .routine)
+    %cm_numfield_word("Missiles", !SAMUS_MISSILES_MAX, 0, 330, 5, 20, .routine)
   .routine
     LDA !SAMUS_MISSILES_MAX : STA !SAMUS_MISSILES
     RTL
 
 eq_currentsupers:
-    %cm_numfield("Current Super Missiles", !SAMUS_SUPERS, 0, 50, 1, 5, #0)
+    %cm_numfield("Current Super Missiles", !SAMUS_SUPERS, 0, 70, 1, 5, #0)
 
 eq_setsupers:
-    %cm_numfield("Super Missiles", !SAMUS_SUPERS_MAX, 0, 50, 5, 5, .routine)
+    %cm_numfield("Super Missiles", !SAMUS_SUPERS_MAX, 0, 70, 5, 5, .routine)
   .routine
     LDA !SAMUS_SUPERS_MAX : STA !SAMUS_SUPERS
     RTL
 
 eq_currentpbs:
-    %cm_numfield("Current Power Bombs", !SAMUS_PBS, 0, 50, 1, 5, #0)
+    %cm_numfield("Current Power Bombs", !SAMUS_PBS, 0, 70, 1, 5, #0)
 
 eq_setpbs:
-    %cm_numfield("Power Bombs", !SAMUS_PBS_MAX, 0, 50, 5, 5, .routine)
+    %cm_numfield("Power Bombs", !SAMUS_PBS_MAX, 0, 70, 5, 5, .routine)
   .routine
     LDA !SAMUS_PBS_MAX : STA !SAMUS_PBS
     RTL
@@ -954,7 +950,7 @@ action_category:
     dw #$1025, #$1002, #$018F, #$000A, #$000A, #$0005, #$0000, #$0000        ; 14% ice
     dw #$3025, #$1000, #$018F, #$000A, #$000A, #$0005, #$0000, #$0000        ; 14% speed
     dw #$F33F, #$100F, #$02BC, #$0064, #$0014, #$0014, #$012C, #$0000        ; gt code
-    dw #$F33F, #$100F, #$0834, #$0145, #$0041, #$0041, #$02BC, #$0000        ; 135%
+    dw #$F33F, #$100F, #$0834, #$014A, #$0046, #$0046, #$02BC, #$0000        ; 138%
     dw #$710C, #$1001, #$031F, #$001E, #$0019, #$0014, #$0064, #$0000        ; rbo
     dw #$9004, #$0000, #$00C7, #$0005, #$0005, #$0005, #$0000, #$0000        ; any% glitched
     dw #$F32F, #$100F, #$0031, #$01A4, #$005A, #$0063, #$0000, #$0000        ; crystal flash
@@ -2303,7 +2299,6 @@ GameMenu:
     dw #game_cutscenes
     dw #game_fanfare_toggle
     dw #game_music_toggle
-    dw #game_healthalarm
     dw #$FFFF
     dw #game_goto_debug
     dw #$FFFF
@@ -2353,17 +2348,6 @@ game_music_toggle:
     LDA !MUSIC_TRACK : PHA : STZ !MUSIC_TRACK : PLA : JSL !MUSIC_ROUTINE
     RTL
 
-game_healthalarm:
-    dw !ACTION_CHOICE
-    dl #!sram_healthalarm
-    dw #$0000
-    db #$28, "Low Health Alar", #$FF
-    db #$28, "m     NEVER", #$FF
-    db #$28, "m   VANILLA", #$FF
-    db #$28, "m    PB FIX", #$FF
-    db #$28, "m  IMPROVED", #$FF
-    db #$FF
-
 game_minimap:
     %cm_toggle("Minimap", !ram_minimap, #$0001, #0)
 
@@ -2401,7 +2385,6 @@ DebugMenu:
     dw #game_pacifist
     dw #game_debugplms
     dw #game_debugprojectiles
-    dw #game_debugfixscrolloffsets
     dw #$0000
     %cm_header("DEBUG SETTINGS")
 
@@ -2422,9 +2405,6 @@ game_debugplms:
 
 game_debugprojectiles:
     %cm_toggle_bit("Enable Projectiles", $7E198D, #$8000, #0)
-
-game_debugfixscrolloffsets:
-    %cm_toggle_bit("Fix Scroll Offsets", !ram_fix_scroll_offsets, #$0001, #0)
 
 
 ; ---------------
