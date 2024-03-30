@@ -2244,6 +2244,7 @@ status_moondance_tas:
     RTS
 
   .notfalling
+    LDA !IH_LETTER_X : STA !HUD_TILEMAP+$88
     BRA .alldone
 
   .L2Rpress
