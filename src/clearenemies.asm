@@ -216,10 +216,10 @@ org !ORG_CLEAR_ENEMIES+$F7EF
 dw $0001  ; RSTONE     (boulder)
 
 org !ORG_CLEAR_ENEMIES+$F7FF
-dw $0001  ; KZAN       (spikey platform top)
+dw $0000  ; KZAN       (spikey platform top)
 
 org !ORG_CLEAR_ENEMIES+$F80F
-dw $0001  ;            (spikey platform bottom)
+dw $0000  ;            (spikey platform bottom)
 
 org !ORG_CLEAR_ENEMIES+$F81F
 dw $0001  ; HIBASHI    (fire geyser)
@@ -324,7 +324,7 @@ org !ORG_CLEAR_ENEMIES+$FA2F
 dw $0001  ; PUU        (powamp, Maridia floater)
 
 org !ORG_CLEAR_ENEMIES+$FA3F
-dw $0001  ; ROBO       (Wrecked Ship robot)
+dw $0000  ; ROBO       (Wrecked Ship robot)
 
 org !ORG_CLEAR_ENEMIES+$FA4F
 dw $0000  ; ROBO2      (Wrecked Ship robot, deactivated)
