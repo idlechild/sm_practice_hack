@@ -1,7 +1,7 @@
 @echo off
 
 set HACK_NAME=OpenDoors
-set HACK_BUILD_VERSION=2.6.0.1
+set HACK_BUILD_VERSION=2.6.1
 
 echo Building %HACK_NAME% Practice Hack
 if not exist build mkdir build

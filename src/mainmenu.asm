@@ -1496,7 +1496,7 @@ action_teleport:
     %a16()
 
     STZ $0727 ; Pause menu index
-    STZ $0795 ; Clear message box index 
+    STZ $0795 ; Clear door transition flag
     STZ $0E18 ; Set elevator to inactive
     STZ $1C1F ; Clear message box index
 
@@ -1993,6 +1993,7 @@ ihmode_vspeed:
 ihmode_quickdrop:
     %cm_jsl("Quickdrop Trainer", #action_select_infohud_mode, #$0010)
 
+!IH_MODE_WALLJUMP_INDEX = $0011
 ihmode_walljump:
     %cm_jsl("Walljump Trainer", #action_select_infohud_mode, #$0011)
 
@@ -2010,13 +2011,14 @@ ihmode_ramwatch:
 action_select_infohud_mode:
 {
     TYA : STA !sram_display_mode
+    JSL init_print_segment_timer
     JML cm_previous_menu
 }
 
 ih_display_mode:
     dw !ACTION_CHOICE
     dl #!sram_display_mode
-    dw #$0000
+    dw #.routine
     db #$28, "Current Mode", #$FF
     db #$28, "   ENEMY HP", #$FF
     db #$28, " ROOM STRAT", #$FF
@@ -2040,6 +2042,8 @@ ih_display_mode:
     db #$28, " SHOT TIMER", #$FF
     db #$28, "  RAM WATCH", #$FF
     db #$FF
+  .routine
+    JML init_print_segment_timer
 
 ih_goto_room_strat:
     %cm_submenu("Select Room Strat", #RoomStratMenu)
@@ -2118,6 +2122,7 @@ action_select_room_strat:
 {
     TYA : STA !sram_room_strat
     LDA #!IH_MODE_ROOMSTRAT_INDEX : STA !sram_display_mode
+    JSL init_print_segment_timer
     JML cm_previous_menu
 }
 
@@ -2144,8 +2149,8 @@ ih_room_strat:
     db #$28, "  TWO CRIES", #$FF
     db #$FF
   .routine
-    LDA #$0001 : STA !sram_display_mode
-    RTL
+    LDA #!IH_MODE_ROOMSTRAT_INDEX : STA !sram_display_mode
+    JML init_print_segment_timer
 
 ih_goto_timers:
     %cm_submenu("Timer Settings", #IHTimerMenu)
@@ -3317,7 +3322,23 @@ GameModeExtras:
 
 init_wram_based_on_sram:
 {
+    JSL init_print_segment_timer
+
     ; Check if any less common controller shortcuts are configured
     JML GameModeExtras
+}
+
+init_print_segment_timer:
+{
+    ; Skip printing segment timer when shinetune or walljump enabled
+    LDA !sram_display_mode : CMP #!IH_MODE_SHINETUNE_INDEX : BEQ .skipSegmentTimer
+    CMP #!IH_MODE_WALLJUMP_INDEX : BEQ .skipSegmentTimer
+    LDA #$0001
+    BRA .setSegmentTimer
+  .skipSegmentTimer
+    LDA #$0000
+  .setSegmentTimer
+    STA !ram_print_segment_timer
+    RTL
 }
 
