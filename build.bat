@@ -1,7 +1,7 @@
 @echo off
 
 set HACK_NAME=HACK
-set HACK_BUILD_VERSION=2.6.0
+set HACK_BUILD_VERSION=2.6.2
 
 echo Building %HACK_NAME% Practice Hack
 if not exist build mkdir build
@@ -46,3 +46,4 @@ python create_ips.py ..\build\00.sfc ..\build\ff.sfc ..\build\%HACK_NAME%_InfoHU
 
 del 00.sfc ff.sfc ..\build\00.sfc ..\build\ff.sfc ..\build\symbols.sym
 cd ..
+

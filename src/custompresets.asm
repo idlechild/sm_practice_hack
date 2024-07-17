@@ -5,6 +5,8 @@
 org !ORG_PRESETS_CUSTOM
 print pc, " custompresets start"
 
+; Backward compatibility was promised. Just because it's unused, doesn't mean you can use it.
+
 if !FEATURE_TINYSTATES
 custom_preset_save:
 {
@@ -394,6 +396,13 @@ preset_scroll_fixes:
   .big_pink
     BRL .specialized_big_pink
 
+  .big_pink_pbs
+    ; no fix if Ypos > 310
+    LDY !SAMUS_Y : CPY #$0136 : BMI .topdone
+    STZ $CD21
+    STA $CD22 : STA $CD23
+    BRA .topdone
+
   .taco_tank_room
     BRL .specialized_taco_tank_room
 
@@ -427,6 +436,7 @@ preset_scroll_fixes:
     CPX #$92FD : BEQ .parlor
     CPX #$9CB3 : BEQ .dachora
     CPX #$9D19 : BEQ .big_pink
+    CPX #$9E11 : BEQ .big_pink_pbs
     CPX #$9F64 : BEQ .taco_tank_room
     CPX #$A011 : BEQ .etecoons_etank
     CPX #$A253 : BEQ .red_tower
@@ -445,6 +455,12 @@ preset_scroll_fixes:
     ; ---------------------------------------------
     ; Upper Norfair Scroll Fixes (Category Presets)
     ; ---------------------------------------------
+  .ice_beam_gates
+    ; skip if Ypos < 720
+    LDY !SAMUS_Y : CPY #$02D0 : BMI .norfairdone
+    STA $CD38
+    BRA .norfairdone
+
   .ice_snake_room
     LDY !SAMUS_X : CPY #$0100    ; fix varies depending on X position
     BPL .ice_snake_room_hidden
@@ -470,6 +486,7 @@ preset_scroll_fixes:
     BRA .norfairdone
 
   .norfair
+    CPX #$A815 : BEQ .ice_beam_gates
     CPX #$A8B9 : BEQ .ice_snake_room
     CPX #$A9E5 : BEQ .hjb_room
     CPX #$AC83 : BEQ .green_bubble_missiles
@@ -526,6 +543,7 @@ preset_scroll_fixes:
     ; Wrecked Ship Scroll Fixes (Category Presets)
     ; --------------------------------------------
   .bowling
+    STA $CD2D : STA $CD2E : STA $CD2F
     STZ $CD26 : STZ $CD27
     STZ $CD28 : STZ $CD29
     STZ $CD2A : STZ $CD2B
@@ -554,6 +572,7 @@ preset_scroll_fixes:
     CPX #$CAF6 : BEQ .wrecked_ship_shaft
     CPX #$CBD5 : BEQ .electric_death
     CPX #$CC6F : BEQ .basement
+    CPX #$CEFB : BEQ .main_street
     CPX #$D1A3 : BEQ .crab_shaft
     CPX #$D21C : BEQ .crab_hole
     CPX #$D48E : BEQ .oasis
@@ -566,6 +585,10 @@ preset_scroll_fixes:
     ; -----------------------------------------------
     ; Maridia/Tourian Scroll Fixes (Category Presets)
     ; -----------------------------------------------
+  .main_street
+    INC : STA $CD20
+    BRA .halfwaydone
+
   .crab_shaft
     STA $CD26 : INC : STA $CD24
     BRA .halfwaydone
@@ -717,6 +740,69 @@ endif
     STA $7F036E : STA $7F0370 : STA $7F0374 : STA $7F0376
     STA $7F03D4 : STA $7F0610 : STA $7F0612
     BRA .specialdone
+}
+
+LoadRandomPreset:
+{
+    PHY : PHX : PHB
+    PHK : PLB
+    LDA !ram_random_preset_rng : BEQ .seedrandom
+    LDA !ram_random_preset_value : STA $12
+    BRA .seedpicked
+
+  .seedrandom
+    JSL MenuRNG : STA $12                      ; random number
+
+  .seedpicked
+    LDA.w #preset_category_banks>>16 : STA $18 ; bank of category list in $18
+    LDA !sram_preset_category : ASL : TAY      ; selected category index in Y
+    LDA.w #preset_category_submenus : STA $16  ; pointer to category list in $16
+    LDA [$16],Y : TAX                          ; pointer to submenu table in X
+    LDA.w #preset_category_banks : STA $16     ; bank of submenu table in $16
+    LDA [$16],Y : STA $18                      ; pointer to category grouping table in $18
+
+    STX $16 : LDY #$0000                       ; pointer to submenu table in $16, reset Y
+  .toploop                                     ; count number of preset groups in Y
+    INY #2
+    LDA [$16],Y : BNE .toploop
+    TYA : LSR : TAY                            ; Y = size of preset category submenu table
+
+    LDA $12 : XBA : AND #$00FF : STA $4204
+    %a8()
+    STY $4206                                  ; divide top half of random number by Y
+    %a16()
+    PEA $0000 : PLA : PEA $0000 : PLA
+    LDA $4216 : ASL : TAY                      ; randomly selected subcategory in Y
+    LDA [$16],Y : STA $16                      ; subcategory pointer in $16
+    LDY #$0004 : LDA [$16],Y : STA $16         ; increment four bytes to get the subcategory table
+
+    LDY #$0000
+  .subloop                                     ; count number of presets in the subcategory in Y
+    INY #2
+    LDA [$16],Y : BNE .subloop
+    TYA : LSR : TAY                            ; Y = size of subcategory table
+
+    LDA $12 : AND #$00FF : STA $4204
+    %a8()
+    STY $14 : STY $4206                        ; divide bottom half of random number by Y
+    %a16()
+    PEA $0000 : PLA : PEA $0000 : PLA
+    LDA $4216 : STA $12                        ; randomly selected preset
+
+    ASL : TAY
+    LDA [$16],Y : STA $16                      ; random preset macro pointer in $16
+    LDY #$0004 : LDA [$16],Y                   ; finally reached the pointer to the preset
+    STA !ram_load_preset
+
+    LDA !ram_random_preset_rng : BEQ .done
+    LDA !ram_random_preset_value : INC : STA !ram_random_preset_value
+    LDA $12 : INC : CMP $14 : BMI .done
+    LDA !ram_random_preset_value : XBA : INC : XBA
+    AND #$FF00 : STA !ram_random_preset_value
+
+  .done
+    PLB : PLX : PLY
+    RTL
 }
 
 print pc, " custompresets end"
