@@ -83,5 +83,5 @@ oam_add_samus_sprite_with_prio:
 }
 
 print pc, " spriteprio end"
-;warnpc $81F000 ; init.asm
+warnpc $81FA00 ; init.asm
 

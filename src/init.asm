@@ -1,13 +1,7 @@
 
-; hijack, runs as game is starting, JSR to RAM initialization to avoid bad values
-org $808455
-    JML init_code
-
-
 ; hijack when clearing bank 7E
 org $808490
-    ; Save quickboot state since it needs to distinguish between a soft and hard reset
-    LDY.w !ram_quickboot_spc_state
+    JSL init_code
     LDX #$3FFE
   .clear_bank_loop
     STZ $0000,X
@@ -17,7 +11,6 @@ org $808490
     DEX : DEX
     BPL .clear_bank_loop
     JSL init_nonzero_wram
-    STY.w !ram_quickboot_spc_state
     BRA .end_clear_bank
 warnpc $8084AF
 
@@ -28,27 +21,17 @@ org $80856E
     JML init_post_boot
 
 
-;org $81F000
 org !ORG_INIT
 print pc, " init start"
 
 init_code:
 {
-    REP #$30
-    PHA
-
-    ; Initialize RAM (Bank 7E required)
-    LDA #$0000 : STA !ram_slowdown_mode
-
     ; Check if we should initialize SRAM
     LDA !sram_initialized : CMP #!SRAM_VERSION : BEQ .sram_initialized
-    JSL init_sram
+    JML init_sram
 
   .sram_initialized
-    PLA
-    ; Execute overwritten logic and return
-    JSL $8B9146
-    JML $808459
+    RTL
 }
 
 init_nonzero_wram:
@@ -75,8 +58,6 @@ init_sram:
 
     LDA #$0015 : STA !sram_artificial_lag
     LDA #$0001 : STA !sram_rerandomize
-    LDA #$0000 : STA !sram_fanfare_toggle
-    LDA #$0001 : STA !sram_music_toggle
     LDA #$0000 : STA !sram_frame_counter_mode
     LDA #$0000 : STA !sram_display_mode
     LDA #$0000 : STA !sram_last_preset
@@ -88,14 +69,12 @@ init_sram:
     LDA #$0000 : STA !sram_status_icons
     LDA #$0000 : STA !sram_top_display_mode
     LDA #$0001 : STA !sram_healthalarm
-    LDA #$0003 : STA !sram_cutscenes
     LDA #$0000 : STA !sram_lag_counter_mode
     LDA #$0000 : STA !sram_preset_options
     LDA #$000A : STA !sram_metronome_tickrate
     LDA #$0002 : STA !sram_metronome_sfx
     LDA #$0000 : STA !sram_ctrl_auto_save_state
     LDA #$0000 : STA !sram_custom_header
-    LDA #$0000 : STA !sram_fanfare_timer_adjust
     LDA #$0000 : STA !sram_door_display_mode
     LDA #$0000 : STA !sram_cm_font
     LDA #$0000 : STA !sram_display_mode_reward
@@ -113,7 +92,6 @@ init_sram:
     LDA #$0000 : STA !sram_ctrl_kill_enemies
     LDA #$0000 : STA !sram_ctrl_reset_segment_timer
     LDA #$0000 : STA !sram_ctrl_reset_segment_later
-    LDA #$0000 : STA !sram_ctrl_random_preset
     LDA #$0000 : STA !sram_ctrl_save_custom_preset
     LDA #$0000 : STA !sram_ctrl_load_custom_preset
     LDA #$0000 : STA !sram_ctrl_inc_custom_preset
@@ -163,21 +141,14 @@ init_post_boot:
     LDA #$0000
   .valid_index
     JSL $818085     ; Load save file
-    BCC .check_quickboot
+    BCC .done
 
     ; No valid save; load a new file (for default controller bindings)
     JSR $B2CB
-
-  .check_quickboot
-    ; Is quickboot enabled?
-    LDA !sram_cutscenes : AND !CUTSCENE_QUICKBOOT : BEQ .done
-
-    ; Boot to the infohud menu
-    JML cm_boot
 
   .done
     JML $82893D     ; hijacked code: start main game loop
 }
 
 print pc, " init end"
-;warnpc $81FF00 ; Special thanks
+warnpc $81FF00 ; Special thanks

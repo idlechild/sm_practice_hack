@@ -6,12 +6,10 @@
 !FEATURE_SD2SNES ?= 1
 !FEATURE_TINYSTATES ?= 0
 !FEATURE_MAPSTATES ?= 0
-!FEATURE_MORPHLOCK ?= 0
 !FEATURE_DEV ?= 0
-!RAW_TILE_GRAPHICS ?= 0
-!FEATURE_CUSTOMIZE_MENU ?= 0
-!FEATURE_ROOM_NAMES ?= 0
-!FEATURE_CLEAR_ENEMIES ?= 0
+!FEATURE_CUSTOMIZE_MENU ?= 1
+!FEATURE_ROOM_NAMES ?= 1
+!FEATURE_CLEAR_ENEMIES ?= 1
 
 !VERSION_MAJOR = 2
 !VERSION_MINOR = 6
@@ -24,51 +22,43 @@
 ; ---------------
 
 !ORG_INFOHUD = $F08000 ; $3335
-!ORG_INFOHUD_BANK80 = $80FD00 ; $265, bank $80
+!ORG_INFOHUD_BANK80 = $80FC00 ; $265, bank $80
 !ORG_MAINMENU_INFOHUD = $85C000 ; $18C7
-!ORG_MAINMENU_GAME = $B3F000 ; $751
+!ORG_MAINMENU_EQUIPMENT = $B3F000 ; $751
 !ORG_INIT = $81FA00 ; $237
 !ORG_MENU_BANK85 = $85FD00 ; $28, bank $85
-!ORG_MENU_BANK89 = $89B000 ; $361D
-;!ORG_MENU_GFX = $F0D700 ; unused, $1000, can be used to reduce menu code size
-;!ORG_MENU_GFX2 = $B5F000 ; $1000
-!ORG_MAINMENU = $B88000 ; $34FE
+!ORG_MENU_BANK89 = $89B400 ; $361D
+!ORG_MENU_GFX = $89F000 ; $1000
+!ORG_MENU_GFX2 = $85E000 ; $1000
+!ORG_MAINMENU = $87D000 ; $34FE
 !ORG_GAMEMODE = $85F800 ; $3B7
-!ORG_PRESETS_BANK82 = $82FA00 ; $2C1, bank $82
-!ORG_PRESETS_TINYSTATES_BANK82 = $82FF00 ; $9D, bank $82
+!ORG_INFOHUD_BANK82 = $82FFE0 ; $1E, bank $82
+!ORG_PRESETS_BANK82 = $82F9FB ; $85, bank $82
+!ORG_PRESETS_MORE_BANK82 = $82FD12 ; $16A-$35, bank $82
+!ORG_PRESETS_TINYSTATES_BANK82 = $82FF30 ; $9D, bank $82
 !ORG_PRESETS_BANK80 = $80F000 ; $439, bank $80
-!ORG_PRESETS_DATA = $FE8000 ; $20C0
-!ORG_PRESETS_MENU = $FEE000 ; $108F
-!ORG_PRESETS_CUSTOM = $83B400 ; $7EF
-!ORG_MORPHLOCK = $80CD90 ; $5C, vanilla overwrite
-!ORG_MISC_BANKA0 = $A0FFD0 ; $2A, bank $A0
+!ORG_PRESETS_CUSTOM = $83C000 ; $7EF
+!ORG_MISC_BANKA0 = $A0FDD0 ; $2A, bank $A0
 !ORG_MISC_BANK90 = $908E75 ; $1C, bank $90, overwrites vanilla unused
 !ORG_MISC_BANK86 = $86F500 ; $75, bank $86
-!ORG_MISC_BANK87 = $87FF00 ; $95, bank $87
-;!ORG_MISC_TILE_GRAPHICS = $8BFA00 ; unused, $140
-!ORG_MISC_BANK8B = $8BFF00 ; $4D, bank $8B
-!ORG_MISC_BANK8F = $8FFE00 ; $26 bank $8F
-!ORG_MINIMAP_BANKFD = $FDD500 ; $2000
-!ORG_MINIMAP_BANK82 = $82F70F ; $8C, bank $82
-!ORG_MINIMAP_BANK90 = $90F640 ; $C8, bank $90
-!ORG_SAVE = $80F600 ; $4C3
-!ORG_RNG_BANK83 = $83B000 ; $1B3
+!ORG_MISC_BANK8F = $8FFE40 ; $26, bank $8F
+!ORG_MINIMAP_HUDGFX = $F1C000 ; $2000
+!ORG_MINIMAP_MAPGFX = $F1E000 ; $2000
+!ORG_MINIMAP_BANK82 = $82FDD0 ; $8C, bank $82
+!ORG_MINIMAP_BANK90 = $90FE00 ; $C8, bank $90
+!ORG_SAVE = $80F500 ; $632
+!ORG_RNG_BANK83 = $83BA00 ; $1B3
 !ORG_RNG_BANKA4 = $A4FFA0 ; $15, bank $A4
 !ORG_RNG_BANKA5 = $A5FD50 ; $18, bank $A5
 !ORG_RNG_BANKA6 = $A6FF00 ; $6B, bank $A6
-!ORG_RNG_BANKA7 = $A7FFB6 ; $22, bank $A7
-!ORG_FANFARE_BANK84 = $84FF6D ; $11
-!ORG_FANFARE_BANK85 = $85FF00 ; $69
-!ORG_CRASH = $80E000 ; $151, bank $80
+!ORG_RNG_BANKA7 = $A7893D ; $22, bank $A7, overwrites vanilla unused
+!ORG_CRASH = $80E200 ; $151, bank $80
 !ORG_SPRITEPRIO = $81F700 ; $90
 !ORG_SPRITEFEAT = $F0E000 ; $1060
-;!ORG_RAW_TILE_TABLES = $E88800
-;!ORG_RAW_TILEGRAPHICS = $F48000
-;!ORG_RAW_TILES = $F4D800
-!ORG_ROOMNAMES = $E70000 ; whole bank pointer style
-;!ORG_CLEAR_ENEMIES = $E70000 ; whole bank pointer style
-;!ORG_CUSTOMIZEMENU = $AFEC00
-;!ORG_PALETTEPROFILES = $AEFD20
+!ORG_ROOMNAMES = $EF0000 ; whole bank pointer style
+!ORG_CLEAR_ENEMIES = $EF0000 ; whole bank pointer style
+!ORG_CUSTOMIZEMENU = $AFEC00
+!ORG_PALETTEPROFILES = $AEFD20
 
 
 ; ---------
@@ -80,9 +70,7 @@
 !CRASHDUMP = $7EFF00
 
 !WRAM_BANK = !WRAM_START>>16
-!WRAM_SIZE = #$0200
 !WRAM_START = $7EFD00
-!WRAM_END = $7EFF00
 
 ; These variables are NOT PERSISTENT across savestates --
 ; they're saved and reloaded along with the game state.
@@ -145,7 +133,7 @@
 !ram_dash_counter                   = !WRAM_START+$56
 
 !ram_lag_counter                    = !WRAM_START+$58
-!ram_kraid_adjust_timer             = !WRAM_START+$5A
+
 !ram_print_segment_timer            = !WRAM_START+$5C
 
 ; ^ FREE SPACE ^ up to +$6C
@@ -187,8 +175,6 @@
 !ram_minimap                        = !WRAM_PERSIST_START+$02
 
 !ram_fix_scroll_offsets             = !WRAM_PERSIST_START+$04
-!ram_random_preset_rng              = !WRAM_PERSIST_START+$06
-!ram_random_preset_value            = !WRAM_PERSIST_START+$08
 
 !ram_magic_pants_enabled            = !WRAM_PERSIST_START+$0A
 !ram_space_pants_enabled            = !WRAM_PERSIST_START+$0C
@@ -210,10 +196,9 @@
 !ram_draygon_rng_left               = !WRAM_PERSIST_START+$2C
 !ram_draygon_rng_right              = !WRAM_PERSIST_START+$2E
 
-; ^ FREE SPACE ^ up to +$34
+; ^ FREE SPACE ^ up to +$36
 
-!ram_pacifist                       = !WRAM_PERSIST_START+$36
-!ram_freeze_on_load                 = !WRAM_PERSIST_START+$38
+!ram_pacifist                       = !WRAM_PERSIST_START+$38
 
 !ram_watch_left_index               = !WRAM_PERSIST_START+$3A
 !ram_watch_right_index              = !WRAM_PERSIST_START+$3C
@@ -233,19 +218,14 @@
 
 !ram_quickboot_spc_state            = !WRAM_PERSIST_START+$56
 
-; ^ FREE SPACE ^ up to +$7C (!WRAM_START+$FC - !WRAM_PERSIST_START)
+; ^ FREE SPACE ^ up to +$7E (!WRAM_START+$FE - !WRAM_PERSIST_START)
 
-; -----------------------
-; RAM (Bank 7E required)
-; -----------------------
-
-!ram_slowdown_mode = $7EFDFE
 
 ; ---------
 ; RAM Menu
 ; ---------
 
-!WRAM_MENU_START = $7EFE00
+!WRAM_MENU_START = $7EFF00
 
 !ram_cm_stack_index = $05D5
 !ram_cm_menu_stack = !WRAM_MENU_START+$00         ; 16 bytes
@@ -365,12 +345,12 @@ else
 assert read1($00FFD8) <= $03,"Hack uses extra SRAM!"
 endif
 
-!PRESET_SLOTS = $703000
+!PRESET_SLOTS = $704000
 !SRAM_VERSION = $0016
 
-!SRAM_START = $702200
+!SRAM_START = $702600
 
-!sram_initialized = !SRAM_START+$00
+; First two bytes of SRAM_START are reserved for MapRando
 
 !sram_ctrl_menu = !SRAM_START+$02
 !sram_ctrl_kill_enemies = !SRAM_START+$04
@@ -380,21 +360,20 @@ endif
 !sram_ctrl_load_state = !SRAM_START+$0C
 !sram_ctrl_save_state = !SRAM_START+$0E
 !sram_ctrl_load_last_preset = !SRAM_START+$10
-!sram_ctrl_random_preset = !SRAM_START+$12
+!sram_ctrl_auto_save_state = !SRAM_START+$12
 !sram_ctrl_save_custom_preset = !SRAM_START+$14
 !sram_ctrl_load_custom_preset = !SRAM_START+$16
 !sram_ctrl_inc_custom_preset = !SRAM_START+$18
 !sram_ctrl_dec_custom_preset = !SRAM_START+$1A
 !sram_ctrl_toggle_tileviewer = !SRAM_START+$1C
 !sram_ctrl_update_timers = !SRAM_START+$1E
-!sram_ctrl_auto_save_state = !SRAM_START+$F0 ; note the change of order
 
 !sram_artificial_lag = !SRAM_START+$20
 !sram_rerandomize = !SRAM_START+$22
-!sram_fanfare_toggle = !SRAM_START+$24
+!sram_initialized = !SRAM_START+$24
 !sram_frame_counter_mode = !SRAM_START+$26
 !sram_display_mode = !SRAM_START+$28
-!sram_music_toggle = !SRAM_START+$2A
+
 !sram_last_preset = !SRAM_START+$2C
 !sram_save_has_set_rng = !SRAM_START+$2E
 !sram_preset_category = !SRAM_START+$30
@@ -404,11 +383,11 @@ endif
 !sram_metronome_tickrate = !SRAM_START+$38
 !sram_metronome_sfx = !SRAM_START+$3A
 !sram_status_icons = !SRAM_START+$3C
-!sram_fanfare_timer_adjust = !SRAM_START+$3E
+
 !sram_top_display_mode = !SRAM_START+$40
 !sram_healthalarm = !SRAM_START+$42
 !sram_room_layout = !SRAM_START+$44
-!sram_cutscenes = !SRAM_START+$46
+
 !sram_preset_options = !SRAM_START+$48
 !sram_lag_counter_mode = !SRAM_START+$4A
 
@@ -439,57 +418,34 @@ endif
 
 !sram_seed_X = !SRAM_START+$82
 !sram_seed_Y = !SRAM_START+$84
-;!sram_bomb_torizo_door = !SRAM_START+$86
+!sram_display_mode_reward = !SRAM_START+$86
 !sram_door_display_mode = !SRAM_START+$88
 !sram_cm_fast_scroll_button = !SRAM_START+$8A
 !sram_cm_font = !SRAM_START+$8C
 
-; ^ FREE SPACE ^ up to +$EE
+; ^ FREE SPACE ^ up to +$DE
 
-;!sram_presetequiprando = !SRAM_START+$100
-;!sram_presetequiprando_beampref = !SRAM_START+$102
-;!sram_presetequiprando_max_etanks = !SRAM_START+$104
-;!sram_presetequiprando_max_reserves = !SRAM_START+$106
-;!sram_presetequiprando_max_missiles = !SRAM_START+$108
-;!sram_presetequiprando_max_supers = !SRAM_START+$10A
-;!sram_presetequiprando_max_pbs = !SRAM_START+$10C
-!sram_display_mode_reward = !SRAM_START+$10E
+!sram_custom_header_normal = !SRAM_START+$E8 ; $18 bytes
+!sram_custom_preset_safewords_normal = !SRAM_START+$4B20 ; $60 bytes
+!sram_custom_preset_names_normal = !SRAM_START+$4B80 ; $480 bytes
 
-; ^ FREE SPACE ^ up to +$BA6
-
-!sram_custom_header_normal = !SRAM_START+$BA8 ; $18 bytes
-!sram_custom_preset_safewords_normal = !SRAM_START+$BC0 ; $50 bytes
-!sram_custom_preset_names_normal = !SRAM_START+$C10 ; $3C0 bytes
-
-!sram_custom_header_tinystates = !SRAM_START+$E18 ; $18 bytes
-!sram_custom_preset_safewords_tinystates = !SRAM_START+$E30 ; $20 bytes
-!sram_custom_preset_names_tinystates = !SRAM_START+$E50 ; $180 bytes
+!sram_custom_header_tinystates = !SRAM_START+$E8 ; $18 bytes
+!sram_custom_preset_safewords_tinystates = !SRAM_START+$860 ; $20 bytes
+!sram_custom_preset_names_tinystates = !SRAM_START+$880 ; $180 bytes
 
 ; SM specific things
-!SRAM_MUSIC_DATA = !SRAM_START+$0FD0
-!SRAM_MUSIC_TRACK = !SRAM_START+$0FD2
-!SRAM_SOUND_TIMER = !SRAM_START+$0FD4
-
-; ^ FREE SPACE ^ up to +$0FFE
+!SRAM_MUSIC_DATA = !SRAM_START+$E0
+!SRAM_MUSIC_TRACK = !SRAM_START+$E2
+!SRAM_SOUND_TIMER = !SRAM_START+$E4
 
 
 ; --------------
 ; Vanilla Labels
 ; --------------
 
-if !FEATURE_MORPHLOCK
-!IH_CONTROLLER_PRI = $CB
-!IH_CONTROLLER_PRI_NEW = $CF
-!IH_CONTROLLER_PRI_PREV = $C7
-else
 !IH_CONTROLLER_PRI = $8B
 !IH_CONTROLLER_PRI_NEW = $8F
 !IH_CONTROLLER_PRI_PREV = $97
-endif
-
-!IH_CONTROLLER_SEC = $8D
-!IH_CONTROLLER_SEC_NEW = $91
-!IH_CONTROLLER_SEC_PREV = $99
 
 !KB_SHIFT1 = $9A
 !KB_SHIFT2 = $9B
@@ -521,13 +477,6 @@ endif
 !IH_NUMBER_ZERO = #$0C09
 !IH_ELEVATOR = #$1C0B
 !IH_SHINETIMER = #$0032
-
-!IH_PAUSE = #$0100 ; right
-!IH_SLOWDOWN = #$0400 ; down
-!IH_SPEEDUP = #$0800 ; up
-!IH_RESET = #$0200 ; left
-!IH_STATUS_R = #$0010 ; r
-!IH_STATUS_L = #$0020 ; l
 
 !IH_INPUT_START = #$1000
 !IH_INPUT_UPDOWN = #$0C00
@@ -736,8 +685,6 @@ incsrc HUDdefines.asm
 
 !HUD_TILEMAP = $7EC600
 
-!MAP_COUNTER = $7ECAE8 ; Not used in vanilla
-
 
 ; --------------------
 ; Aliases and Bitmasks
@@ -748,9 +695,15 @@ if !FEATURE_TINYSTATES
 !sram_custom_preset_safewords = !sram_custom_preset_safewords_tinystates
 !sram_custom_preset_names = !sram_custom_preset_names_tinystates
 else
+if !FEATURE_MAPSTATES
+!sram_custom_header = !sram_custom_header_tinystates
+!sram_custom_preset_safewords = !sram_custom_preset_safewords_tinystates
+!sram_custom_preset_names = !sram_custom_preset_names_tinystates
+else
 !sram_custom_header = !sram_custom_header_normal
 !sram_custom_preset_safewords = !sram_custom_preset_safewords_normal
 !sram_custom_preset_names = !sram_custom_preset_names_normal
+endif
 endif
 
 !FRAMERATE = #$003C
@@ -805,10 +758,6 @@ endif
 
 !TOP_DISPLAY_VANILLA = #$0002
 
-!CUTSCENE_FAST_PHANTOON = #$0200
-!CUTSCENE_FAST_KRAID = #$0400
-!CUTSCENE_QUICKBOOT = #$0800
-
 !PRESETS_COMPRESSED_GRAPHICS = #$0001
 !PRESETS_COMPRESSED_PALETTES = #$0002
 !PRESETS_COMPRESSED_TABLES = #$0004
@@ -817,48 +766,28 @@ endif
 !PRESETS_CLEAR_MAP_TILES = #$0020
 !PRESETS_AUTO_SEGMENT_OFF = #$0040
 
-!PRESET_EQUIP_RANDO_ENABLE = #$0001
-!PRESET_EQUIP_RANDO_FORCE_MORPH = #$0002
-!PRESET_EQUIP_RANDO_FORCE_CHARGE = #$0004
-!PRESET_EQUIP_RANDO_INIT = #$0006
-
 if !FEATURE_MAPSTATES
 if !FEATURE_TINYSTATES
 !TOTAL_PRESET_SLOTS = #$0001
 else
-!TOTAL_PRESET_SLOTS = #$0009
+!TOTAL_PRESET_SLOTS = #$0007
 endif
 !PRESET_SLOT_SIZE = #$0800
-!PRESET_SLOTS_ROOM = $703000+$06
-!PRESET_SLOTS_ENERGY = $703000+$28
-!PRESET_SLOTS_MAXENERGY = $703000+$2A
-!PRESET_SLOTS_RESERVES = $703000+$3C
-!PRESET_SLOTS_MISSILES = $703000+$2C
-!PRESET_SLOTS_SUPERS = $703000+$30
-!PRESET_SLOTS_PBS = $703000+$34
 else
 if !FEATURE_TINYSTATES
 !TOTAL_PRESET_SLOTS = #$000F
-!PRESET_SLOT_SIZE = #$0100
-!PRESET_SLOTS_ROOM = $703000+$06
-!PRESET_SLOTS_ENERGY = $703000+$28
-!PRESET_SLOTS_MAXENERGY = $703000+$2A
-!PRESET_SLOTS_RESERVES = $703000+$3C
-!PRESET_SLOTS_MISSILES = $703000+$2C
-!PRESET_SLOTS_SUPERS = $703000+$30
-!PRESET_SLOTS_PBS = $703000+$34
 else
-!TOTAL_PRESET_SLOTS = #$0027
-!PRESET_SLOT_SIZE = #$0200
-!PRESET_SLOTS_ROOM = $703000+$0A
-!PRESET_SLOTS_ENERGY = $703000+$2C
-!PRESET_SLOTS_MAXENERGY = $703000+$2E
-!PRESET_SLOTS_RESERVES = $703000+$40
-!PRESET_SLOTS_MISSILES = $703000+$30
-!PRESET_SLOTS_SUPERS = $703000+$34
-!PRESET_SLOTS_PBS = $703000+$38
+!TOTAL_PRESET_SLOTS = #$002F
 endif
+!PRESET_SLOT_SIZE = #$0100
 endif
+!PRESET_SLOTS_ROOM = $704000+$06
+!PRESET_SLOTS_ENERGY = $704000+$28
+!PRESET_SLOTS_MAXENERGY = $704000+$2A
+!PRESET_SLOTS_RESERVES = $704000+$3C
+!PRESET_SLOTS_MISSILES = $704000+$2C
+!PRESET_SLOTS_SUPERS = $704000+$30
+!PRESET_SLOTS_PBS = $704000+$34
 
 !SPRITE_SAMUS_HITBOX = #$0001
 !SPRITE_ENEMY_HITBOX = #$0002
@@ -869,7 +798,6 @@ endif
 !SPRITE_32x32_PROJ = #$0040
 !SPRITE_OOB_WATCH = #$0080
 
-!FANFARE_TOGGLE = #$0001
 !FRAME_COUNTER_ADJUST_REALTIME = #$0002
 
 ; ----------
@@ -879,27 +807,13 @@ endif
 if !FEATURE_SD2SNES
 if !FEATURE_TINYSTATES
 !SRAM_DMA_BANK = $737000
-!SRAM_SAVED_SP = $737F00
-!SRAM_SAVED_STATE = $737F02
-!SRAM_SAVED_RNG = $737F80
-!SRAM_SAVED_FRAME_COUNTER = $737F82
-!SRAM_TINYSTATE_ROOM = $737F84
-!SRAM_SEG_TIMER_F = $737F88
-!SRAM_SEG_TIMER_S = $737F8A
-!SRAM_SEG_TIMER_M = $737F8C
-!SRAM_SAVED_MINIMAP = $737F8E
-!SRAM_SLOWDOWN_MODE = $737F90
 else
 !SRAM_DMA_BANK = $770000
-!SRAM_SAVED_RNG = $770080
-!SRAM_SAVED_FRAME_COUNTER = $770082
-!SRAM_SAVED_SP = $774004
-!SRAM_SAVED_STATE = $774006
-!SRAM_SAVED_MINIMAP = $774008
-!SRAM_SEG_TIMER_F = $77400A
-!SRAM_SEG_TIMER_S = $77400C
-!SRAM_SEG_TIMER_M = $77400E
-!SRAM_SLOWDOWN_MODE = $774010
 endif
+!SRAM_SAVED_SP = !SRAM_DMA_BANK+$80
+!SRAM_SAVED_STATE = !SRAM_DMA_BANK+$82
+!SRAM_SAVED_RNG = !SRAM_DMA_BANK+$84
+!SRAM_SAVED_FRAME_COUNTER = !SRAM_DMA_BANK+$86
+!SRAM_SAVED_MINIMAP = !SRAM_DMA_BANK+$88
 endif
 

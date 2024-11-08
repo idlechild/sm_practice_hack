@@ -35,17 +35,10 @@ incsrc custompresets.asm
 incsrc presets.asm
 incsrc misc.asm
 incsrc init.asm
-incsrc fanfare.asm
 incsrc spriteprio.asm
 incsrc spritefeat.asm
-if !RAW_TILE_GRAPHICS
-    incsrc tilegraphics.asm
-endif
 
 if !FEATURE_DEV
     incsrc symbols.asm
 endif
-
-; Make sure the ROM expands to 4MB
-org $FFFFFF : db $FF
 

@@ -5,7 +5,7 @@
 org $809AF3
     JSL mm_initialize_minimap
 
-org $809B51
+org $809B4E
     JMP $9BFB    ; skip drawing auto reserve icon and normal energy numbers and tanks during HUD routine
 
 org $8282E5      ; write and clear tiles to VRAM
@@ -80,26 +80,29 @@ mm_update_minimap:
 }
 warnpc $90A971   ; return to original code here
 
-org $90A97E
-    JMP mm_inc_tile_count
 
 
-
-org $9AB200      ; graphics for HUD
+org !ORG_MINIMAP_HUDGFX
+print pc, " minimap hudgfx start"
 hudgfx_bin:
-incbin ../resources/hudgfx.bin
+    incbin ../resources/hudgfx.bin
+
+; Next block needs to be all zeros to clear a tilemap
+fillbyte $00
+fill 4096
+print pc, " minimap hudgfx end"
 
 
 ; Place minimap graphics in bank FD
-org !ORG_MINIMAP_BANKFD
-print pc, " minimap bankFD start"
+org !ORG_MINIMAP_MAPGFX
+print pc, " minimap mapgfx start"
 mapgfx_bin:
 incbin ../resources/mapgfx.bin
 
 ; Next block needs to be all zeros to clear a tilemap
 fillbyte $00
 fill 4096
-print pc, " minimap bankFD end"
+print pc, " minimap mapgfx end"
 
 
 ; The default HUD minimap should be cleared
@@ -148,7 +151,7 @@ mm_write_hud_tiles_during_door:
 }
 
 print pc, " minimap bank82 end"
-;warnpc $82F800 ; layout.asm
+warnpc $82FE00 ; MapRando
 
 
 ; Placed in bank 90 so that the jumps work
@@ -185,27 +188,6 @@ mm_initialize_minimap:
     RTL
 }
 
-mm_inc_tile_count:
-{
-    ; Overwritten logic
-    STY $20
-    STX $1E
-
-    ; Check if tile is already set
-    LDA $07F7,X
-    ORA $AC04,Y
-    CMP $07F7,X : BEQ .done
-
-    ; Set tile and increment counter
-    STA $07F7,X
-    %ai16()
-    LDA !MAP_COUNTER : INC : STA !MAP_COUNTER
-    JMP $A98D  ; resume original logic skipping past %ai16()
-
-  .done
-    JMP $A98B  ; resume original logic including %ai16()
-}
-
 mm_write_and_clear_hud_tiles:
 {
     %i16()
@@ -237,5 +219,4 @@ mm_write_and_clear_hud_tiles:
 }
 
 print pc, " minimap bank90 end"
-;warnpc $90F980 ; PJBoy respin patch
 

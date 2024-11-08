@@ -49,8 +49,6 @@ pre_load_state:
     LDA !MUSIC_TRACK : STA !SRAM_MUSIC_TRACK
     LDA !SOUND_TIMER : STA !SRAM_SOUND_TIMER
 
-    LDA !ram_slowdown_mode : STA !SRAM_SLOWDOWN_MODE
-
     ; Rerandomize
     LDA !sram_save_has_set_rng : BNE .done
     LDA !sram_rerandomize : AND #$00FF : BEQ .done
@@ -89,10 +87,6 @@ post_load_state:
     ; Reload custom HUD number GFX
     JSL overwrite_HUD_numbers
 
-    LDA !SRAM_SLOWDOWN_MODE : CMP #$FFFF : BEQ .rng
-    AND #$00FF : STA !ram_slowdown_mode
-
-  .rng
     ; Rerandomize
     LDA !sram_save_has_set_rng : BNE .done
     LDA !sram_rerandomize : AND #$00FF : BEQ .done
@@ -104,17 +98,6 @@ post_load_state:
 
   .done
     JSL init_wram_based_on_sram
-
-    ; Freeze inputs if necessary
-    LDA !ram_freeze_on_load : BEQ .return
-    LDA !ram_slowdown_mode : BNE .return
-    LDA #$FFFF : STA !ram_slowdown_mode
-    INC : STA !ram_slowdown_controller_1 : STA !ram_slowdown_controller_2
-    INC : STA !ram_slowdown_frames
-    ; Preserve segment timer during freeze
-    LDA !ram_seg_rt_frames : STA !SRAM_SEG_TIMER_F
-    LDA !ram_seg_rt_seconds : STA !SRAM_SEG_TIMER_S
-    LDA !ram_seg_rt_minutes : STA !SRAM_SEG_TIMER_M
 
   .return
     RTS
@@ -137,8 +120,6 @@ post_load_music:
     TXA : CMP $063B : BNE .music_queue_data_search
 
   .no_music_data
-    LDA !sram_music_toggle : CMP #$0002 : BPL .fast_off_preset_off
-
     ; No data found in queue, check if we need to insert it
     LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BEQ .music_queue_increase_timer
 
@@ -148,14 +129,9 @@ post_load_music:
     LDA #$0008 : STA $0629,X
 
   .queued_music_data
-    LDA !sram_music_toggle : CMP #$0002 : BMI .queued_music_data_clear_track
-
-    ; There is music data in the queue, assume it was loaded
-    LDA $0619,X : STA !MUSIC_DATA
-    BRA .fast_off_preset_off
+    BRA .queued_music_data_clear_track
 
   .music_queue_empty
-    LDA !sram_music_toggle : CMP #$0002 : BPL .fast_off_preset_off
     LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BNE .clear_track_load_data
     BRL .check_track
 
@@ -163,14 +139,6 @@ post_load_music:
     LDA #$0000 : JSL !MUSIC_ROUTINE
     LDA #$FF00 : CLC : ADC !MUSIC_DATA : JSL !MUSIC_ROUTINE
     BRA .load_track
-
-  .fast_off_preset_off
-    ; Treat music as already loaded
-    STZ $0629 : STZ $062B : STZ $062D : STZ $062F
-    STZ $0631 : STZ $0633 : STZ $0635 : STZ $0637
-    STZ $0639 : STZ $063B : STZ $063D : STZ $063F
-    STZ $0686 : STY !MUSIC_TRACK
-    BRA .done
 
   .music_queue_increase_timer
     ; Data is correct, but we may need to increase our sound timer
@@ -411,4 +379,4 @@ vm:
 }
 
 print pc, " save end"
-;warnpc $80FD00 ; infohud.asm
+warnpc $80FC00 ; infohud.asm

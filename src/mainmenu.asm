@@ -48,22 +48,6 @@ action_submenu:
     LDA !ram_cm_stack_index : INC #2 : STA !ram_cm_stack_index : TAX
     TYA : STA !ram_cm_menu_stack,X
 
-    BRA action_submenu_jump
-}
-
-action_presets_submenu:
-{
-
-    ; Increment stack pointer by 2
-    LDA !ram_cm_stack_index : INC #2 : STA !ram_cm_stack_index : TAX
-
-    ; Lookup preset menu pointer for current category
-    LDA !sram_preset_category : ASL : TAY
-    PHB : PHK : PLB
-    LDA.w preset_category_submenus,Y : STA !ram_cm_menu_stack,X
-    LDA.w preset_category_banks,Y : STA !ram_cm_menu_bank
-    PLB
-
     ; continue into action_submenu_jump
 }
 
@@ -81,18 +65,6 @@ endif
     RTL
 }
 
-preset_category_submenus:
-{
-    dw #PresetsMenuPrkd
-    dw #$0000
-}
-
-preset_category_banks:
-{
-    dw #PresetsMenuPrkd>>16
-    dw #$0000
-}
-
 
 ; -----------
 ; Main menu
@@ -104,7 +76,6 @@ preset_category_banks:
 
 MainMenu:
     dw #mm_goto_equipment
-;    dw #mm_goto_presets
     dw #mm_goto_presets_menu
     dw #mm_goto_teleport
     dw #mm_goto_events
@@ -126,7 +97,6 @@ endif
 
 MainMenuBanks:
     dw #EquipmentMenu>>16
-;    dw #preset_category_banks>>16 ; dummy
     dw #PresetsMenu>>16
     dw #TeleportMenu>>16
     dw #EventsMenu>>16
@@ -146,9 +116,6 @@ endif
 
 mm_goto_equipment:
     %cm_mainmenu("Equipment", #EquipmentMenu)
-
-mm_goto_presets:
-    %cm_jsl("Category Presets", #action_presets_submenu, #$0000)
 
 mm_goto_presets_menu:
     %cm_mainmenu("Preset Options", #PresetsMenu)
@@ -196,38 +163,17 @@ endif
 ; -------------------
 
 PresetsMenu:
-;    dw #presets_goto_select_preset_category
-;    dw #presets_current
-;    dw #$FFFF
     dw #presets_custom_preset_slot
     dw #presets_save_custom_preset
     dw #presets_load_custom_preset
+    dw #presets_reload_last
     dw #$FFFF
-;    dw #presets_reload_last
-;    dw #presets_load_random
-;if !FEATURE_DEV
-;    dw #presets_random_preset_rng
-;else
-;    dw #$FFFF
-;endif
     dw #presets_open_blue_doors
     dw #presets_load_with_enemies
     dw #presets_clear_map_tiles
     dw #presets_auto_segment_reset
-if !RAW_TILE_GRAPHICS
-    dw #$FFFF
-    dw #presets_compressed_graphics
-    dw #presets_compressed_palettes
-    dw #presets_compressed_tables
-endif
     dw #$0000
     %cm_header("PRESET OPTIONS MENU")
-if !RAW_TILE_GRAPHICS
-    %cm_footer("COMPRESSED OFF IS FASTER")
-endif
-
-presets_goto_select_preset_category:
-    %cm_submenu("Select Preset Category", #SelectPresetCategoryMenu)
 
 presets_custom_preset_slot:
     %cm_numfield("Custom Preset Slot", !sram_custom_preset_slot, 0, !TOTAL_PRESET_SLOTS, 1, 2, #.routine)
@@ -248,7 +194,7 @@ presets_custom_preset_slot:
     STA !sram_custom_preset_slot
     ; determine which page to load
 if !FEATURE_MAPSTATES
-    ; Mapstates only has slots 00-01 or 00-09
+    ; Mapstates only has slots 00-01 or 00-07
     LDY.w #CustomPresetsMenu
 else
 if !FEATURE_TINYSTATES
@@ -308,17 +254,6 @@ presets_reload_last:
     TYA : STA !ram_cm_leave
     RTL
 
-presets_load_random:
-    %cm_jsl("Load Random Preset", .routine, #$0001)
-  .routine
-    TYA : STA !ram_cm_leave
-    JML LoadRandomPreset
-
-if !FEATURE_DEV
-presets_random_preset_rng:
-    %cm_toggle_inverted("Random Preset RNG", !ram_random_preset_rng, #$0001, #0)
-endif
-
 presets_open_blue_doors:
     %cm_toggle_bit_inverted("Open Blue Doors", !sram_preset_options, !PRESETS_CLOSE_BLUE_DOORS, #0)
 
@@ -331,57 +266,6 @@ presets_clear_map_tiles:
 presets_auto_segment_reset:
     %cm_toggle_bit_inverted("Auto Reset Segment", !sram_preset_options, !PRESETS_AUTO_SEGMENT_OFF, #0)
 
-if !RAW_TILE_GRAPHICS
-presets_compressed_graphics:
-    %cm_toggle_bit("Compressed Graphics", !sram_preset_options, !PRESETS_COMPRESSED_GRAPHICS, #0)
-
-presets_compressed_palettes:
-    %cm_toggle_bit("Compressed Palettes", !sram_preset_options, !PRESETS_COMPRESSED_PALETTES, #0)
-
-presets_compressed_tables:
-    %cm_toggle_bit("Compressed Tables", !sram_preset_options, !PRESETS_COMPRESSED_TABLES, #0)
-endif
-
-SelectPresetCategoryMenu:
-    dw #presets_current
-    dw #$FFFF
-    dw #precat_prkd
-    dw #$0000
-    %cm_header("SELECT PRESET CATEGORY")
-
-presets_current:
-    dw !ACTION_CHOICE
-    dl #!sram_preset_category
-    dw #.routine
-    db #$28, "CURRENT PRESET", #$FF
-    db #$28, "       PRKD", #$FF
-    db #$FF
-  .routine
-    LDA #$0000 : STA !sram_last_preset
-    RTL
-
-precat_prkd:
-    %cm_jsl("Any% PRKD", #action_select_preset_category, #$0000)
-
-action_select_preset_category:
-{
-    TYA : STA !sram_preset_category
-    LDA #$0000 : STA !sram_last_preset
-    JML cm_previous_menu
-}
-
-action_load_preset:
-{
-    PHB
-    PHK : PLB
-
-    TYA : STA !ram_load_preset
-    LDA #$0001 : STA !ram_cm_leave
-
-    PLB
-    RTL
-}
-
 
 ; -------------------
 ; Custom Preset Slots
@@ -391,7 +275,7 @@ CustomPresetsMenu:
     dw #custompreset_00
     dw #custompreset_01
 if !FEATURE_MAPSTATES
-    ; Mapstates only has slots 00-01 or 00-09
+    ; Mapstates only has slots 00-01 or 00-07
 if !FEATURE_TINYSTATES
 else
     dw #custompreset_02
@@ -400,8 +284,6 @@ else
     dw #custompreset_05
     dw #custompreset_06
     dw #custompreset_07
-    dw #custompreset_08
-    dw #custompreset_09
 endif
     dw #$FFFF
     dw #custompreset_manage
@@ -438,7 +320,7 @@ endif
     %cm_custompreset(00)
     %cm_custompreset(01)
 if !FEATURE_MAPSTATES
-    ; Mapstates only has slots 00-01 or 00-09
+    ; Mapstates only has slots 00-01 or 00-07
 if !FEATURE_TINYSTATES
 else
     %cm_custompreset(02)
@@ -447,8 +329,6 @@ else
     %cm_custompreset(05)
     %cm_custompreset(06)
     %cm_custompreset(07)
-    %cm_custompreset(08)
-    %cm_custompreset(09)
 endif
 else
     %cm_custompreset(02)
@@ -522,14 +402,14 @@ CustomPresetsMenu3:
     dw #custompreset_37
     dw #custompreset_38
     dw #custompreset_39
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
+    dw #custompreset_40
+    dw #custompreset_41
+    dw #custompreset_42
+    dw #custompreset_43
+    dw #custompreset_44
+    dw #custompreset_45
+    dw #custompreset_46
+    dw #custompreset_47
     dw #$FFFF
     dw #custompreset_manage
     dw #custompreset_goto_page1
@@ -548,6 +428,14 @@ endif
     %cm_custompreset(37)
     %cm_custompreset(38)
     %cm_custompreset(39)
+    %cm_custompreset(40)
+    %cm_custompreset(41)
+    %cm_custompreset(42)
+    %cm_custompreset(43)
+    %cm_custompreset(44)
+    %cm_custompreset(45)
+    %cm_custompreset(46)
+    %cm_custompreset(47)
 endif
 endif
 
@@ -556,7 +444,7 @@ custompreset_manage:
   .routine
     LDA #$0000 : STA !ram_cm_manage_slots
 if !FEATURE_MAPSTATES
-    ; Mapstates only has slots 00-01 or 00-09
+    ; Mapstates only has slots 00-01 or 00-07
     LDY.w #ManagePresetsMenu
 else
 if !FEATURE_TINYSTATES
@@ -584,7 +472,7 @@ ManagePresetsMenu:
     dw #managepreset_00
     dw #managepreset_01
 if !FEATURE_MAPSTATES
-    ; Mapstates only has slots 00-01 or 00-09
+    ; Mapstates only has slots 00-01 or 00-07
 if !FEATURE_TINYSTATES
 else
     dw #managepreset_02
@@ -593,8 +481,6 @@ else
     dw #managepreset_05
     dw #managepreset_06
     dw #managepreset_07
-    dw #managepreset_08
-    dw #managepreset_09
 endif
 else
     dw #managepreset_02
@@ -627,7 +513,7 @@ endif
     %cm_managepreset(00)
     %cm_managepreset(01)
 if !FEATURE_MAPSTATES
-    ; Mapstates only has slots 00-01 or 00-09
+    ; Mapstates only has slots 00-01 or 00-07
 if !FEATURE_TINYSTATES
 else
     %cm_managepreset(02)
@@ -636,8 +522,6 @@ else
     %cm_managepreset(05)
     %cm_managepreset(06)
     %cm_managepreset(07)
-    %cm_managepreset(08)
-    %cm_managepreset(09)
 endif
 else
     %cm_managepreset(02)
@@ -709,14 +593,14 @@ ManagePresetsMenu3:
     dw #managepreset_37
     dw #managepreset_38
     dw #managepreset_39
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
-    dw #$FFFF
+    dw #managepreset_40
+    dw #managepreset_41
+    dw #managepreset_42
+    dw #managepreset_43
+    dw #managepreset_44
+    dw #managepreset_45
+    dw #managepreset_46
+    dw #managepreset_47
     dw #$FFFF
     dw #$FFFF
     dw #managepreset_goto_page1
@@ -733,6 +617,14 @@ ManagePresetsMenu3:
     %cm_managepreset(37)
     %cm_managepreset(38)
     %cm_managepreset(39)
+    %cm_managepreset(40)
+    %cm_managepreset(41)
+    %cm_managepreset(42)
+    %cm_managepreset(43)
+    %cm_managepreset(44)
+    %cm_managepreset(45)
+    %cm_managepreset(46)
+    %cm_managepreset(47)
 
 custompreset_goto_page1:
     %cm_adjacent_submenu("GOTO PAGE ONE", #CustomPresetsMenu)
@@ -784,6 +676,10 @@ managepreset_confirm:
 ; ----------------
 ; Equipment menu
 ; ----------------
+
+pushpc
+org !ORG_MAINMENU_EQUIPMENT
+print pc, " mainmenu Equipment start"
 
 EquipmentMenu:
     dw #eq_refill
@@ -1359,6 +1255,9 @@ action_glitched_beam:
     JSL $90AC8D ; update beam gfx
     RTL
 }
+
+print pc, " mainmenu Equipment end"
+pullpc
 
 
 ; -------------
@@ -2508,15 +2407,12 @@ ih_ram_watch:
 incsrc ramwatchmenu.asm
 
 print pc, " mainmenu InfoHUD end"
-;warnpc $85F800 ; gamemode.asm
 
 
 ; ----------
 ; Game menu
 ; ----------
 
-;org $B3F000
-org !ORG_MAINMENU_GAME
 print pc, " mainmenu GameMenu start"
 
 GameMenu:
@@ -2524,8 +2420,6 @@ GameMenu:
     dw #game_moonwalk
     dw #game_iconcancel
     dw #game_goto_controls
-    dw #$FFFF
-    dw #game_cutscenes
     dw #$FFFF
     dw #game_goto_debug
     dw #$FFFF
@@ -2546,9 +2440,6 @@ game_iconcancel:
 game_goto_controls:
     %cm_submenu("Controller Setting Mode", #ControllerSettingMenu)
 
-game_cutscenes:
-    %cm_submenu("Cutscenes Menu", #CutscenesMenu)
-
 game_minimap:
     %cm_toggle("Minimap", !ram_minimap, #$0001, #0)
 
@@ -2556,7 +2447,7 @@ game_clear_minimap:
     %cm_jsl("Clear Minimap", .clear_minimap, #$0000)
 
   .clear_minimap
-    LDA #$0000 : STA !MAP_COUNTER : STA $7E0789
+    LDA #$0000 : STA $7E0789
     STA $7ED908 : STA $7ED90A : STA $7ED90C : STA $7ED90E
     LDX #$00FE
   .clear_minimap_loop
@@ -2610,28 +2501,6 @@ game_debugprojectiles:
 
 game_debugfixscrolloffsets:
     %cm_toggle_bit("Fix Scroll Offsets", !ram_fix_scroll_offsets, #$0001, #0)
-
-
-; ---------------
-; Cutscenes menu
-; ---------------
-
-CutscenesMenu:
-    dw #cutscenes_quickboot
-    dw #$FFFF
-    dw #cutscenes_fast_kraid
-    dw #cutscenes_fast_phantoon
-    dw #$0000
-    %cm_header("CUTSCENES")
-
-cutscenes_quickboot:
-    %cm_toggle_bit("Boot to Menu", !sram_cutscenes, !CUTSCENE_QUICKBOOT, #0)
-
-cutscenes_fast_kraid:
-    %cm_toggle_bit("Skip Kraid Intro", !sram_cutscenes, !CUTSCENE_FAST_KRAID, #0)
-
-cutscenes_fast_phantoon:
-    %cm_toggle_bit("Skip Phantoon Intro", !sram_cutscenes, !CUTSCENE_FAST_PHANTOON, #0)
 
 
 ; -------------------
@@ -2951,6 +2820,7 @@ ControllerLayoutTable:
 }
 
 print pc, " mainmenu GameMenu end"
+warnpc $85E000 ; gfx2
 pullpc
 
 
@@ -3359,7 +3229,6 @@ if !FEATURE_SD2SNES
 
 SavestateMenu:
     dw #save_rerandomize
-    dw #save_freeze
     dw #save_middoorsave
     dw #save_alwayssave
 if !FEATURE_DEV
@@ -3371,9 +3240,6 @@ endif
 
 save_rerandomize:
     %cm_toggle("Rerandomize", !sram_rerandomize, #$0001, #0)
-
-save_freeze:
-    %cm_toggle("Freeze on Load State", !ram_freeze_on_load, #$0001, #0)
 
 save_middoorsave:
     %cm_toggle("Auto-Save Mid-Door", !ram_auto_save_state, #$0001, #0)
@@ -3402,7 +3268,6 @@ if !FEATURE_SD2SNES
     dw #ctrl_auto_save_state
 endif
     dw #ctrl_load_last_preset
-    dw #ctrl_random_preset
     dw #ctrl_save_custom_preset
     dw #ctrl_load_custom_preset
     dw #ctrl_inc_custom_preset
@@ -3449,9 +3314,6 @@ ctrl_full_equipment:
 ctrl_kill_enemies:
     %cm_ctrl_shortcut("Kill Enemies", !sram_ctrl_kill_enemies)
 
-ctrl_random_preset:
-    %cm_ctrl_shortcut("Random Preset", !sram_ctrl_random_preset)
-
 ctrl_save_custom_preset:
     %cm_ctrl_shortcut("Save Cust Preset", !sram_ctrl_save_custom_preset)
 
@@ -3481,7 +3343,6 @@ ctrl_clear_shortcuts:
     STA !sram_ctrl_load_last_preset
     STA !sram_ctrl_full_equipment
     STA !sram_ctrl_kill_enemies
-    STA !sram_ctrl_random_preset
     STA !sram_ctrl_save_custom_preset
     STA !sram_ctrl_load_custom_preset
     STA !sram_ctrl_inc_custom_preset
@@ -3506,8 +3367,6 @@ ctrl_reset_defaults:
 ; ----------
 
 AudioMenu:
-    dw #audio_music_toggle
-    dw #audio_fanfare_toggle
     dw #audio_health_alarm
     dw #$FFFF
     dw #audio_goto_music
@@ -3519,32 +3378,6 @@ AudioMenu:
     dw #$0000
     %cm_header("AUDIO MENU")
     %cm_footer("PRESS Y TO PLAY SOUNDS")
-
-audio_music_toggle:
-    dw !ACTION_CHOICE
-    dl #!sram_music_toggle
-    dw .routine
-    db #$28, "Music", #$FF
-    db #$28, "        OFF", #$FF
-    db #$28, "         ON", #$FF
-    db #$28, "   FAST OFF", #$FF
-    db #$28, " PRESET OFF", #$FF
-    db #$FF
-  .routine
-    ; Clear music queue
-    STZ $0629 : STZ $062B : STZ $062D : STZ $062F
-    STZ $0631 : STZ $0633 : STZ $0635 : STZ $0637
-    STZ $0639 : STZ $063B : STZ $063D : STZ $063F
-    CMP #$0001 : BEQ .resume_music
-    STZ $2140
-    RTL
-  .resume_music
-    LDA !MUSIC_DATA : CLC : ADC #$FF00 : PHA : STZ !MUSIC_DATA : PLA : JSL !MUSIC_ROUTINE
-    LDA !MUSIC_TRACK : PHA : STZ !MUSIC_TRACK : PLA : JSL !MUSIC_ROUTINE
-    RTL
-
-audio_fanfare_toggle:
-    %cm_toggle_bit("Fanfare", !sram_fanfare_toggle, !FANFARE_TOGGLE, #0)
 
 audio_health_alarm:
     dw !ACTION_CHOICE

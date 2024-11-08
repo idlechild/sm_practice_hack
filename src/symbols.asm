@@ -14,16 +14,6 @@ incsrc wram_symbols.asm
 ; Freespace ORGs
 ; ---------------
 
-;!ORG_MENU_GFX = $F0D700 ; unused, $1000, can be used to reduce menu code size
-;!ORG_MENU_GFX2 = $B5F000 ; $1000
-;!ORG_MISC_TILE_GRAPHICS = $8BFA00 ; unused, $140
-;!ORG_RAW_TILE_TABLES = $E88800
-;!ORG_RAW_TILEGRAPHICS = $F48000
-;!ORG_RAW_TILES = $F4D800
-;!ORG_CLEAR_ENEMIES = $E70000 ; whole bank pointer style
-;!ORG_CUSTOMIZEMENU = $AFEC00
-;!ORG_PALETTEPROFILES = $AEFD20
-
 ; ---------
 ; Work RAM
 ; ---------
@@ -91,7 +81,7 @@ ram_shine_counter = !ram_shine_counter ; !WRAM_START+$54
 ram_dash_counter = !ram_dash_counter ; !WRAM_START+$56
 
 ram_lag_counter = !ram_lag_counter ; !WRAM_START+$58
-ram_kraid_adjust_timer = !ram_kraid_adjust_timer ; !WRAM_START+$5A
+
 ram_print_segment_timer = !ram_print_segment_timer ; !WRAM_START+$5C
 
 ; ^ FREE SPACE ^ up to +$6C
@@ -131,8 +121,6 @@ ram_metronome = !ram_metronome ; !WRAM_PERSIST_START+$00
 ram_minimap = !ram_minimap ; !WRAM_PERSIST_START+$02
 
 ram_fix_scroll_offsets = !ram_fix_scroll_offsets ; !WRAM_PERSIST_START+$04
-ram_random_preset_rng = !ram_random_preset_rng ; !WRAM_PERSIST_START+$06
-ram_random_preset_value = !ram_random_preset_value ; !WRAM_PERSIST_START+$08
 
 ram_magic_pants_enabled = !ram_magic_pants_enabled ; !WRAM_PERSIST_START+$0A
 ram_space_pants_enabled = !ram_space_pants_enabled ; !WRAM_PERSIST_START+$0C
@@ -154,10 +142,9 @@ ram_phantoon_flame_direction = !ram_phantoon_flame_direction ; !WRAM_PERSIST_STA
 ram_draygon_rng_left = !ram_draygon_rng_left ; !WRAM_PERSIST_START+$2C
 ram_draygon_rng_right = !ram_draygon_rng_right ; !WRAM_PERSIST_START+$2E
 
-; ^ FREE SPACE ^ up to +$34
+; ^ FREE SPACE ^ up to +$36
 
-ram_pacifist = !ram_pacifist ; !WRAM_PERSIST_START+$36
-ram_freeze_on_load = !ram_freeze_on_load ; !WRAM_PERSIST_START+$38
+ram_pacifist = !ram_pacifist ; !WRAM_PERSIST_START+$38
 
 ram_watch_left_index = !ram_watch_left_index ; !WRAM_PERSIST_START+$3A
 ram_watch_right_index = !ram_watch_right_index ; !WRAM_PERSIST_START+$3C
@@ -177,13 +164,7 @@ ram_frames_held = !ram_frames_held ; !WRAM_PERSIST_START+$54
 
 ram_quickboot_spc_state = !ram_quickboot_spc_state ; !WRAM_PERSIST_START+$56
 
-; ^ FREE SPACE ^ up to +$7C (!WRAM_START+$FC - !WRAM_PERSIST_START)
-
-; -----------------------
-; RAM (Bank 7E required)
-; -----------------------
-
-ram_slowdown_mode = !ram_slowdown_mode ; $7EFDFE
+; ^ FREE SPACE ^ up to +$7E (!WRAM_START+$FE - !WRAM_PERSIST_START)
 
 ; ---------
 ; RAM Menu
@@ -302,7 +283,7 @@ ram_cgram_cache = !ram_cgram_cache ; !WRAM_MENU_START+$D0
 ; Assert if SRAM is greater than 8k
 ; Don't check if creating IPS patches
 
-sram_initialized = !sram_initialized ; !SRAM_START+$00
+; First two bytes of SRAM_START are reserved for MapRando
 
 sram_ctrl_menu = !sram_ctrl_menu ; !SRAM_START+$02
 sram_ctrl_kill_enemies = !sram_ctrl_kill_enemies ; !SRAM_START+$04
@@ -312,21 +293,20 @@ sram_ctrl_reset_segment_later = !sram_ctrl_reset_segment_later ; !SRAM_START+$0A
 sram_ctrl_load_state = !sram_ctrl_load_state ; !SRAM_START+$0C
 sram_ctrl_save_state = !sram_ctrl_save_state ; !SRAM_START+$0E
 sram_ctrl_load_last_preset = !sram_ctrl_load_last_preset ; !SRAM_START+$10
-sram_ctrl_random_preset = !sram_ctrl_random_preset ; !SRAM_START+$12
+sram_ctrl_auto_save_state = !sram_ctrl_auto_save_state ; !SRAM_START+$12
 sram_ctrl_save_custom_preset = !sram_ctrl_save_custom_preset ; !SRAM_START+$14
 sram_ctrl_load_custom_preset = !sram_ctrl_load_custom_preset ; !SRAM_START+$16
 sram_ctrl_inc_custom_preset = !sram_ctrl_inc_custom_preset ; !SRAM_START+$18
 sram_ctrl_dec_custom_preset = !sram_ctrl_dec_custom_preset ; !SRAM_START+$1A
 sram_ctrl_toggle_tileviewer = !sram_ctrl_toggle_tileviewer ; !SRAM_START+$1C
 sram_ctrl_update_timers = !sram_ctrl_update_timers ; !SRAM_START+$1E
-sram_ctrl_auto_save_state = !sram_ctrl_auto_save_state ; !SRAM_START+$F0 ; note the change of order
 
 sram_artificial_lag = !sram_artificial_lag ; !SRAM_START+$20
 sram_rerandomize = !sram_rerandomize ; !SRAM_START+$22
-sram_fanfare_toggle = !sram_fanfare_toggle ; !SRAM_START+$24
+sram_initialized = !sram_initialized ; !SRAM_START+$24
 sram_frame_counter_mode = !sram_frame_counter_mode ; !SRAM_START+$26
 sram_display_mode = !sram_display_mode ; !SRAM_START+$28
-sram_music_toggle = !sram_music_toggle ; !SRAM_START+$2A
+
 sram_last_preset = !sram_last_preset ; !SRAM_START+$2C
 sram_save_has_set_rng = !sram_save_has_set_rng ; !SRAM_START+$2E
 sram_preset_category = !sram_preset_category ; !SRAM_START+$30
@@ -336,11 +316,11 @@ sram_sprite_prio_flag = !sram_sprite_prio_flag ; !SRAM_START+$36
 sram_metronome_tickrate = !sram_metronome_tickrate ; !SRAM_START+$38
 sram_metronome_sfx = !sram_metronome_sfx ; !SRAM_START+$3A
 sram_status_icons = !sram_status_icons ; !SRAM_START+$3C
-sram_fanfare_timer_adjust = !sram_fanfare_timer_adjust ; !SRAM_START+$3E
+
 sram_top_display_mode = !sram_top_display_mode ; !SRAM_START+$40
 sram_healthalarm = !sram_healthalarm ; !SRAM_START+$42
 sram_room_layout = !sram_room_layout ; !SRAM_START+$44
-sram_cutscenes = !sram_cutscenes ; !SRAM_START+$46
+
 sram_preset_options = !sram_preset_options ; !SRAM_START+$48
 sram_lag_counter_mode = !sram_lag_counter_mode ; !SRAM_START+$4A
 
@@ -371,34 +351,21 @@ sram_customsfx_goback = !sram_customsfx_goback ; !SRAM_START+$80
 
 sram_seed_X = !sram_seed_X ; !SRAM_START+$82
 sram_seed_Y = !sram_seed_Y ; !SRAM_START+$84
-;!sram_bomb_torizo_door = !SRAM_START+$86
+sram_display_mode_reward = !sram_display_mode_reward ; !SRAM_START+$86
 sram_door_display_mode = !sram_door_display_mode ; !SRAM_START+$88
 sram_cm_fast_scroll_button = !sram_cm_fast_scroll_button ; !SRAM_START+$8A
 sram_cm_font = !sram_cm_font ; !SRAM_START+$8C
 
-; ^ FREE SPACE ^ up to +$EE
+; ^ FREE SPACE ^ up to +$DE
 
-;!sram_presetequiprando = !SRAM_START+$100
-;!sram_presetequiprando_beampref = !SRAM_START+$102
-;!sram_presetequiprando_max_etanks = !SRAM_START+$104
-;!sram_presetequiprando_max_reserves = !SRAM_START+$106
-;!sram_presetequiprando_max_missiles = !SRAM_START+$108
-;!sram_presetequiprando_max_supers = !SRAM_START+$10A
-;!sram_presetequiprando_max_pbs = !SRAM_START+$10C
-sram_display_mode_reward = !sram_display_mode_reward ; !SRAM_START+$10E
+sram_custom_header_normal = !sram_custom_header_normal ; !SRAM_START+$E8 ; $18 bytes
+sram_custom_preset_safewords_normal = !sram_custom_preset_safewords_normal ; !SRAM_START+$4B20 ; $60 bytes
+sram_custom_preset_names_normal = !sram_custom_preset_names_normal ; !SRAM_START+$4B80 ; $480 bytes
 
-; ^ FREE SPACE ^ up to +$BA6
-
-sram_custom_header_normal = !sram_custom_header_normal ; !SRAM_START+$BA8 ; $18 bytes
-sram_custom_preset_safewords_normal = !sram_custom_preset_safewords_normal ; !SRAM_START+$BC0 ; $50 bytes
-sram_custom_preset_names_normal = !sram_custom_preset_names_normal ; !SRAM_START+$C10 ; $3C0 bytes
-
-sram_custom_header_tinystates = !sram_custom_header_tinystates ; !SRAM_START+$E18 ; $18 bytes
-sram_custom_preset_safewords_tinystates = !sram_custom_preset_safewords_tinystates ; !SRAM_START+$E30 ; $20 bytes
-sram_custom_preset_names_tinystates = !sram_custom_preset_names_tinystates ; !SRAM_START+$E50 ; $180 bytes
+sram_custom_header_tinystates = !sram_custom_header_tinystates ; !SRAM_START+$E8 ; $18 bytes
+sram_custom_preset_safewords_tinystates = !sram_custom_preset_safewords_tinystates ; !SRAM_START+$860 ; $20 bytes
+sram_custom_preset_names_tinystates = !sram_custom_preset_names_tinystates ; !SRAM_START+$880 ; $180 bytes
 
 ; SM specific things
-
-; ^ FREE SPACE ^ up to +$0FFE
 
 ; --------------

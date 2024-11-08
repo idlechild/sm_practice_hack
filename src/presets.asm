@@ -30,7 +30,7 @@ preset_load:
     JSL ih_update_hud_code
     JSL $90AD22  ; Reset projectile data
 
-    LDX #$0000
+    TDC : TAX
     LDY #$0020
   .paletteLoop
     ; Target Samus' palette = [Samus' palette]
@@ -52,8 +52,18 @@ preset_load:
     TSB $1E79    ; Enable palette FX objects
     TSB $18B0    ; Enable HDMA objects
     TSB $1EF1    ; Enable animated tile objects
-    JSL $908E0F  ; Set liquid physics type
+    JMP preset_load_more
+}
 
+print pc, " presets bank82 end"
+warnpc $82FA80 ; MapRando
+
+org !ORG_PRESETS_MORE_BANK82
+print pc, " presets more bank82 start"
+
+preset_load_more:
+{
+    JSL $908E0F  ; Set liquid physics type
     LDA #$0006 : STA $0DA0
   .loopSomething
     JSL $A08CD7  ; Transfer enemy tiles to VRAM and initialize enemies
@@ -76,106 +86,39 @@ preset_load:
     ; Fix Samus' palette
     JSL $91DEBA
 
-    ; Re-upload OOB viewer tiles if needed
-    LDA !ram_sprite_feature_flags : BIT !SPRITE_OOB_WATCH : BEQ .done_upload_sprite_oob_tiles
-    JSL upload_sprite_oob_tiles
-
-  .done_upload_sprite_oob_tiles
     JSL reset_all_counters
     STZ $0795 : STZ $0797 ; clear door transition flags
 
     ; Clear minimap tiles
-    LDA !sram_preset_options : BIT !PRESETS_CLEAR_MAP_TILES : BEQ .clear_enemies
+    LDA !sram_preset_options : BIT !PRESETS_CLEAR_MAP_TILES : BEQ .check_sprite_oob_tiles
     JSL game_clear_minimap_clear_minimap
+
+    ; Re-upload OOB viewer tiles if needed
+  .check_sprite_oob_tiles
+    LDA !ram_sprite_feature_flags : BIT !SPRITE_OOB_WATCH : BEQ .clear_enemies
+    JSL upload_sprite_oob_tiles
+    BRA .clear_enemies
+
+warnpc $82FD80 ; MapRando
+org $82FDB1
 
   .clear_enemies
     ; Clear enemies if not in BT or MB rooms
     LDA !ROOM_ID : CMP #ROOM_BombTorizoRoom : BEQ .done_clearing_enemies
-    CMP #ROOM_MotherBrainRoom : BEQ .set_mb_state
+    CMP #ROOM_MotherBrainRoom : BEQ .done_clearing_enemies
     LDA !sram_preset_options : BIT !PRESETS_PRESERVE_ENEMIES : BNE .done_clearing_enemies
     JSL clear_all_enemies
 
   .done_clearing_enemies
     PLP
     RTL
-
-  .set_mb_state
-    ; If glass is broken, assume we should skip MB1
-    LDA $7ED820 : BIT #$0004 : BEQ .done_clearing_enemies
-    ; Set health to 1 as a hint this was done by a preset
-    LDA #$0001 : STA $0FCC
-    ; Reset segment timer now
-    LDA #$0000 : STA !ram_reset_segment_later
-    STA !ram_seg_rt_frames : STA !ram_seg_rt_seconds
-    STA !ram_seg_rt_minutes
-    BRA .done_clearing_enemies
 }
 
-preset_load_destination_state_and_tiles:
-{
-    ; Original logic from $82E76B
-    PHP : PHB
-    %ai16()
-    PEA $8F00
-    PLB : PLB
-    JSR $DDF1  ; Load destination room CRE bitset
-    JSR $DE12  ; Load door header
-    JSR $DE6F  ; Load room header
-    JSR $DEF2  ; Load state header
+warnpc $82FDD0 ; minimap
+print pc, " presets more bank82 end"
 
-    ; Initialize area map collected
-    LDX !AREA_ID : LDA $7ED908,X
-    AND #$00FF : STA !AREA_MAP_COLLECTED
-
-if !RAW_TILE_GRAPHICS
-    JML load_raw_tile_graphics
-else
-    JMP $E78C
-endif
-}
-
-if !RAW_TILE_GRAPHICS
-; This is similar to $82E97C except we overwrite the door dependent transfer to VRAM
-preset_load_library_background:
-{
-    PHP : PHB : %ai16()
-    JSL $80A29C ; Clear FX tilemap
-    LDA $1964 : BEQ .done_fx
-
-    STA $4312 ; src addr
-    LDA #$008A : STA $4314 ; src bank
-    LDA #$5BE0 : STA $2116 ; VRAM addr
-    LDA #$1801 : STA $4310 ; VRAM write, word
-    LDA #$0840 : STA $4315 ; size
-    %a8()
-    LDA #$80 : STA $2115 ; inc on low byte
-    LDA #$02 : STA $420B ; initiate DMA channel 1
-    %a16() : CLC
-
-  .done_fx
-    PEA $8F00 : PLB : PLB
-    %a16()
-    LDX !STATE_POINTER
-    LDY $0016,X : BPL .done
-
-  .load_loop
-    LDX $0000,Y : INY : INY
-    JSR (preset_load_background_jump_table,X)
-    BCC .load_loop
-
-  .done
-    PLB : PLP : RTL
-}
-
-preset_load_background_jump_table:
-    dw $E9E5, $E9F9, $EA2D, $EA4E, $EA66, $EA56, $EA5E, preset_start_transfer_to_vram
-
-preset_start_transfer_to_vram:
-    JML preset_transfer_to_vram
-
-preset_end_transfer_to_vram:
-    RTS
-endif
+org $82FE04
+print pc, " presets final bank82 start"
 
 preset_load_preset:
 {
@@ -189,114 +132,17 @@ preset_load_preset:
     LDA #$FFFF : STA !ram_reset_segment_later
 
   .check_load
-    ; check if custom preset is being loaded
-    LDA !ram_custom_preset : BEQ .category_preset
-
-  .custom_preset
     JSL custom_preset_load
     LDA #$5AFE : STA !sram_last_preset
     BRA .done
-
-  .category_preset
-    LDA !ram_load_preset : CMP #$5AFE : BEQ .custom_preset
-    JSR category_preset_load
 
   .done
     PLB
     RTL
 }
 
-category_preset_load:
-{
-    ; Get offset into preset data table
-    LDA !sram_preset_category : STA $C3
-    ASL : CLC : ADC $C3 : TAX
-
-    ; Get starting preset data bank into $C5
-    INX : LDA.l category_preset_data_table,X : STA $C4 : DEX
-
-    ; Get preset address to load into $C3
-    LDA !ram_load_preset : STA !sram_last_preset : STA $C3 : STA $7F0002
-
-    ; Get start of preset data into $C1
-    LDA.l category_preset_data_table,X : LDX #$0000 : STA $C1
-
-    ; If start of preset data is greater than preset address,
-    ; then our preset address is in the next bank
-    CMP $C3 : BCC .buildLoop : BEQ .buildLoop
-    INC $C5
-
-  .buildLoop
-    ; Build list of presets to traverse
-    LDA [$C3] : BEQ .traversePrep
-    INX : INX : STA $7F0002,X
-    CMP $C3 : STA $C3 : BCC .buildLoop
-    ; We just crossed back into the starting bank
-    DEC $C5
-    BRA .buildLoop
-
-  .traversePrep
-    ; Set bank to read data from
-    STZ $00 : %a8() : LDA $C5 : PHA : PLB
-    ; Set bank to store data to
-    LDA #$7E : STA $C5 : %a16()
-
-  .crossBankTraverseLoop
-    ; Now traverse from the first preset until the last one
-    LDA $7F0002,X : TAY : CMP $C1 : BCC .incBankInnerLoop
-    INY : INY
-    BRA .crossBankLoadAddr
-
-    ; For each preset, load and store address and value pairs
-  .crossBankInnerLoop
-    STA $C3 : INY : INY
-    CPY #$0000 : BEQ .incBankLoadValue
-    LDA ($00),Y : STA [$C3] : INY : INY
-
-  .crossBankLoadAddr
-    CPY #$0000 : BEQ .incBankLoadAddr
-    LDA ($00),Y : CMP #$FFFF : BNE .crossBankInnerLoop
-
-    DEX : DEX : BPL .crossBankTraverseLoop
-    RTS
-
-  .incBankInnerLoop
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    INY : INY
-    BRA .simpleLoadAddr
-
-  .incBankLoadAddr
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    LDY #$8000
-    BRA .simpleLoadAddr
-
-  .incBankLoadValue
-    %a8() : PHB : PLA : INC : PHA : PLB : %a16()
-    LDY #$8000
-    BRA .simpleLoadValue
-
-  .simpleTraverseLoop
-    ; Continue traversing from the first preset until the last one
-    LDA $7F0002,X : TAY : INY : INY
-    BRA .simpleLoadAddr
-
-    ; For each preset, load and store address and value pairs
-  .simpleInnerLoop
-    STA $C3 : INY : INY
-  .simpleLoadValue
-    LDA ($00),Y : STA [$C3] : INY : INY
-  .simpleLoadAddr
-    LDA ($00),Y : CMP #$FFFF : BNE .simpleInnerLoop
-
-    DEX : DEX : BPL .simpleTraverseLoop
-    RTS
-}
-
-category_preset_data_table:
-    dl preset_prkd_crateria_ceres_elevator
-
-print pc, " presets bank82 end"
-;warnpc $82FE00 ; tinystates.asm
+print pc, " presets final bank82 end"
+warnpc $82FE7C ; MapRando
 
 
 org $82E8D9
@@ -323,7 +169,7 @@ preset_start_gameplay:
 
     JSL $80835D  ; Disable NMI
     JSL $80985F  ; Disable horizontal and vertical timer interrupts
-    JSL preset_load_destination_state_and_tiles
+    JSL $82E76B
     JSL $878016  ; Clear animated tile objects
     JSL $88829E  ; Wait until the end of a v-blank and clear (H)DMA enable flags
 
@@ -360,16 +206,6 @@ preset_start_gameplay:
     LDA #$001F : STA $7ED914
     ; Set delay for first falling tile in Ceres
     LDA #$0022 : STA $07E1
-    LDA !AREA_ID : CMP #$0006 : BEQ .end_load_game_state
-    ; Set loading game state for Zebes
-    LDA #$0005 : STA $7ED914
-    LDA !SAMUS_POSE : BNE .end_load_game_state
-    LDA !ROOM_ID : CMP #ROOM_LandingSite : BNE .end_load_game_state
-    ; If default pose at landing site then assume we are arriving on Zebes
-    LDA #$0022 : STA $7ED914
-    LDA #$E8CD : STA !SAMUS_LOCKED_HANDLER   ; Lock Samus
-    LDA #$E8DC : STA !SAMUS_MOVEMENT_HANDLER ; Lock Samus
-  .end_load_game_state
 
     ; Preserve layer 2 values we may have loaded from presets
     LDA !LAYER2_Y : PHA
@@ -383,11 +219,7 @@ preset_start_gameplay:
     JSL $82E139  ; Load target colours for common sprites, beams and slashing enemies / pickups
     JSL $A08A1E  ; Load enemies
     JSL $80A23F  ; Clear BG2 tilemap
-if !RAW_TILE_GRAPHICS
-    JSL preset_load_level
-else
     JSL $82E7D3  ; Load level data, CRE, tile table, scroll data, create PLMs and execute door ASM and room setup ASM
-endif
     JSL preset_scroll_fixes
 
     LDA !sram_preset_options : BIT !PRESETS_CLOSE_BLUE_DOORS : BNE .doneOpeningDoors
@@ -397,11 +229,7 @@ endif
   .doneOpeningDoors
 
     JSL $89AB82  ; Load FX
-if !RAW_TILE_GRAPHICS
-    JSL preset_load_library_background
-else
     JSL $82E97C  ; Load library background
-endif
 
     ; Pull layer 2 values, and use them if they are valid
     PLA : CMP #$5AFE : BEQ .calculate_layer_2
@@ -444,9 +272,6 @@ endif
     STZ $0629 : STZ $062B : STZ $062D : STZ $062F
     STZ $0631 : STZ $0633 : STZ $0635 : STZ $0637
     STZ $0639 : STZ $063B : STZ $063D : STZ $063F
-
-    ; If music fast off or preset off, treat music as already loaded
-    LDA !sram_music_toggle : CMP #$0002 : BPL .doneMusic
 
     ; Compare to currently loaded music data
     LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BEQ .doneLoadMusicData
@@ -492,17 +317,7 @@ endif
     LDA #$0000 : STA !ram_transition_flag
 
     LDA #$E737 : STA $099C ; Pointer to next frame's room transition code = $82:E737
-
-if !RAW_TILE_GRAPHICS
-    LDX !STATE_POINTER : LDA $8F0018,X
-    CMP #$91C9 : BEQ .post_preset_scrolling_sky
-    CMP #$91CE : BEQ .post_preset_scrolling_sky
     PLB : PLP : RTL
-  .post_preset_scrolling_sky
-    JML $8FE89B
-else
-    PLB : PLP : RTL
-endif
 }
 
 preset_clear_BG2_tilemap:
@@ -657,14 +472,10 @@ preset_room_setup_asm_fixes:
     CMP #$001F : BEQ .execute_setup_asm
     CMP #$0028 : BEQ .execute_setup_asm
 
-if !RAW_TILE_GRAPHICS
-    ; Defer scrolling sky asm until later
-else
     ; Disable scrolling sky asm
     STZ $07DF
     ; Clear layer 2 library bits (change 0181 to 0080)
     LDA #$0080 : STA $091B
-endif
 
   .end
     PLB : PLP : RTL
@@ -681,48 +492,29 @@ transfer_cgram_long:
     RTL
 }
 
-;add_grapple_and_xray_to_hud:
-;{
-;    ; Copied from $809AB1 to $809AC9
-;    LDA $09A2 : BIT #$8000 : BEQ $04
-;    JSL $809A3E            ; Add x-ray to HUD tilemap
-;    LDA $09A2 : BIT #$4000 : BEQ $04
-;    JSL $809A2E            ; Add grapple to HUD tilemap
-;    JMP resume_infohud_icon_initialization
-;}
+add_grapple_and_xray_to_hud:
+{
+    ; Copied from $809AB1 to $809AC9
+    LDA $09A2 : BIT #$8000 : BEQ $04
+    JSL $809A3E            ; Add x-ray to HUD tilemap
+    LDA $09A2 : BIT #$4000 : BEQ $04
+    JSL $809A2E            ; Add grapple to HUD tilemap
+    JMP resume_infohud_icon_initialization
+}
 
 print pc, " presets bank80 end"
-;warnpc $80F500 ; save.asm or tinystates.asm
+warnpc $80F500 ; save.asm or tinystates.asm
 
 
 ; $80:9AB1: Add x-ray and grapple HUD items if necessary
-;org $809AB1
-;    ; Skip x-ray and grapple if max HP is a multiple of 4,
-;    ; which is only possible if GT code was used
-;    LDA !SAMUS_HP_MAX : AND #$0003 : BEQ resume_infohud_icon_initialization
-;    JMP add_grapple_and_xray_to_hud
-;warnpc $809AC9
+org $809AB1
+    ; Skip x-ray and grapple if max HP is a multiple of 4,
+    ; which is only possible if GT code was used
+    LDA !SAMUS_HP_MAX : AND #$0003 : BEQ resume_infohud_icon_initialization
+    JMP add_grapple_and_xray_to_hud
+warnpc $809AC9
 
 ; $80:9AC9: Resume original logic
-;org $809AC9
-;resume_infohud_icon_initialization:
-
-
-; -------------------
-; Category Menus/Data
-; -------------------
-
-; Preset data/menus can be anywhere in the rom, even in separate banks
-org !ORG_PRESETS_DATA
-check bankcross off
-print pc, " preset data crossbank start"
-  incsrc presets/prkd_data.asm
-print pc, " preset data crossbank end"
-;warnpc $F08000 ; infohud.asm
-check bankcross on
-
-org !ORG_PRESETS_MENU
-print pc, " preset menu bankFE start"
-  incsrc presets/prkd_menu.asm
-print pc, " preset menu bankFE end"
+org $809AC9
+resume_infohud_icon_initialization:
 

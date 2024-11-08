@@ -25,7 +25,6 @@ maybe_trigger_pause_long:
     RTL
 
 print pc, " menu bank85 end"
-;warnpc $85FE00 ; fanfare.asm
 
 
 org !ORG_MENU_BANK89
@@ -89,41 +88,6 @@ cm_start:
     PLY : PLX : PLB
     PLP
     RTL
-}
-
-cm_boot:
-{
-    PHK : PLB
-    LDA !ram_quickboot_spc_state : BEQ .skip_spc
-    LDA #cm_spc_init : STA !ram_quickboot_spc_state
-
-    ; Disable sounds until we boot the SPC
-    LDA #$0001 : STA !DISABLE_SOUNDS
-  .skip_spc
-
-    %a8()
-    LDA #$5A : STA $2109 ; BG3 tilemap base address
-    LDA #$04 : STA $212C ; Enable BG3; disable all else
-    %a16()
-    JSR cm_init
-    JSL cm_draw
-    JSR cm_loop
-
-  .spc_loop
-    JSR cm_wait_for_lag_frame
-    LDA !ram_quickboot_spc_state : BMI .spc_loop
-
-  .done
-    LDA !ram_custom_preset : BNE .preset_load
-    LDA !ram_load_preset : BEQ .main_game_loop
-
-  .preset_load
-    JSL preset_load
-
-  .main_game_loop
-    PEA $8282 : PLB : PLB
-    %a8()
-    JML $828944
 }
 
 cm_init:
@@ -3759,13 +3723,13 @@ HexMenuGFXTable:
 print pc, " menu end"
 
 
-;pushpc
-;org !ORG_MENU_GFX
+pushpc
+org !ORG_MENU_GFX
 print pc, " menu gfx start"
 cm_hud_table:
     incbin ../resources/cm_gfx.bin
 print pc, " menu gfx end"
-;pullpc
+pullpc
 
 
 if !FEATURE_CUSTOMIZE_MENU

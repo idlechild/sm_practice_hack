@@ -49,8 +49,6 @@ pre_load_state:
     LDA !MUSIC_TRACK : STA !SRAM_MUSIC_TRACK
     LDA !SOUND_TIMER : STA !SRAM_SOUND_TIMER
 
-    LDA !ram_slowdown_mode : STA !SRAM_SLOWDOWN_MODE
-
     ; Rerandomize
     LDA !sram_save_has_set_rng : BNE .done
     LDA !sram_rerandomize : AND #$00FF : BEQ .done
@@ -80,22 +78,14 @@ pre_load_state:
 
     ; Load graphics tiles and tile tables back into RAM/WRAM
     ; before restoring the rest of the state from SRAM
-    JSL preset_load_destination_state_and_tiles
-if !RAW_TILE_GRAPHICS
-    JSL preset_load_library_background
-else
+    JSL $82E76B
     JSL $82E97C  ; Load library background
-endif
 
     ; If we're in the same room, we don't need to reload the level
     PLA : CMP !ROOM_ID : BEQ .skip_load_level
 
     ; Load from compressed graphics to avoid BG3 issues
-if !RAW_TILE_GRAPHICS
-    JSL preset_load_level
-else
     JSL $82E7D3  ; Load level data, CRE, tile table, scroll data, create PLMs and execute door ASM and room setup ASM
-endif
 
   .skip_load_level
     JSL tinystates_preload_bg_data
@@ -128,10 +118,6 @@ post_load_state:
     ; Reload custom HUD number GFX
     JSL overwrite_HUD_numbers
 
-    LDA !SRAM_SLOWDOWN_MODE : CMP #$FFFF : BEQ .rng
-    AND #$00FF : STA !ram_slowdown_mode
-
-  .rng
     ; Rerandomize
     LDA !sram_save_has_set_rng : BNE .done
     LDA !sram_rerandomize : AND #$00FF : BEQ .done
@@ -143,17 +129,6 @@ post_load_state:
 
   .done
     JSL init_wram_based_on_sram
-
-    ; Freeze inputs if necessary
-    LDA !ram_freeze_on_load : BEQ .return
-    LDA !ram_slowdown_mode : BNE .return
-    LDA #$FFFF : STA !ram_slowdown_mode
-    INC : STA !ram_slowdown_controller_1 : STA !ram_slowdown_controller_2
-    INC : STA !ram_slowdown_frames
-    ; Preserve segment timer during freeze
-    LDA !ram_seg_rt_frames : STA !SRAM_SEG_TIMER_F
-    LDA !ram_seg_rt_seconds : STA !SRAM_SEG_TIMER_S
-    LDA !ram_seg_rt_minutes : STA !SRAM_SEG_TIMER_M
 
   .return
     ; Re-enable NMI, turn on force-blank and wait NMI to execute.
@@ -181,8 +156,6 @@ post_load_music:
     TXA : CMP $063B : BNE .music_queue_data_search
 
   .no_music_data
-    LDA !sram_music_toggle : CMP #$0002 : BPL .fast_off_preset_off
-
     ; No data found in queue, check if we need to insert it
     LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BEQ .music_queue_increase_timer
 
@@ -192,14 +165,9 @@ post_load_music:
     LDA #$0008 : STA $0629,X
 
   .queued_music_data
-    LDA !sram_music_toggle : CMP #$0002 : BMI .queued_music_data_clear_track
-
-    ; There is music data in the queue, assume it was loaded
-    LDA $0619,X : STA !MUSIC_DATA
-    BRA .fast_off_preset_off
+    BRA .queued_music_data_clear_track
 
   .music_queue_empty
-    LDA !sram_music_toggle : CMP #$0002 : BPL .fast_off_preset_off
     LDA !SRAM_MUSIC_DATA : CMP !MUSIC_DATA : BNE .clear_track_load_data
     BRL .check_track
 
@@ -207,14 +175,6 @@ post_load_music:
     LDA #$0000 : JSL !MUSIC_ROUTINE
     LDA #$FF00 : CLC : ADC !MUSIC_DATA : JSL !MUSIC_ROUTINE
     BRA .load_track
-
-  .fast_off_preset_off
-    ; Treat music as already loaded
-    STZ $0629 : STZ $062B : STZ $062D : STZ $062F
-    STZ $0631 : STZ $0633 : STZ $0635 : STZ $0637
-    STZ $0639 : STZ $063B : STZ $063D : STZ $063F
-    STZ $0686 : STY !MUSIC_TRACK
-    BRA .done
 
   .music_queue_increase_timer
     ; Data is correct, but we may need to increase our sound timer
@@ -297,32 +257,30 @@ save_write_table:
     ; Single address, B bus -> A bus.  B address = reflector to WRAM ($2180).
     dw $0000|$4310, $8080  ; direction = B->A, byte reg, B addr = $2180
 
-    ; Copy WRAM segments, uses $704000-$7071FF, $710000-$726B01, $736000-$736FFF
-    %wram_to_sram($7E0000, $2000, $704000)
-    %wram_to_sram($7E7000, $1000, $706000)
-    %wram_to_sram($7E3300, $0200, $707000)
-    %wram_to_sram(!WRAM_START, !WRAM_PERSIST_START-!WRAM_START, $707200)
-    %wram_to_sram($7E8000, $2000, $710000)
-    %wram_to_sram($7EC000, $34A0, $712000)
-    %wram_to_sram($7F0000, $2B00, $715500)
-    %wram_to_sram($7F2B00, $6B02, $720000)
-    %wram_to_sram($7E2000, $1000, $736000)
+    ; Copy WRAM segments, uses $705000-$727FFF
+    %wram_to_sram($7E0000, $3000, $705000)
+    %wram_to_sram($7E7000, $3000, $710000)
+    %wram_to_sram($7EC000, $34A0, $713000)
+    %wram_to_sram($7EFD00, $0080, $716500)
+    %wram_to_sram($7EFE00, $0100, $716600)
+    %wram_to_sram($7E3300, $0200, $716700)
+    %wram_to_sram($7F0000, $1700, $716900)
+    %wram_to_sram($7F1700, $7F02, $720000)
 
     ; Address pair, B bus -> A bus.  B address = VRAM read ($2139).
     dw $0000|$4310, $3981  ; direction = B->A, word reg, B addr = $2139
     dw $1000|$2115, $0080  ; VRAM address increment mode.
 
-    ; Copy VRAM segments, uses $726C00-$735FFF
-    %vram_to_sram($7C00, $400,  $726C00)
-    %vram_to_sram($9000, $1000, $727000)
-    %vram_to_sram($A000, $2000, $730000)
-    %vram_to_sram($C000, $4000, $732000)
+    ; Copy VRAM segments, uses $730000-$736FFF, $737400-$7377FF
+    %vram_to_sram($7C00, $400,  $737400)
+    %vram_to_sram($9000, $3000, $730000)
+    %vram_to_sram($C000, $4000, $733000)
 
-    ; Copy CGRAM, uses SRAM $707E00-$707FFF
+    ; Copy CGRAM, uses SRAM $737200-$7373FF
     dw $1000|$2121, $00    ; CGRAM address
     dw $0000|$4310, $3B80  ; direction = B->A, byte reg, B addr = $213B
-    dw $0000|$4312, $7E00  ; A addr = $xx7E00
-    dw $0000|$4314, $0070  ; A addr = $70xxxx, size = $xx00
+    dw $0000|$4312, $7200  ; A addr = $xx7200
+    dw $0000|$4314, $0073  ; A addr = $73xxxx, size = $xx00
     dw $0000|$4316, $0002  ; size = $02xx ($0200), unused bank reg = $00.
     dw $1000|$420B, $02    ; Trigger DMA on channel 1
 
@@ -361,32 +319,30 @@ load_write_table:
     ; Single address, A bus -> B bus.  B address = reflector to WRAM ($2180).
     dw $0000|$4310, $8000  ; direction = A->B, B addr = $2180
 
-    ; Copy WRAM segments, uses $704000-$7071FF, $710000-$726B01, $736000-$736FFF
-    %sram_to_wram($7E0000, $2000, $704000)
-    %sram_to_wram($7E7000, $1000, $706000)
-    %sram_to_wram($7E3300, $0200, $707000)
-    %sram_to_wram(!WRAM_START, !WRAM_PERSIST_START-!WRAM_START, $707200)
-    %sram_to_wram($7E8000, $2000, $710000)
-    %sram_to_wram($7EC000, $34A0, $712000)
-    %sram_to_wram($7F0000, $2B00, $715500)
-    %sram_to_wram($7F2B00, $6B02, $720000)
-    %sram_to_wram($7E2000, $1000, $736000)
+    ; Copy WRAM segments, uses $705000-$727FFF
+    %sram_to_wram($7E0000, $3000, $705000)
+    %sram_to_wram($7E7000, $3000, $710000)
+    %sram_to_wram($7EC000, $34A0, $713000)
+    %sram_to_wram($7EFD00, $0080, $716500)
+    %sram_to_wram($7EFE00, $0100, $716600)
+    %sram_to_wram($7E3300, $0200, $716700)
+    %sram_to_wram($7F0000, $1700, $716900)
+    %sram_to_wram($7F1700, $7F02, $720000)
 
     ; Address pair, A bus -> B bus.  B address = VRAM write ($2118).
     dw $0000|$4310, $1801  ; direction = A->B, B addr = $2118
     dw $1000|$2115, $0080  ; VRAM address increment mode.
 
-    ; Copy VRAM segments, uses $726C00-$735FFF
-    %sram_to_vram($7C00, $400,  $726C00)
-    %sram_to_vram($9000, $1000, $727000)
-    %sram_to_vram($A000, $2000, $730000)
-    %sram_to_vram($C000, $4000, $732000)
+    ; Copy VRAM segments, uses $730000-$736FFF, $737400-$7377FF
+    %sram_to_vram($7C00, $400,  $737400)
+    %sram_to_vram($9000, $3000, $730000)
+    %sram_to_vram($C000, $4000, $733000)
 
-    ; Copy CGRAM, uses SRAM $707E00-$707FFF
+    ; Copy CGRAM, uses SRAM $737200-$7373FF
     dw $1000|$2121, $00    ; CGRAM address
     dw $0000|$4310, $2200  ; direction = A->B, byte reg, B addr = $2122
-    dw $0000|$4312, $7E00  ; A addr = $xx7E00
-    dw $0000|$4314, $0070  ; A addr = $70xxxx, size = $xx00
+    dw $0000|$4312, $7200  ; A addr = $xx7200
+    dw $0000|$4314, $0073  ; A addr = $73xxxx, size = $xx00
     dw $0000|$4316, $0002  ; size = $02xx ($0200), unused bank reg = $00.
     dw $1000|$420B, $02    ; Trigger DMA on channel 1
 
@@ -509,7 +465,7 @@ tinystates_load_paused:
 }
 
 print pc, " tinysave end"
-;warnpc $80FD00 ; infohud.asm
+warnpc $80FC00 ; infohud.asm
 
 
 org !ORG_PRESETS_TINYSTATES_BANK82
@@ -597,3 +553,4 @@ tinystates_load_kraid:
 }
 
 print pc, " tinysave bank82 end"
+warnpc $82FFE0 ; InfoHUD

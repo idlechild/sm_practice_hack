@@ -150,15 +150,10 @@ if !FEATURE_SD2SNES
   .skip_auto_save_state
 endif
 
-;    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_load_last_preset : CMP !sram_ctrl_load_last_preset : BNE .skip_load_last_preset
-;    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_load_last_preset
-;    JMP .load_last_preset
-;  .skip_load_last_preset
-;
-;    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_random_preset : CMP !sram_ctrl_random_preset : BNE .skip_random_preset
-;    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_random_preset
-;    JMP .random_preset
-;  .skip_random_preset
+    LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_load_last_preset : CMP !sram_ctrl_load_last_preset : BNE .skip_load_last_preset
+    AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_load_last_preset
+    JMP .load_last_preset
+  .skip_load_last_preset
 
     LDA !IH_CONTROLLER_PRI : AND !sram_ctrl_save_custom_preset : CMP !sram_ctrl_save_custom_preset : BNE .skip_save_custom_preset
     AND !IH_CONTROLLER_PRI_NEW : BEQ .skip_save_custom_preset
@@ -320,14 +315,15 @@ endif
 
   .load_last_preset
     ; Choose a random preset if zero
-    LDA !sram_last_preset : BEQ .random_preset : STA !ram_load_preset
+    LDA !sram_last_preset : BEQ .load_last_preset_fail : STA !ram_load_preset
     ; SEC to skip normal gameplay for one frame after loading preset
     SEC : RTS
 
-  .random_preset
-    JSL LoadRandomPreset
-    ; SEC to skip normal gameplay for one frame after loading preset
-    SEC : RTS
+  .load_last_preset_fail
+    %sfxfail()
+    ; CLC to continue normal gameplay after failing to load preset
+    LDA !sram_ctrl_load_last_preset
+    CLC : JMP skip_pause
 
   .save_custom_preset
     ; check gamestate first
@@ -431,4 +427,4 @@ gamemode_door_transition:
 endif
 
 print pc, " gamemode end"
-;warnpc $85FD00 ; menu.asm
+warnpc $85FD00 ; menu.asm

@@ -2,12 +2,6 @@
 ; Phantoon hijacks
 ; ----------------
 {
-    ; Intro
-org $A7D4A9
-    JSL hook_phantoon_init
-    NOP
-    BNE $3D
-
     ; 1st pattern
 org $A7D5A6
     JSL hook_phantoon_1st_rng
@@ -76,9 +70,6 @@ KraidWaitTable:
     ; Overwrite unused palette
     dw #$0080, #$0040, #$0080, #$00C0, #$0100, #$0140, #$0180, #$01C0
 
-org $A7AA69
-    JSR kraid_intro_skip
-
 org $A7AE0D
     LDA !ram_kraid_wait_rng : BNE kraid_wait_load_delay
     LDA !CACHED_RANDOM_NUMBER : AND #$0007
@@ -142,28 +133,6 @@ hook_beetom_set_rng:
     RTL
 }
 
-; Patch to the following code (which waits a few frames
-;  before spawning flames in a circle)
-; $A7:D4A9 DE B0 0F    DEC $0FB0,x[$7E:0FB0]    ; decrement timer
-; $A7:D4AC F0 02       BEQ $02    [$D4B0]       ; if zero, proceed
-; $A7:D4AE 10 3D       BPL $3D    [$D4ED]       ; else, return
-hook_phantoon_init:
-{
-    LDA !sram_cutscenes : AND !CUTSCENE_FAST_PHANTOON : BNE .skip_cutscene
-
-    DEC $0FB0,X
-    RTL
-
-  .skip_cutscene
-    ; get rid of the return address
-    PLA     ; pop 2 bytes
-    PHP     ; push 1
-    PLA     ; pop 2 (for a total of 3 bytes popped)
-
-    ; start boss music & fade-in animation
-    JML $A7D50F
-}
-
 ; Table of Phantoon pattern durations & directions
 ; bit 0 is direction, remaining bits are duration
 ; Note that later entries in the table will tend to occur slightly more often.
@@ -188,13 +157,6 @@ phan_pattern_table:
 ; $A7:D5B9 89 01 00    BIT #$0001               ; Sets Z for left pattern, !Z for right
 hook_phantoon_1st_rng:
 {
-    ; If fast Phantoon is on, adjust the timer by the cutscene time
-    ; (we can't do that while we skip the cutscene since that code
-    ;  happens during the door transition)
-    LDA !sram_cutscenes : AND !CUTSCENE_FAST_PHANTOON : BEQ .rng
-    LDY #$0257 : JSL ih_adjust_realtime
-
-  .rng:
     ; If set to all-on or all-off, don't mess with RNG.
     LDA !ram_phantoon_rng_round_1 : BEQ .no_manip
     CMP #$003F : BNE choose_phantoon_pattern
@@ -430,7 +392,7 @@ hook_botwoon_spit:
 }
 
 print pc, " rng end"
-;warnpc $83B000 ; custompresets.asm
+warnpc $83C000 ; custompresets.asm
 
 
 ;org $A4F700
@@ -579,19 +541,6 @@ hook_kraid_claw_rng:
     RTS
 }
 
-kraid_intro_skip:
-{
-    LDA !sram_cutscenes : AND !CUTSCENE_FAST_KRAID : BEQ .noSkip
-    ; We can't adjust the timer here, because we're in a door transition and it will be 
-    ; considered part of the previous room. Instead, set a flag to adjust the timer at 
-    ; the end of the door transition.
-    LDA #$0001 : STA !ram_kraid_adjust_timer
-    RTS
-
-  .noSkip
-    LDA #$012C
-    RTS
-}
-
 print pc, " kraid rng end"
+warnpc $A789F3
 

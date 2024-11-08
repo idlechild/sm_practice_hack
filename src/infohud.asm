@@ -2,12 +2,14 @@
 ;InfoHUD timers and stuff
 ;=======================================================
 
-org $809490
-    JMP $9497    ; skip resetting player 2 inputs
+org $808FA3
+ih_map_rando_nmi_end_routine:
 
-org $8094DF
-    PLP          ; patch out resetting of controller 2 buttons and enable debug mode
-    RTL
+org $80D200
+ih_map_rando_fix_scroll_offsets:
+
+org $82F976
+ih_map_rando_after_room_transition_routine:
 
 org $80ADB5      ; fix for scroll offset misalignment when going down through door
     JSR ih_fix_scroll_down_offsets
@@ -21,10 +23,6 @@ org $828B4B      ; disable debug functions
 org $82EE92      ; runs on START GAME
     JSL startgame_seg_timer
 
-org $828B34      ; reset room timers for first room of Ceres
-    JML ceres_start_timers : NOP : NOP
-ceres_start_timers_return:
-
 org $82DBB2      ; hijack, runs when in-game time is ticked
     JML ih_gamemode_frame
 
@@ -35,7 +33,7 @@ org $9493FB      ; hijack, runs when Samus hits a door BTS
     JSL ih_before_room_transition
 
 org $82E764      ; hijack, runs when Samus is coming out of a room transition
-    JSL ih_after_room_transition : RTS
+    JSR ih_maybe_after_room_transition
 
 org $809B48      ; hijack, HUD routine (game timer by Quote58)
     JSL ih_hud_code
@@ -49,11 +47,11 @@ org $80A16B      ; hijack, adjust room times and update HUD when unpausing
 org $84889F      ; hijack, runs every time an item is picked up
     JSL ih_get_item_code
 
-org $8095FC      ; hijack, end of NMI routine to update realtime frames
-    JML ih_nmi_end
+org $8095F6      ; hijack, end of NMI routine to update realtime frames
+    JMP ih_nmi_end
 
-org $809609      ; inc counter if NMI lag branch
-    INC !REALTIME_LAG_COUNTER
+org $809604      ; inc counter if NMI lag branch
+    JMP ih_nmi_end_lag_frame
 
 org $91DAD8      ; hijack, runs after a shinespark has been charged
     JSL ih_shinespark_code
@@ -105,9 +103,6 @@ org $A0BB6C      ; update timers when Draygon drops spawn
 
 org $AAE582      ; update timers when statue grabs Samus
     JSL ih_chozo_segment
-
-org $89AD0A      ; update timers when Samus escapes Ceres
-    JSL ih_ceres_elevator_segment
 
 org $A2AA20      ; update timers when Samus enters ship
     JSL ih_ship_elevator_segment
@@ -170,93 +165,6 @@ ih_debug_routine:
     JML $828B4F ; return
 }
 
-ih_nmi_end:
-{
-    ; Room timer
-    LDA !ram_realtime_room : INC : STA !ram_realtime_room
-
-    ; Segment real timer
-    LDA !ram_seg_rt_frames : INC : STA !ram_seg_rt_frames : CMP.w #60 : BNE .done_timer
-    LDA #$0000 : STA !ram_seg_rt_frames
-    LDA !ram_seg_rt_seconds : INC : STA !ram_seg_rt_seconds : CMP.w #60 : BNE .done_timer
-    LDA #$0000 : STA !ram_seg_rt_seconds
-    LDA !ram_seg_rt_minutes : INC : STA !ram_seg_rt_minutes
-
-  .done_timer
-    LDA !ram_slowdown_mode : BNE .controller2_slowdown
-    JMP .done
-
-  .controller2_slowdown
-    CMP #$FFFF : BEQ .pause
-
-    LDA !ram_slowdown_frames : BNE .delay
-    ; Process next frame
-    LDA !ram_slowdown_mode : STA !ram_slowdown_frames
-    LDA !ram_slowdown_controller_1 : STA !IH_CONTROLLER_PRI_PREV
-    LDA !ram_slowdown_controller_2 : STA !IH_CONTROLLER_SEC_PREV
-
-    JSL $809459 ;  Read controller input
-    JMP .done
-
-  .delay
-    CMP !ram_slowdown_mode : BNE .dec_timer
-
-    LDA !IH_CONTROLLER_PRI : EOR !IH_CONTROLLER_PRI_NEW : STA !ram_slowdown_controller_1
-    LDA !IH_CONTROLLER_SEC : EOR !IH_CONTROLLER_SEC_NEW : STA !ram_slowdown_controller_2
-
-    LDA !ram_slowdown_frames
-
-  .dec_timer
-    DEC : STA !ram_slowdown_frames
-
-    ; Skip next frame
-    %a8() : LDA #$01 : STA !NMI_REQUEST_FLAG : %a16()
-    JMP .done
-
-  .pause
-    LDA !ram_slowdown_frames : BNE .check_frame_advance
-
-    INC : STA !ram_slowdown_frames
-    LDA !IH_CONTROLLER_PRI : EOR !IH_CONTROLLER_PRI_NEW : STA !ram_slowdown_controller_1
-    LDA !IH_CONTROLLER_SEC : EOR !IH_CONTROLLER_SEC_NEW : STA !ram_slowdown_controller_2
-
-    ; Check controller 2 inputs
-  .check_frame_advance
-    LDA !IH_CONTROLLER_SEC_NEW : CMP !IH_PAUSE : BEQ .frame_advance
-    CMP !IH_RESET : BNE .check_freeze_on_load
-    ; Resume normal gameplay
-    LDA #$0000 : STA !ram_slowdown_mode : STA !ram_slowdown_frames
-    JMP .done
-
-    ; Pause after load_state until new inputs
-  .check_freeze_on_load
-    LDA !ram_freeze_on_load : BEQ .wait_for_next_nmi
-    LDA !IH_CONTROLLER_PRI_NEW : BEQ .wait_for_next_nmi
-    ; Reset timers and unpause
-    LDA #$0000 : STA !ram_reset_segment_later
-    STA !ram_seg_rt_frames : STA !ram_seg_rt_seconds
-    STA !ram_seg_rt_minutes : STA !ram_slowdown_mode : STA !ram_slowdown_frames
-    JMP .done
-
-  .wait_for_next_nmi
-    %a8() : LDA #$01 : STA !NMI_REQUEST_FLAG : %a16()
-    JMP .done
-
-  .frame_advance
-    LDA #$0000 : STA !ram_slowdown_frames
-    LDA !ram_slowdown_controller_1 : STA !IH_CONTROLLER_PRI_PREV
-    LDA !ram_slowdown_controller_2 : STA !IH_CONTROLLER_SEC_PREV
-    JSL $809459 ;  Read controller input
-
-  .done
-    PLY
-    PLX
-    PLA
-    PLD
-    PLB
-    RTI
-}
-
 ih_gamemode_frame:
 {
     LDA !ram_gametime_room : INC : STA !ram_gametime_room
@@ -292,13 +200,8 @@ ih_after_room_transition:
     JSL ih_update_hud_code
 
     ; Reset realtime and gametime/transition timers
-    LDA #$0000 : STA !ram_realtime_room : STA !ram_transition_counter
+    TDC : STA !ram_realtime_room : STA !ram_transition_counter
 
-    LDA !ram_kraid_adjust_timer : BEQ .skipKraidTimer
-    LDY #$012B : JSL ih_adjust_realtime
-    LDA #$0000 : STA !ram_kraid_adjust_timer
-
-  .skipKraidTimer
     ; original hijacked code
     LDA #$0008 : STA !GAMEMODE
     RTL
@@ -390,19 +293,6 @@ ih_before_room_transition:
     dw status_door_ypos
 }
 
-ceres_start_timers:
-{
-    LDA #$0000
-    STA !ram_realtime_room : STA !ram_last_realtime_room
-    STA !ram_gametime_room : STA !ram_last_gametime_room
-    STA !ram_last_room_lag : STA !ram_last_door_lag_frames : STA !ram_transition_counter
-
-    ; overwritten code
-    STZ $0723 : STZ $0725
-    
-    JML ceres_start_timers_return
-}
-
 ih_unpause:
 ; Adds frames when unpausing (nmi is turned off during vram transfers)
 {
@@ -490,12 +380,6 @@ ih_chozo_segment:
     JML ih_update_hud_early
 }
 
-ih_ceres_elevator_segment:
-{
-    JSL $90F084 ; overwritten code
-    JML ih_update_hud_early
-}
-
 ih_ship_elevator_segment:
 {
     JSL ih_update_hud_early
@@ -538,7 +422,6 @@ ih_update_hud_code:
   .mmHud
     ; Map visible, so draw map counter over item%
     LDA !sram_top_display_mode : CMP !TOP_DISPLAY_VANILLA : BEQ .mmVanilla
-    LDA !MAP_COUNTER : LDX #$0014 : JSR Draw3
 
     LDA !ram_print_segment_timer : BNE .mmRoomTimer
     BRL .mmPickTransitionTime
@@ -1306,8 +1189,7 @@ ih_game_loop_code:
 
     LDA !ram_game_loop_extras : BNE .extrafeatures
 
-  .checkinputs
-    LDA !IH_CONTROLLER_SEC_NEW : BNE .handleinputs
+  .done
     ; overwritten code + return
     JML $808111
 
@@ -1317,7 +1199,7 @@ ih_game_loop_code:
   .metronome_done
 
     LDA !ram_magic_pants_enabled : XBA : ORA !ram_space_pants_enabled
-    BEQ .checkinputs
+    BEQ .done
 
     BIT #$00FF : BEQ .magicpants    ; if spacepants are disabled, handle magicpants
     BIT #$FF00 : BEQ .spacepants    ; if magicpants are disabled, handle spacepants
@@ -1327,81 +1209,11 @@ ih_game_loop_code:
 
   .spacepants
     JSR space_pants
-    BRA .checkinputs
+    BRA .done
 
   .magicpants
     JSR magic_pants
-    BRA .checkinputs
-
-  .handleinputs
-    CMP !IH_PAUSE : BEQ .toggle_pause
-    CMP !IH_SLOWDOWN : BEQ .toggle_slowdown
-    CMP !IH_SPEEDUP : BEQ .toggle_speedup
-    CMP !IH_RESET : BEQ .reset_slowdown
-    CMP !IH_STATUS_R : BEQ .inc_statusdisplay
-    CMP !IH_STATUS_L : BEQ .dec_statusdisplay
-
-  .done
-    JML $808111 ; overwritten code + return
-
-  .toggle_pause
-    TDC : STA !ram_slowdown_frames
-    DEC : STA !ram_slowdown_mode
     BRA .done
-
-  .toggle_slowdown
-    LDA !ram_slowdown_mode
-    INC : STA !ram_slowdown_mode
-    BRA .done
-
-  .toggle_speedup
-    LDA !ram_slowdown_mode : BEQ .done
-    DEC : STA !ram_slowdown_mode
-    BRA .done
-
-  .reset_slowdown
-    TDC
-    STA !ram_slowdown_mode
-    STA !ram_slowdown_frames
-    BRA .done
-
-  .inc_statusdisplay
-    LDA !sram_display_mode : INC
-    CMP #$0014 : BNE .set_displaymode
-    TDC
-    BRA .set_displaymode
-
-  .dec_statusdisplay
-    LDA !sram_display_mode : DEC
-    CMP #$FFFF : BNE .set_displaymode
-    LDA #$0013
-
-  .set_displaymode
-    STA !sram_display_mode
-    JSL init_print_segment_timer
-
-  .update_status
-    LDA #$0000
-    STA !ram_momentum_sum
-    STA !ram_momentum_count
-    STA !ram_HUD_check
-    STA !ram_roomstrat_counter
-    STA !ram_roomstrat_state
-    STA !ram_armed_shine_duration
-    STA !ram_fail_count
-    STA !ram_fail_sum
-    INC
-    STA !ram_dash_counter
-    STA !ram_xpos
-    STA !ram_ypos
-    STA !ram_horizontal_speed
-    STA !ram_vertical_speed
-    STA !ram_subpixel_pos
-    STA !ram_mb_hp
-    STA !ram_enemy_hp
-    STA !ram_shine_counter
-
-    JML $808111 ; overwritten code + return
 }
 
 metronome:
@@ -1576,12 +1388,31 @@ overwrite_HUD_numbers:
     RTL
 
 print pc, " infohud end"
-;warnpc $F0E000 ; spritefeat.asm
+warnpc $F0E000 ; spritefeat.asm
 
 
 ; Stuff that needs to be placed in bank 80
 org !ORG_INFOHUD_BANK80
 print pc, " infohud bank80 start"
+
+ih_nmi_end_lag_frame:
+    INC !REALTIME_LAG_COUNTER
+
+ih_nmi_end:
+{
+    ; Room timer
+    LDA !ram_realtime_room : INC : STA !ram_realtime_room
+
+    ; Segment real timer
+    LDA !ram_seg_rt_frames : INC : STA !ram_seg_rt_frames : CMP.w #60 : BNE .done_timer
+    LDA #$0000 : STA !ram_seg_rt_frames
+    LDA !ram_seg_rt_seconds : INC : STA !ram_seg_rt_seconds : CMP.w #60 : BNE .done_timer
+    LDA #$0000 : STA !ram_seg_rt_seconds
+    LDA !ram_seg_rt_minutes : INC : STA !ram_seg_rt_minutes
+
+  .done_timer
+    JMP ih_map_rando_nmi_end_routine
+}
 
 ih_fix_scroll_offsets:
 {
@@ -1591,11 +1422,11 @@ ih_fix_scroll_offsets:
     LDA $B3 : AND #$FF00 : STA $B3
     LDA $B1 : AND #$FF00
     SEC
-    RTS
+    JMP ih_map_rando_fix_scroll_offsets
 
   .nofix
     LDA $B1 : SEC
-    RTS
+    JMP ih_map_rando_fix_scroll_offsets
 }
 
 ih_fix_scroll_down_offsets:
@@ -1608,10 +1439,12 @@ ih_fix_scroll_down_offsets:
     LDA $B1 : AND #$FF00
     SEC
     ; From here, we need to jump into the AE29 method
+    JSR ih_map_rando_fix_scroll_offsets
     JMP $AE2C
 
   .nofix
     LDA $B1 : SEC
+    JSR ih_map_rando_fix_scroll_offsets
     JMP $AE2C
 }
 
@@ -1684,5 +1517,23 @@ HexToNumberGFX2:
     dw $0C00|!HUD_0, $0C00|!HUD_1, $0C00|!HUD_2, $0C00|!HUD_3, $0C00|!HUD_4, $0C00|!HUD_5, $0C00|!HUD_6, $0C00|!HUD_7, $0C00|!HUD_8, $0C00|!HUD_9
 
 print pc, " infohud bank80 end"
-;warnpc $80FF80 ; cutscenes.asm door transition code
+warnpc $80FFC0 ; game header
+
+
+; Stuff that needs to be placed in bank 80
+org !ORG_INFOHUD_BANK82
+print pc, " infohud bank82 start"
+
+ih_maybe_after_room_transition:
+{
+    JSR ih_map_rando_after_room_transition_routine
+    CMP #$0008 : BNE .done
+    PHA : JSL ih_after_room_transition
+    PLA
+  .done
+    RTS
+}
+
+print pc, " infohud bank82 end"
+warnpc $82FFFE ; MapRando
 
