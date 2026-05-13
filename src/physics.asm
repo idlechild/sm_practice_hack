@@ -5,17 +5,6 @@ org $828067
     JSL init_physics_ram
 
 
-; Replace gravity suit checks with the water physics check
-org $84B423
-    LDA !SAMUS_WATER_PHYSICS
-
-org $84B4D1
-    LDA !SAMUS_WATER_PHYSICS
-
-org $84B7F2
-    BIT !SAMUS_SPEED_OR_BLUE_BOOSTER_BITMASK
-
-
 org $908096
     LDA !SAMUS_WATER_PHYSICS : BIT #$0020
 

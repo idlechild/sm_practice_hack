@@ -74,9 +74,6 @@ org $82E764      ; hijack, runs when Samus is coming out of a room transition
 org $82EE92      ; runs on START GAME
     JSL startgame_seg_timer
 
-org $84889F      ; hijack, runs every time an item is picked up
-    JSL ih_get_item_code
-
 org $89AD0A      ; update timers when Samus escapes Ceres
     JSL ih_ceres_elevator_segment
 

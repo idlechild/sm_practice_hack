@@ -213,15 +213,6 @@ endif
     JML clear_escape_timer
 
 
-; Fast bowling chozo cutscene
-if !FEATURE_PAL
-org $84D671
-else
-org $84D66B
-endif
-    JSL lock_samus_bowling
-
-
 org $869D59
     JSR move_kraid_rocks_horizontally
 

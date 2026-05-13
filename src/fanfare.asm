@@ -7,10 +7,6 @@ org $82E126
     JSL hook_resume_room_music
     BRA $08
 
-; $84:8BDD: Instruction - clear music queue and queue music track [[Y]] ;;;
-org $848BDD
-    JML play_or_skip_fanfare
-
 ; $85:80BA: End message box routine
 org $8580BA
     JML hook_end_fanfare
