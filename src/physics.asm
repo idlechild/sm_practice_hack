@@ -645,17 +645,6 @@ endif
 %endfree(91)
 
 
-; The following three fix double jump when landing on spikes
-org $948EA9
-    STA $0A4E : STZ !SAMUS_DOUBLE_JUMP
-
-org $948EE4
-    STA $0A4E : STZ !SAMUS_DOUBLE_JUMP
-
-org $948F1F
-    STA $0A4E : STZ !SAMUS_DOUBLE_JUMP
-
-
 org $9BC4BE
     LDA !SAMUS_WATER_PHYSICS : BIT #$0020
 

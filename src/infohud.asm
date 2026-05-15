@@ -94,12 +94,6 @@ org $91DAD8
 endif
     JSL ih_shinespark_code
 
-org $9493B8      ; hijack, runs when Samus hits a door BTS
-    JSL ih_before_room_transition
-
-org $9493FB      ; hijack, runs when Samus hits a door BTS
-    JSL ih_before_room_transition
-
 if !FEATURE_PAL
 org $A0B937
 else             ; update timers when Ridley drops spawn

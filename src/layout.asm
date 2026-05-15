@@ -1455,11 +1455,6 @@ layout_prepare_gravity_animation:
 %warnpc($91ECD0, $91EC35)
 
 
-org $94937D
-layout_samus_bombable_block_collision_table:
-    dw $D040
-
-
 ; Landing site top-left grey door (escape)
 org $8F8048
 hook_layout_asm_landingsite_door1_escape_plm:
