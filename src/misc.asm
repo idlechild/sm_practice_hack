@@ -213,6 +213,54 @@ endif
     JML clear_escape_timer
 
 
+; Capture block shuffler
+org $848536
+    BRA vanilla_end_spawn_plm
+
+org $84853E
+vanilla_end_spawn_plm:
+    LDA $1C6F : CMP #$B56D : BNE .safe
+    ;; WHAT DOES THIS JSR DO DURING BLOCK SHUFFER? ;;
+  .safe
+    JSR ($0000,X)
+    PLX : PLY
+    PLB : RTL
+    RTS
+
+org $848623
+    JMP plm_draw_hook
+
+org $8487B0
+    ;; RELOCATED IN CASE WE WANT TO MESS WITH $8487BE LOCATION ;;
+    JMP vanilla_palette_routine
+
+%startfree(84)
+
+plm_draw_hook:
+{
+    CMP #$8DA0 : BNE .safe
+    ;; I THOUGHT THIS CODE MIGHT EXECUTE BUT I NO LONGER THINK IT DOES ;;
+  .safe
+    LDA $1C87,X
+    JMP $8626
+}
+
+vanilla_palette_routine:
+{
+    LDA $0000,Y
+    AND #$00FF : XBA : ASL #2
+    CLC : ADC $16
+    STA $7EA000,X
+    INC $16 : INY : INX #2
+    CPX $18 : BNE vanilla_palette_routine
+    LDX $1C27
+    RTS
+}
+
+%endfree(84)
+
+
+
 org $869D59
     JSR move_kraid_rocks_horizontally
 

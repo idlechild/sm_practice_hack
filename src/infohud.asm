@@ -16,7 +16,7 @@ org $8095FC      ; hijack, end of NMI routine to update realtime frames
     JML ih_nmi_end
 
 org $809609      ; inc counter if NMI lag branch
-    INC !REALTIME_LAG_COUNTER
+    JMP plm_lag_detection_hack
 
 org $809DFD
 hook_start_escape_timers:
@@ -2247,6 +2247,15 @@ HexToNumberGFX2:
     dw #$0C09, #$0C00, #$0C01, #$0C02, #$0C03, #$0C04, #$0C05, #$0C06, #$0C07, #$0C08
     dw #$0C09, #$0C00, #$0C01, #$0C02, #$0C03, #$0C04, #$0C05, #$0C06, #$0C07, #$0C08
 endif
+
+plm_lag_detection_hack:
+{
+    LDA $7E1C27 : CMP #$0038 : BNE .end
+    ;; WHAT IS HAPPENING WHEN THE PLM IS LAGGING? HOW IS THE COPY HAPPENING? ;;
+  .end
+    INC !REALTIME_LAG_COUNTER
+    JMP $960C
+}
 
 %endfree(80)
 
