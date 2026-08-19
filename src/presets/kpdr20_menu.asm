@@ -20,7 +20,12 @@ presets_goto_kpdr20_crateria:
     %cm_submenu("Crateria", #presets_submenu_kpdr20_crateria)
 
 presets_goto_kpdr20_brinstar:
-    %cm_submenu("Brinstar", #presets_submenu_kpdr20_brinstar)
+    %cm_jsl("Brinstar", #.routine, #presets_submenu_kpdr20_brinstar)
+  .routine
+    LDA !sram_safeties_kpdr20 : BIT #$0001 : BEQ .done
+    LDY #presets_submenu_kpdr20_brinstar_spazer
+  .done
+    JML action_submenu
 
 presets_goto_kpdr20_kraid:
     %cm_submenu("Kraid's Lair", #presets_submenu_kpdr20_kraid)
@@ -79,6 +84,20 @@ presets_submenu_kpdr20_crateria:
     %cm_header("CRATERIA")
 
 presets_submenu_kpdr20_brinstar:
+    dw #presets_kpdr20_brinstar_green_brinstar_elevator
+    dw #presets_kpdr20_brinstar_early_supers
+    dw #presets_kpdr20_brinstar_dachora_room
+    dw #presets_kpdr20_brinstar_big_pink
+    dw #presets_kpdr20_brinstar_green_hill_zone
+    dw #presets_kpdr20_brinstar_noob_bridge
+    dw #presets_kpdr20_brinstar_red_tower
+    dw #presets_kpdr20_brinstar_skree_boost
+    dw #presets_kpdr20_brinstar_below_spazer
+    dw #presets_kpdr20_brinstar_passing_through_maridia
+    dw #$0000
+    %cm_header("BRINSTAR")
+
+presets_submenu_kpdr20_brinstar_spazer:
     dw #presets_kpdr20_brinstar_green_brinstar_elevator
     dw #presets_kpdr20_brinstar_early_supers
     dw #presets_kpdr20_brinstar_dachora_room
