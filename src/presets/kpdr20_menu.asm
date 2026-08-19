@@ -88,6 +88,8 @@ presets_submenu_kpdr20_brinstar:
     dw #presets_kpdr20_brinstar_red_tower
     dw #presets_kpdr20_brinstar_skree_boost
     dw #presets_kpdr20_brinstar_below_spazer
+    dw #presets_kpdr20_brinstar_spazer
+    dw #presets_kpdr20_brinstar_leaving_spazer
     dw #presets_kpdr20_brinstar_passing_through_maridia
     dw #$0000
     %cm_header("BRINSTAR")
@@ -374,6 +376,12 @@ presets_kpdr20_brinstar_skree_boost:
 
 presets_kpdr20_brinstar_below_spazer:
     %cm_preset("Below Spazer", #preset_names_below_spazer, #preset_kpdr20_brinstar_below_spazer)
+
+presets_kpdr20_brinstar_spazer:
+    %cm_preset("Spazer", #preset_names_spazer, #preset_kpdr20_brinstar_spazer)
+
+presets_kpdr20_brinstar_leaving_spazer:
+    %cm_preset("Leaving Spazer", #preset_names_leaving_spazer, #preset_kpdr20_brinstar_leaving_spazer)
 
 presets_kpdr20_brinstar_passing_through_maridia:
     %cm_preset("Passing Through Maridia", #preset_names_passing_through_maridia, #preset_kpdr20_brinstar_passing_through_maridia)

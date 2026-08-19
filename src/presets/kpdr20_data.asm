@@ -486,20 +486,61 @@ preset_kpdr20_brinstar_below_spazer:
     dw $0AFA, $008B  ; Samus Y
     dw #$FFFF
 
-preset_kpdr20_brinstar_passing_through_maridia:
+preset_kpdr20_brinstar_spazer:
     dw #preset_kpdr20_brinstar_below_spazer ; Brinstar: Below Spazer
+    dw $078D, $9102  ; DDB
+    dw $079B, $A408  ; MDB
+    dw $090F, $2000  ; Screen subpixel X position
+    dw $0913, $5000  ; Screen subpixel Y position
+    dw $0915, $001D  ; Screen Y position in pixels
+    dw $0919, $0015  ; Layer 2 Y position
+    dw $09CA, $0003  ; Supers
+    dw $0AF6, $01B3  ; Samus X
+    dw $D8B6, $8008  ; Doors
+    dw #$FFFF
+
+preset_kpdr20_brinstar_leaving_spazer:
+    dw #preset_kpdr20_brinstar_spazer ; Brinstar: Spazer
+    dw $078D, $9126  ; DDB
+    dw $079B, $A447  ; MDB
+    dw $07F5, $0003  ; Music Track
+    dw $090F, $D000  ; Screen subpixel X position
+    dw $0911, $0000  ; Screen X position in pixels
+    dw $0913, $2C00  ; Screen subpixel Y position
+    dw $0917, $0000  ; Layer 2 X position
+    dw $0919, $0000  ; Layer 2 Y position
+    dw $09A6, $1004  ; Equipped Beams
+    dw $09A8, $1004  ; Collected Beams
+    dw $0A1C, $0002  ; Samus position/state
+    dw $0A1E, $0004  ; More position/state
+    dw $0AF6, $00AA  ; Samus X
+    dw $0AFA, $00AB  ; Samus Y
+    dw $D874, $0404  ; Items
+    dw #$FFFF
+
+preset_kpdr20_brinstar_passing_through_maridia:
+    dw #preset_kpdr20_brinstar_leaving_spazer ; Brinstar: Leaving Spazer
     dw $078D, $9132  ; DDB
     dw $079B, $A408  ; MDB
+    dw $07F5, $0005  ; Music Track
     dw $090F, $8000  ; Screen subpixel X position
+    dw $0911, $0100  ; Screen X position in pixels
     dw $0913, $CC00  ; Screen subpixel Y position
     dw $0915, $0100  ; Screen Y position in pixels
+    dw $0917, $00C0  ; Layer 2 X position
     dw $0919, $00C0  ; Layer 2 Y position
+    dw $09A6, $1000  ; Equipped Beams
+    dw $09A8, $1000  ; Collected Beams
     dw $09C6, $0006  ; Missiles
     dw $09CA, $0005  ; Supers
+    dw $0A1C, $0001  ; Samus position/state
+    dw $0A1E, $0008  ; More position/state
     dw $0AF6, $01B1  ; Samus X
     dw $0AFA, $018B  ; Samus Y
-    dw $0FD8, $FFFF  ; Safeties supers adjustment
+    dw $0FD8, $FFFF  ; Safeties 0001 supers adjustment
     dw $1058, $0001  ; Safeties enabled
+    dw $D874, $0004  ; Items
+    dw $D8B6, $0008  ; Doors
     dw #$FFFF
 
 preset_kpdr20_kraid_entering_kraids_lair:
@@ -689,7 +730,7 @@ preset_kpdr20_kraid_business_center_preelev:
     dw $09CA, $0004  ; Supers
     dw $0AF6, $0078  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $0F7A, $004B  ; Safeties energy adjustment
+    dw $0F7A, $004B  ; Safeties 0002 energy adjustment
     dw $1058, $0003  ; Safeties enabled
     dw #$FFFF
 
@@ -740,7 +781,7 @@ preset_kpdr20_upper_norfair_leaving_hijump:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $00B5  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $0F7A, $0000  ; Safeties energy adjustment
+    dw $0F7A, $0000  ; Safeties 0002 energy adjustment
     dw $D876, $0121  ; Items
     dw $D8BA, $0001  ; Doors
     dw #$FFFF
