@@ -509,13 +509,12 @@ preset_kpdr20_brinstar_leaving_spazer:
     dw $0913, $2C00  ; Screen subpixel Y position
     dw $0917, $0000  ; Layer 2 X position
     dw $0919, $0000  ; Layer 2 Y position
-    dw $09A6, $1004  ; Equipped Beams
-    dw $09A8, $1004  ; Collected Beams
     dw $0A1C, $0002  ; Samus position/state
     dw $0A1E, $0004  ; More position/state
     dw $0AF6, $00AA  ; Samus X
     dw $0AFA, $00AB  ; Samus Y
-    dw $D874, $0404  ; Items
+    dw $1058, $0001  ; Safeties enabled
+    dw $D8B6, $0008  ; Doors
     dw #$FFFF
 
 preset_kpdr20_brinstar_passing_through_maridia:
@@ -529,18 +528,14 @@ preset_kpdr20_brinstar_passing_through_maridia:
     dw $0915, $0100  ; Screen Y position in pixels
     dw $0917, $00C0  ; Layer 2 X position
     dw $0919, $00C0  ; Layer 2 Y position
-    dw $09A6, $1000  ; Equipped Beams
-    dw $09A8, $1000  ; Collected Beams
     dw $09C6, $0006  ; Missiles
     dw $09CA, $0005  ; Supers
     dw $0A1C, $0001  ; Samus position/state
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $01B1  ; Samus X
     dw $0AFA, $018B  ; Samus Y
+    dw $0FB8, $0001  ; Safeties 0001 missiles adjustment
     dw $0FD8, $FFFF  ; Safeties 0001 supers adjustment
-    dw $1058, $0001  ; Safeties enabled
-    dw $D874, $0004  ; Items
-    dw $D8B6, $0008  ; Doors
     dw #$FFFF
 
 preset_kpdr20_kraid_entering_kraids_lair:
