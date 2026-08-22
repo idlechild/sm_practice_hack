@@ -370,6 +370,22 @@ macro cm_preset(title, textAddr, target)
     dw <textAddr>
 endmacro
 
+macro cm_safety(value, title, textAddr, sramAddr)
+; Displays safety name, value, and safety sram location
+  .dm_actionIndex
+    dw !ACTION_CATEGORY_SAFETY
+  .dm_arg
+if <value> > $00FFFF
+    dw <value>>>16
+else
+    dw <value>
+endif
+  .dm_sram
+    dl <sramAddr>
+  .dm_textAddr
+    dw <textAddr>
+endmacro
+
 macro cm_custompreset(slot)
 ; Displays custom preset data and allows selecting active slot
 custompreset_<slot>:

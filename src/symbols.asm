@@ -541,6 +541,10 @@ sram_update_timers_options = !sram_update_timers_options ; !SRAM_START+$AE
 sram_sprite_features_blue_color = !sram_sprite_features_blue_color ; !SRAM_START+$B0
 sram_sprite_features_grapple_color = !sram_sprite_features_grapple_color ; !SRAM_START+$B2
 
+; Safeties enabled are 24-bits each
+sram_safeties_enabled_kpdr = !sram_safeties_enabled_kpdr ; !SRAM_START+$B4
+sram_safeties_enabled_msb_kpdr = !sram_safeties_enabled_msb_kpdr ; !SRAM_START+$B6
+
 ; ^ FREE SPACE ^ up to +$CE
 
 ; This is a continuation of sram_ctrl_shortcut_selections

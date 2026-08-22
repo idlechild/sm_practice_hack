@@ -55,6 +55,11 @@ def load_preset_data(file_label):
                     for addr, value in preset_data_list[last_data_index].items():
                         if addr not in data_dict:
                             data_dict[addr] = value
+                else:
+                    data_dict["0F78"] = "0000"
+                    data_dict["0F7A"] = "0000"
+                    for safeties_index in range(3968, 4352, 2):
+                        data_dict[f"{safeties_index:04X}"] = "0000"
                 if len(preset_name_list) == (last_data_index + 1):
                     preset_data_list.append(data_dict)
                     preset_name_list.append(preset_name)
@@ -87,7 +92,10 @@ def load_preset_data(file_label):
                     raise Exception("Conflicting names for address: " + addr)
                 data_dict[addr] = value
             elif line:
-                raise Exception("Unrecognized line: " + line)
+                if preset_name or len(preset_data_list) > 0 or len(line) < 22:
+                    raise Exception("Unrecognized line: " + line)
+                elif line[0:2] != "; " or line[8:21] != " = Safeties (" or line[-1:] != ")":
+                    raise Exception("Unrecognized line: " + line)
             elif preset_name:
                 raise Exception("Empty line in preset: " + preset_name)
     if len(preset_data_list) <= 0:
@@ -268,11 +276,13 @@ def write_combined_preset_data():
             else:
                 print(f"    dw #{combined_preset_names_lists[last_data_index][0]}", file=file)
             for addr, value in sorted(combined_preset_data_list[i].items()):
-                if last_data_index < 0 or combined_preset_data_list[last_data_index][addr] != value:
+                if (((last_data_index < 0) and ((addr < "0F78") or (addr >= "1100"))) or
+                    ((last_data_index >= 0) and (combined_preset_data_list[last_data_index][addr] != value))):
                     print(f'    dw ${addr}, ${value}  ; {name_dict[addr]}', file=file)
             print("    dw #$FFFF", file=file)
 
 
+load_preset_data("kpdr")
 load_preset_data("kpdr20")
 load_preset_data("kpdr21")
 load_preset_data("kpdr22")
