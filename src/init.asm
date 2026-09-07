@@ -186,7 +186,6 @@ init_sram:
     INC : STA !sram_rerandomize
     STA !sram_music_toggle
     INC : STA !sram_metronome_sfx
-    STA !sram_preset_category
     LDA #$000A : STA !sram_metronome_tickrate
 
   .upgrade_9toA
@@ -328,9 +327,9 @@ endif
     STA !sram_read_only_locks+$4
 
   .upgrade_22to23
+    TDC : STA !sram_preset_category : STA !sram_safeties_enabled_prkd
     LDA #$0118 : STA !sram_safeties_enabled_kpdr
     LDA #$0010 : STA !sram_safeties_enabled_kpdr+$2
-    TDC : STA !sram_safeties_enabled_prkd
 
     LDA !SRAM_VERSION : STA !sram_initialized
     RTS
