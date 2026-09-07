@@ -92,6 +92,10 @@ preset_kpdr_zeb_skip_skip_definition:
     db !SAFETIES_CMD_MISSILE
     db #$09, #$04
 
+    ; Stage 8: Zebetites Destroyed
+    db !SAFETIES_CMD_EVENT
+    db #$00, #$20
+
 preset_kpdr_safeties_definition:
     ; Safety 00000001: Zeb Skip Skip
     db !SAFETIES_CMD_STAGED

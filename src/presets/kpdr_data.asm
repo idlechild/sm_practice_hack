@@ -671,6 +671,7 @@ preset_kpdr_kraid_warehouse_zeelas:
     dw $0F78, $0007  ; Safeties enabled
     dw $0F84, $005A  ; Safeties (Hi-Jump First) energy adjustment
     dw $1004, $FFFB  ; Safeties (Hi-Jump First) missiles adjustment
+    dw $1042, $0001  ; Safeties (Spazer) supers adjustment
     dw $D876, $0000  ; Items
     dw $D8B8, $0000  ; Doors
     dw $D8BA, $0000  ; Doors
@@ -840,8 +841,8 @@ preset_kpdr_kraid_leaving_kraid_etank:
     dw $0AF8, $3000  ; Samus subpixel X
     dw $0AFA, $009B  ; Samus Y
     dw $0F78, $000F  ; Safeties enabled
-    dw $0F86, $004B  ; Safeties (Kraid E-Tank) energy adjustment
     dw $1006, $FFFF  ; Safeties (Kraid E-Tank) missiles adjustment
+    dw $11C6, $0001  ; Safeties (Kraid E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_kraid_business_center_preelev:
@@ -909,7 +910,7 @@ preset_kpdr_upper_norfair_leaving_hijump:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $00B5  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $0F86, $0000  ; Safeties (Kraid E-Tank) energy adjustment
+    dw $11C6, $0000  ; Safeties (Kraid E-Tank) refill
     dw $D876, $0121  ; Items
     dw $D8BA, $0001  ; Doors
     dw #$FFFF
@@ -1062,7 +1063,6 @@ preset_kpdr_upper_norfair_single_chamber:
     dw $0F78, $001B  ; Safeties enabled
     dw $0F7C, $0000  ; Safeties adjust only
     dw $0F80, $0000  ; Safeties (Zeb Skip Skip) energy adjustment
-    dw $0FC0, $0064  ; Safeties (Zeb Skip Skip) reserves adjustment
     dw $1000, $0000  ; Safeties (Zeb Skip Skip) missiles adjustment
     dw $1002, $0000  ; Safeties (Spazer) missiles adjustment
     dw $1004, $0000  ; Safeties (Hi-Jump First) missiles adjustment
@@ -1430,7 +1430,8 @@ preset_kpdr_wrecked_ship_leaving_phantoon:
     dw $0AF6, $006D  ; Samus X
     dw $0AFA, $00BB  ; Samus Y
     dw $0F8C, $0000  ; Safeties (Early Ice) energy adjustment
-    dw $1008, $FFFD  ; Safeties (HJB Missiles) missiles adjustment
+    dw $1008, $FFFE  ; Safeties (HJB Missiles) missiles adjustment
+    dw $1012, $FFFE  ; Safeties (Moat Missiles) missiles adjustment
     dw $D82A, $0100  ; Bosses
     dw $D8C0, $0070  ; Doors
     dw #$FFFF
@@ -1879,6 +1880,8 @@ preset_kpdr_maridia_reverse_halfie_spikesuit:
     dw $0AF6, $0044  ; Samus X
     dw $0AFA, $008B  ; Samus Y
     dw $0FA4, $0064  ; Safeties (Halfie Savings) energy adjustment
+    dw $1008, $0000  ; Safeties (HJB Missiles) missiles adjustment
+    dw $1012, $0000  ; Safeties (Moat Missiles) missiles adjustment
     dw $1180, $0006  ; Safeties (Zeb Skip Skip) stage
     dw $D82C, $0003  ; Bosses
     dw $D882, $0500  ; Items
@@ -2343,7 +2346,6 @@ preset_kpdr_lower_norfair_ridley:
     dw $09CA, $0008  ; Supers
     dw $0AF6, $003D  ; Samus X
     dw $0AFA, $009B  ; Samus Y
-    dw $1008, $0000  ; Safeties (HJB Missiles) missiles adjustment
     dw $11F0, $FFC1  ; Safeties (Fireflea E-Tank) refill
     dw $D8BA, $D1F1  ; Doors
     dw #$FFFF
@@ -2854,6 +2856,7 @@ preset_kpdr_tourian_mother_brain_2:
     dw $0AFA, $009B  ; Samus Y
     dw $1000, $FFC9  ; Safeties (Zeb Skip Skip) missiles adjustment
     dw $1040, $FFFB  ; Safeties (Zeb Skip Skip) supers adjustment
+    dw $1180, $0008  ; Safeties (Zeb Skip Skip) stage
     dw $D820, $0FC5  ; Events
     dw #$FFFF
 
