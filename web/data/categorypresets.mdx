@@ -1,6 +1,6 @@
 # Category Presets
-Presets are pre-configured savestates that are specific to a particular category.
-<br />
+Presets are pre-configured savestates that are specific to a particular category.  
+&nbsp;  
 Presets load a room but do not load enemies for that room by default,
 so often a preset is named for the upcoming room or section, since enemies will load in the next room.
 This is also why any blue doors are already open to allow easier entry to the next room,
@@ -9,8 +9,8 @@ in those cases the assumption is Samus couldn't have opened the doors and you wa
 In fact if Samus is actually riding an elevator at the start of a preset, simulating an entry into the room,
 then enemies will also be loaded into the room. However since the enemies aren't loaded with the same timing as normal,
 this can result in enemies being out of position compared to the vanilla game, so depending on what you want to practice,
-you may want to select the preset before riding the elevator.
-<br />
+you may want to select the preset before riding the elevator.  
+&nbsp;  
 You're also welcome to create your own custom presets.
 Some category presets support different routing options, or contain a Safeties and Strategies section
 where you can toggle on/off various options. However with Super Metroid having a wealth of strats,
@@ -18,8 +18,8 @@ with seemingly each room having multiple viable strats for speedrunning, the bui
 so making custom presets is also an option. When making custom presets, we recommend periodically backing up
 your SaveRAM or .sram file (if practical) just in case it gets reset by accident (in particular microSD cards
 are known to fail on occasion and could take your custom presets with it). We do strive for backwards compatibility,
-so your custom presets should continue to work if you carry your SaveRAM/.sram file forward to a future update.
-<br />
+so your custom presets should continue to work if you carry your SaveRAM/.sram file forward to a future update.  
+&nbsp;  
 If you have interest in creating built-in category presets for a category we don't have presets for, it is possible with some effort.
 You will need to download a specific version of snes9x emulator in order to record a playthrough of the category,
 and then specific points during that playthrough can be chosen as the presets.
@@ -30,8 +30,8 @@ You may need to be patient as this isn't something we do often.
 The playthrough method will give us a basic, continuous set of presets.
 If you want the category presets to have different routing options or a Safeties and Strategies section,
 that would need to be added manually by a Practice Hack developer.
-Click here for more information about [creating category presets](https://github.com/tewtal/sm_practice_hack/wiki/Creating-Category-Presets).
-<br />
+Click here for more information about [creating category presets](https://github.com/tewtal/sm_practice_hack/wiki/Creating-Category-Presets).  
+&nbsp;  
 For categories with a Safeties and Strategies section, a description of what each option does is below.
 Unless otherwise stated, ammo and energy pickups give their natural inventory boost.
 For example, an option to collect a missile pack will give you an extra five missiles.
@@ -56,8 +56,8 @@ This preset has the following pickups and changes:
 - Collect Aqueduct missiles and supers
 - Collect Precious missiles (after Draygon)
 - Collect Hotarubi missiles
-- Marks all Zebetites destroyed and removes all missiles and supers for Mother Brain 2
-<br />
+- Marks all Zebetites destroyed and removes all missiles and supers for Mother Brain 2  
+&nbsp;  
 Note this is not intended to be the most efficient method of Zeb Skip Skip. This route favors collecting earlier missiles
 since they can help with boss fights, but many other viable routes exist. In particular the Retro Brin missile pack could be dropped
 while Big Pink, Green Hill Zone, West Ocean, and Three Muskateers rooms all contain a missile pack that could be picked up
@@ -70,8 +70,8 @@ Collecting Spazer provides another option for killing and farming enemies, so th
 - +2 missiles pre-cathedral desgeegas
 - +1 missile king cac
 - Above missile buffs reset after Bat Cave Revisit farm (assume less time spent farming)
-- +20 energy hellway farm (resets at next energy refill)
-<br />
+- +20 energy hellway farm (resets at next energy refill)  
+&nbsp;  
 Note that collecting Spazer costs one super for the green door. To offset this,
 it assumed only one super will be used for Kraid entrance instead of three,
 so you end up with an extra super available for killing mini-kraid pirates.
@@ -89,12 +89,15 @@ The energy refill effect lasts until HJB E-Tank is collected (or until re-enteri
 
 ### HJB Missiles
 Often collected for 20/10 loadouts, with moat missiles being the other 20/10 option (or collect both for 25/10 MB1 ammo).
-For consistency with the prior presets, this option comes with a -3 penalty after the Phantoon, and isn't cleared until entering Ridley.
+This option comes with a -2 missile penalty after the Phantoon fight, which isn't cleared until after Draygon.
 
 ### Grapple
 For beginner speedrunners not confortable crossing moat, or perhaps for the extra health.
 This option kills Croc, gives Grapple, Croc power bombs, and Croc E-Tank.
 There is no energy refill effect since Samus is already at full health entering frog speedway.
+Grapple does give a +38 energy buff for skipping moat spark and a +87 energy buff for skipping ocean spark,
+which when combined with Ocean Fly Skip and Healthsaver Spark allows Samus to keep all her energy.
+This energy buff is reduced by 80 energy after Phantoon under the assumption the fight will be more difficult.
 
 ### Early Ice
 Collect Ice Beam on the first visit to Upper Norfair instead on the return trip.
@@ -111,9 +114,14 @@ This is cleared upon returning to Red Brinstar.
 
 ### Moat Missiles
 Often collected for 20/10 loadouts, with HJB missiles being the other 20/10 option (or collect both for 25/10 MB1 ammo).
+This option comes with a -2 missile penalty after the Phantoon fight, which isn't cleared until after Draygon.
 
 ### Ocean Fly Skip
-Enable this option to gain 20 energy entering Wrecked Ship (resets at next energy refill).
+Enable this option to gain 15 energy starting at Ocean Spark (resets at next energy refill).
+
+### Healthsaver Spark
+Enable this option to gain 35 energy entering Wrecked Ship (reduced to 15 energy after Phantoon and resets at next energy refill).
+Note that Healthsaver Spark requires Ocean Fly Skip, so effectively you get a +50 energy buff for Phantoon, dropping to +30 after Phantoon.
 
 ### Phantoon X-Factor
 This option causes Spazer and Ice Beam to be unequipped prior to Phantoon,
@@ -144,8 +152,10 @@ Adds aqueduct supers with no other adjustments.
 
 ### Halfie Savings
 Enable this option to gain 70 energy in the Colosseum.
-For consistency with the prior presets, this option grants an additional 30 energy after Draygon.
-This additional 30 energy might be pulled out into a separate option in the future.
+The energy bonus resets at the next energy refill or after Tourian Metroids.
+
+### Safer Draygon
+Enable this option to gain 40 energy after Draygon.
 The energy bonus resets at the next energy refill or after Tourian Metroids.
 
 ### Whomple Savings
@@ -168,6 +178,10 @@ who intend to gate glitch just to get the Screw Attack.
 ### Blue Pillars
 Enable this option to gain 74 energy entering Worst Room In The Game.
 The energy bonus resets at the next energy refill or after Tourian Metroids.
+
+### Slow Pillars
+Enable this option to take a -2 power bombs penalty entering Worst Room In The Game.
+This penalty is reduced to -1 entering wasteland due to replacing a power bomb with bomb spread, and the penalty resets entering Ridley.
 
 ### Fireflea E-Tank
 The energy refill effect lasts until Ridley E-Tank or after Tourian Metroids.
