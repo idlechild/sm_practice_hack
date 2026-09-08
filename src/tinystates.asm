@@ -462,7 +462,7 @@ load_return:
 
     ; pause menu graphics
     LDA !GAMEMODE : CMP #$0010 : BPL .not_paused
-    CMP #$000C : BMI .not_paused
+    CMP #$000D : BMI .not_paused
     JSL tinystates_load_paused
 
   .not_paused
