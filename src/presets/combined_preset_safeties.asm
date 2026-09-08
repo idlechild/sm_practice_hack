@@ -163,47 +163,53 @@ preset_kpdr_safeties_definition:
     ; Safety 00000400: Ocean Fly Skip
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 00000800: Phantoon X-Factor
+    ; Safety 00000800: Healthsaver Spark
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 00001000: Sloaters Refill
+    ; Safety 00001000: Phantoon X-Factor
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 00002000: Sloaters Refill
     db !SAFETIES_CMD_DOOR
     db #$07, #$01
 
-    ; Safety 00002000: Mama Turtle E-Tank
+    ; Safety 00004000: Mama Turtle E-Tank
     db !SAFETIES_CMD_ETANK|!SAFETIES_COMBO_FLAG
     db #$11, #$04
     db !SAFETIES_CMD_DOOR
     db #$11, #$40
 
-    ; Safety 00004000: Crab Supers
+    ; Safety 00008000: Crab Supers
     db !SAFETIES_CMD_SUPER
     db #$11, #$02
 
-    ; Safety 00008000: Botwoon X-Factor
+    ; Safety 00010000: Botwoon X-Factor
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 00010000: Aqueduct Missiles
+    ; Safety 00020000: Aqueduct Missiles
     db !SAFETIES_CMD_MISSILE
     db #$12, #$10
 
-    ; Safety 00020000: Aqueduct Supers
+    ; Safety 00040000: Aqueduct Supers
     db !SAFETIES_CMD_SUPER
     db #$12, #$20
 
-    ; Safety 00040000: Halfie Savings
+    ; Safety 00080000: Halfie Savings
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 00080000: Whomple Savings
+    ; Safety 00100000: Safer Draygon
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 00100000: Plasma Spark Skip
+    ; Safety 00200000: Whomple Savings
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 00200000: Southern Route
+    ; Safety 00400000: Plasma Spark Skip
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 00800000: Southern Route
     db !SAFETIES_CMD_NOP
 
-    ; Safety 00400000: Screw Attack
+    ; Safety 01000000: Screw Attack
     db !SAFETIES_CMD_ITEM_LO|!SAFETIES_COMBO_FLAG
     db #$08, #$09, #$80
     db !SAFETIES_CMD_EVENT|!SAFETIES_COMBO_FLAG
@@ -213,14 +219,17 @@ preset_kpdr_safeties_definition:
     db !SAFETIES_CMD_DOOR
     db #$0B, #$02
 
-    ; Safety 00800000: Blue Pillars
+    ; Safety 02000000: Blue Pillars
     db !SAFETIES_CMD_ADJUST
 
-    ; Safety 01000000: Fireflea E-Tank
+    ; Safety 04000000: Slow Pillars
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 08000000: Fireflea E-Tank
     db !SAFETIES_CMD_ETANK
     db #$0A, #$01
 
-    ; Safety 02000000: Ridley E-Tank
+    ; Safety 10000000: Ridley E-Tank
     db !SAFETIES_CMD_ETANK|!SAFETIES_COMBO_FLAG
     db #$09, #$40
     db !SAFETIES_CMD_DOOR

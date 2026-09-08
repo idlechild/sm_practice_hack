@@ -10,21 +10,24 @@
 ; 00000100 = Safeties (Spend Yellow Door PB)
 ; 00000200 = Safeties (Moat Missiles)
 ; 00000400 = Safeties (Ocean Fly Skip)
-; 00000800 = Safeties (Phantoon X-Factor)
-; 00001000 = Safeties (Sloaters Refill)
-; 00002000 = Safeties (Mama Turtle E-Tank)
-; 00004000 = Safeties (Crab Supers)
-; 00008000 = Safeties (Botwoon X-Factor)
-; 00010000 = Safeties (Aqueduct Missiles)
-; 00020000 = Safeties (Aqueduct Supers)
-; 00040000 = Safeties (Halfie Savings)
-; 00080000 = Safeties (Whomple Savings)
-; 00100000 = Safeties (Plasma Spark Skip)
-; 00200000 = Safeties (Southern Route)
-; 00400000 = Safeties (Screw Attack)
-; 00800000 = Safeties (Blue Pillars)
-; 01000000 = Safeties (Fireflea E-Tank)
-; 02000000 = Safeties (Ridley E-Tank)
+; 00000800 = Safeties (Healthsaver Spark)
+; 00001000 = Safeties (Phantoon X-Factor)
+; 00002000 = Safeties (Sloaters Refill)
+; 00004000 = Safeties (Mama Turtle E-Tank)
+; 00008000 = Safeties (Crab Supers)
+; 00010000 = Safeties (Botwoon X-Factor)
+; 00020000 = Safeties (Aqueduct Missiles)
+; 00040000 = Safeties (Aqueduct Supers)
+; 00080000 = Safeties (Halfie Savings)
+; 00100000 = Safeties (Safer Draygon)
+; 00200000 = Safeties (Whomple Savings)
+; 00400000 = Safeties (Plasma Spark Skip)
+; 00800000 = Safeties (Southern Route)
+; 01000000 = Safeties (Screw Attack)
+; 02000000 = Safeties (Blue Pillars)
+; 04000000 = Safeties (Slow Pillars)
+; 08000000 = Safeties (Fireflea E-Tank)
+; 10000000 = Safeties (Ridley E-Tank)
 
 preset_kpdr_crateria_ceres_elevator:
     dw #$0000
@@ -1351,8 +1354,9 @@ preset_kpdr_wrecked_ship_ocean_spark:
     dw $0917, $00C0  ; Layer 2 X position
     dw $09C2, $00B2  ; Health
     dw $0AF6, $01C6  ; Samus X
-    dw $0F78, $03FB  ; Safeties enabled
-    dw $0F8A, $0035  ; Safeties (Grapple) energy adjustment
+    dw $0F78, $07FB  ; Safeties enabled
+    dw $0F8A, $0026  ; Safeties (Grapple) energy adjustment
+    dw $0F94, $000F  ; Safeties (Ocean Fly Skip) energy adjustment
     dw #$FFFF
 
 preset_kpdr_wrecked_ship_entering_wrecked_ship:
@@ -1369,9 +1373,10 @@ preset_kpdr_wrecked_ship_entering_wrecked_ship:
     dw $09CA, $0004  ; Supers
     dw $0AF6, $07DB  ; Samus X
     dw $0AFA, $048B  ; Samus Y
-    dw $0F78, $0FFB  ; Safeties enabled
-    dw $0F94, $0014  ; Safeties (Ocean Fly Skip) energy adjustment
-    dw $1116, $0006  ; Safeties (Phantoon X-Factor) unequip beams
+    dw $0F78, $1FFB  ; Safeties enabled
+    dw $0F8A, $007D  ; Safeties (Grapple) energy adjustment
+    dw $0F96, $0023  ; Safeties (Healthsaver Spark) energy adjustment
+    dw $1118, $0006  ; Safeties (Phantoon X-Factor) unequip beams
     dw $D8B0, $3000  ; Doors
     dw #$FFFF
 
@@ -1429,7 +1434,9 @@ preset_kpdr_wrecked_ship_leaving_phantoon:
     dw $0A1E, $0004  ; More position/state
     dw $0AF6, $006D  ; Samus X
     dw $0AFA, $00BB  ; Samus Y
+    dw $0F8A, $002D  ; Safeties (Grapple) energy adjustment
     dw $0F8C, $0000  ; Safeties (Early Ice) energy adjustment
+    dw $0F96, $000F  ; Safeties (Healthsaver Spark) energy adjustment
     dw $1008, $FFFE  ; Safeties (HJB Missiles) missiles adjustment
     dw $1012, $FFFE  ; Safeties (Moat Missiles) missiles adjustment
     dw $D82A, $0100  ; Bosses
@@ -1600,7 +1607,7 @@ preset_kpdr_red_brinstar_revisit_red_brinstar_elevator:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $0080  ; Samus X
     dw $0AFA, $00A8  ; Samus Y
-    dw $0F78, $0EFB  ; Safeties enabled
+    dw $0F78, $1EFB  ; Safeties enabled
     dw $1090, $0000  ; Safeties (Spend Yellow Door PB) power bombs adjustment
     dw #$FFFF
 
@@ -1655,9 +1662,9 @@ preset_kpdr_red_brinstar_revisit_skree_boost_final:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $0054  ; Samus X
     dw $0AFA, $098B  ; Samus Y
-    dw $0F78, $1EFB  ; Safeties enabled
-    dw $1058, $FFFF  ; Safeties (Sloaters Refill) supers adjustment
-    dw $11D8, $0001  ; Safeties (Sloaters Refill) refill
+    dw $0F78, $3EFB  ; Safeties enabled
+    dw $105A, $FFFF  ; Safeties (Sloaters Refill) supers adjustment
+    dw $11DA, $0001  ; Safeties (Sloaters Refill) refill
     dw #$FFFF
 
 preset_kpdr_red_brinstar_revisit_below_spazer_final:
@@ -1673,7 +1680,7 @@ preset_kpdr_red_brinstar_revisit_below_spazer_final:
     dw $09C2, $0078  ; Health
     dw $0AF6, $01DC  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $11D8, $FFFF  ; Safeties (Sloaters Refill) refill
+    dw $11DA, $FFFF  ; Safeties (Sloaters Refill) refill
     dw #$FFFF
 
 preset_kpdr_red_brinstar_revisit_breaking_the_tube:
@@ -1722,9 +1729,9 @@ preset_kpdr_maridia_mt_everest:
     dw $0919, $0257  ; Layer 2 Y position
     dw $0AF6, $019D  ; Samus X
     dw $0AFA, $03BB  ; Samus Y
-    dw $0F78, $3EFB  ; Safeties enabled
-    dw $101A, $FFFB  ; Safeties (Mama Turtle E-Tank) missiles adjustment
-    dw $11DA, $0001  ; Safeties (Mama Turtle E-Tank) refill
+    dw $0F78, $7EFB  ; Safeties enabled
+    dw $101C, $FFFB  ; Safeties (Mama Turtle E-Tank) missiles adjustment
+    dw $11DC, $0001  ; Safeties (Mama Turtle E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_maridia_crab_shaft:
@@ -1739,9 +1746,10 @@ preset_kpdr_maridia_crab_shaft:
     dw $0AF6, $05C0  ; Samus X
     dw $0AFA, $008B  ; Samus Y
     dw $0F78, $FEFB  ; Safeties enabled
-    dw $111E, $0006  ; Safeties (Botwoon X-Factor) unequip beams
-    dw $11D8, $FFC4  ; Safeties (Sloaters Refill) refill
-    dw $11DA, $FFC5  ; Safeties (Mama Turtle E-Tank) refill
+    dw $0F7A, $0001  ; Safeties enabled
+    dw $1120, $0006  ; Safeties (Botwoon X-Factor) unequip beams
+    dw $11DA, $FFC4  ; Safeties (Sloaters Refill) refill
+    dw $11DC, $FFC5  ; Safeties (Mama Turtle E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_maridia_aqueduct:
@@ -1777,7 +1785,7 @@ preset_kpdr_maridia_botwoon_hallway:
     dw $0A1E, $0004  ; More position/state
     dw $0AF6, $009D  ; Samus X
     dw $0AFA, $006B  ; Samus Y
-    dw $0F7A, $0003  ; Safeties enabled
+    dw $0F7A, $0007  ; Safeties enabled
     dw #$FFFF
 
 preset_kpdr_maridia_botwoon:
@@ -1810,10 +1818,10 @@ preset_kpdr_maridia_botwoon_etank:
     dw $09CA, $0003  ; Supers
     dw $09CE, $0002  ; Pbs
     dw $0AF6, $01C6  ; Samus X
-    dw $101A, $0000  ; Safeties (Mama Turtle E-Tank) missiles adjustment
-    dw $1058, $0000  ; Safeties (Sloaters Refill) supers adjustment
-    dw $11D8, $FFEC  ; Safeties (Sloaters Refill) refill
-    dw $11DA, $FFD9  ; Safeties (Mama Turtle E-Tank) refill
+    dw $101C, $0000  ; Safeties (Mama Turtle E-Tank) missiles adjustment
+    dw $105A, $0000  ; Safeties (Sloaters Refill) supers adjustment
+    dw $11DA, $FFEC  ; Safeties (Sloaters Refill) refill
+    dw $11DC, $FFD9  ; Safeties (Mama Turtle E-Tank) refill
     dw $D82C, $0002  ; Bosses
     dw #$FFFF
 
@@ -1834,13 +1842,14 @@ preset_kpdr_maridia_halfie_setup:
     dw $0A1E, $0000  ; More position/state
     dw $0AF6, $008D  ; Samus X
     dw $0AFA, $0098  ; Samus Y
-    dw $0F78, $EA7B  ; Safeties enabled
+    dw $0F78, $D27B  ; Safeties enabled
     dw $0F82, $0000  ; Safeties (Spazer) energy adjustment
     dw $0F8A, $0000  ; Safeties (Grapple) energy adjustment
     dw $0F8E, $0000  ; Safeties (Alpha Spark Skip) energy adjustment
     dw $0F94, $0000  ; Safeties (Ocean Fly Skip) energy adjustment
-    dw $11D8, $0000  ; Safeties (Sloaters Refill) refill
-    dw $11DA, $0000  ; Safeties (Mama Turtle E-Tank) refill
+    dw $0F96, $0000  ; Safeties (Healthsaver Spark) energy adjustment
+    dw $11DA, $0000  ; Safeties (Sloaters Refill) refill
+    dw $11DC, $0000  ; Safeties (Mama Turtle E-Tank) refill
     dw $D882, $0100  ; Items
     dw #$FFFF
 
@@ -1858,8 +1867,8 @@ preset_kpdr_maridia_draygon:
     dw $0A1E, $0004  ; More position/state
     dw $0AF6, $0041  ; Samus X
     dw $0AFA, $028B  ; Samus Y
-    dw $0F7A, $0007  ; Safeties enabled
-    dw $0FA4, $0046  ; Safeties (Halfie Savings) energy adjustment
+    dw $0F7A, $000F  ; Safeties enabled
+    dw $0FA6, $0046  ; Safeties (Halfie Savings) energy adjustment
     dw $D8C2, $0C00  ; Doors
     dw #$FFFF
 
@@ -1879,7 +1888,8 @@ preset_kpdr_maridia_reverse_halfie_spikesuit:
     dw $0A68, $0001  ; Flash suit
     dw $0AF6, $0044  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $0FA4, $0064  ; Safeties (Halfie Savings) energy adjustment
+    dw $0F7A, $001F  ; Safeties enabled
+    dw $0FA8, $0028  ; Safeties (Safer Draygon) energy adjustment
     dw $1008, $0000  ; Safeties (HJB Missiles) missiles adjustment
     dw $1012, $0000  ; Safeties (Moat Missiles) missiles adjustment
     dw $1180, $0006  ; Safeties (Zeb Skip Skip) stage
@@ -1904,8 +1914,8 @@ preset_kpdr_maridia_cac_alley_east:
     dw $09C6, $000B  ; Missiles
     dw $0AF6, $0030  ; Samus X
     dw $0AFA, $018B  ; Samus Y
-    dw $0F7A, $000F  ; Safeties enabled
-    dw $0FA6, $0070  ; Safeties (Whomple Savings) energy adjustment
+    dw $0F7A, $003F  ; Safeties enabled
+    dw $0FAA, $0070  ; Safeties (Whomple Savings) energy adjustment
     dw $D8C2, $DC00  ; Doors
     dw #$FFFF
 
@@ -1949,8 +1959,8 @@ preset_kpdr_maridia_plasma_climb:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $027F  ; Samus X
     dw $0AFA, $018B  ; Samus Y
-    dw $0F7A, $001F  ; Safeties enabled
-    dw $0FA8, $002B  ; Safeties (Plasma Spark Skip) energy adjustment
+    dw $0F7A, $007F  ; Safeties enabled
+    dw $0FAC, $002B  ; Safeties (Plasma Spark Skip) energy adjustment
     dw #$FFFF
 
 preset_kpdr_maridia_plasma_beam:
@@ -1988,6 +1998,7 @@ preset_kpdr_maridia_plasma_spark_revisit:
     dw $0AF6, $0025  ; Samus X
     dw $0AFA, $038B  ; Samus Y
     dw $0F78, $C27B  ; Safeties enabled
+    dw $0F7A, $007E  ; Safeties enabled
     dw $D880, $80A0  ; Items
     dw $D8C2, $DC0A  ; Doors
     dw #$FFFF
@@ -2202,8 +2213,8 @@ preset_kpdr_lower_norfair_ln_main_hall:
     dw $0A1E, $0000  ; More position/state
     dw $0AF6, $0480  ; Samus X
     dw $0AFA, $0288  ; Samus Y
-    dw $1116, $0004  ; Safeties (Phantoon X-Factor) unequip beams
-    dw $111E, $0004  ; Safeties (Botwoon X-Factor) unequip beams
+    dw $1118, $0004  ; Safeties (Phantoon X-Factor) unequip beams
+    dw $1120, $0004  ; Safeties (Botwoon X-Factor) unequip beams
     dw $D8BA, $01F1  ; Doors
     dw #$FFFF
 
@@ -2230,7 +2241,7 @@ preset_kpdr_lower_norfair_fast_pillars_setup:
     dw $0919, $0180  ; Layer 2 Y position
     dw $09CE, $0005  ; Pbs
     dw $0AF6, $0025  ; Samus X
-    dw $0F7A, $005F  ; Safeties enabled
+    dw $0F7A, $017E  ; Safeties enabled
     dw #$FFFF
 
 preset_kpdr_lower_norfair_worst_room_in_the_game:
@@ -2246,8 +2257,9 @@ preset_kpdr_lower_norfair_worst_room_in_the_game:
     dw $09C2, $0045  ; Health
     dw $0AF6, $03DB  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $0F7A, $00DF  ; Safeties enabled
-    dw $0FAE, $004A  ; Safeties (Blue Pillars) energy adjustment
+    dw $0F7A, $077E  ; Safeties enabled
+    dw $0FB2, $004A  ; Safeties (Blue Pillars) energy adjustment
+    dw $10B4, $FFFE  ; Safeties (Slow Pillars) power bombs adjustment
     dw #$FFFF
 
 preset_kpdr_lower_norfair_amphitheatre:
@@ -2295,8 +2307,9 @@ preset_kpdr_lower_norfair_wasteland:
     dw $0A1E, $0408  ; More position/state
     dw $0AF6, $0248  ; Samus X
     dw $0AFA, $0489  ; Samus Y
-    dw $0F7A, $01DF  ; Safeties enabled
-    dw $11F0, $0001  ; Safeties (Fireflea E-Tank) refill
+    dw $0F7A, $0F7E  ; Safeties enabled
+    dw $10B4, $FFFF  ; Safeties (Slow Pillars) power bombs adjustment
+    dw $11F6, $0001  ; Safeties (Fireflea E-Tank) refill
     dw $D8BA, $41F1  ; Doors
     dw #$FFFF
 
@@ -2314,7 +2327,7 @@ preset_kpdr_lower_norfair_metal_ninja_pirates:
     dw $0A1E, $0004  ; More position/state
     dw $0AF6, $0168  ; Samus X
     dw $0AFA, $028B  ; Samus Y
-    dw $11F0, $FFDB  ; Safeties (Fireflea E-Tank) refill
+    dw $11F6, $FFDB  ; Safeties (Fireflea E-Tank) refill
     dw $D8BA, $C1F1  ; Doors
     dw #$FFFF
 
@@ -2332,7 +2345,7 @@ preset_kpdr_lower_norfair_plowerhouse:
     dw $09CA, $0009  ; Supers
     dw $0AF6, $006A  ; Samus X
     dw $0AFA, $00BB  ; Samus Y
-    dw $11F0, $0001  ; Safeties (Fireflea E-Tank) refill
+    dw $11F6, $0001  ; Safeties (Fireflea E-Tank) refill
     dw $D8BC, $0001  ; Doors
     dw #$FFFF
 
@@ -2346,7 +2359,8 @@ preset_kpdr_lower_norfair_ridley:
     dw $09CA, $0008  ; Supers
     dw $0AF6, $003D  ; Samus X
     dw $0AFA, $009B  ; Samus Y
-    dw $11F0, $FFC1  ; Safeties (Fireflea E-Tank) refill
+    dw $10B4, $0000  ; Safeties (Slow Pillars) power bombs adjustment
+    dw $11F6, $FFC1  ; Safeties (Fireflea E-Tank) refill
     dw $D8BA, $D1F1  ; Doors
     dw #$FFFF
 
@@ -2368,9 +2382,9 @@ preset_kpdr_lower_norfair_leaving_ridley:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $0057  ; Samus X
     dw $0AFA, $019B  ; Samus Y
-    dw $0F7A, $03DF  ; Safeties enabled
-    dw $11F0, $FFB7  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $0001  ; Safeties (Ridley E-Tank) refill
+    dw $0F7A, $1F7E  ; Safeties enabled
+    dw $11F6, $FFB7  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $0001  ; Safeties (Ridley E-Tank) refill
     dw $D82A, $0101  ; Bosses
     dw #$FFFF
 
@@ -2389,8 +2403,8 @@ preset_kpdr_lower_norfair_reverse_plowerhouse:
     dw $09C2, $00AB  ; Health
     dw $0AF6, $02B8  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $11F0, $FFB4  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FFFD  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FFB4  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FFFD  ; Safeties (Ridley E-Tank) refill
     dw $D8BA, $D5F1  ; Doors
     dw #$FFFF
 
@@ -2402,8 +2416,8 @@ preset_kpdr_lower_norfair_wasteland_revisit:
     dw $0913, $7400  ; Screen subpixel Y position
     dw $09C2, $0089  ; Health
     dw $0AF6, $02DC  ; Samus X
-    dw $11F0, $FF92  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FFDB  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FF92  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FFDB  ; Safeties (Ridley E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_lower_norfair_kihunter_stairs_up:
@@ -2418,8 +2432,8 @@ preset_kpdr_lower_norfair_kihunter_stairs_up:
     dw $09CE, $0002  ; Pbs
     dw $0AF6, $055B  ; Samus X
     dw $0AFA, $009B  ; Samus Y
-    dw $11F0, $FF90  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FFD9  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FF90  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FFD9  ; Safeties (Ridley E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_lower_norfair_fireflea_room:
@@ -2475,8 +2489,8 @@ preset_kpdr_lower_norfair_single_chamber_final:
     dw $0917, $00C0  ; Layer 2 X position
     dw $09C2, $0055  ; Health
     dw $0AF6, $016E  ; Samus X
-    dw $11F0, $FF5E  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FFA7  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FF5E  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FFA7  ; Safeties (Ridley E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_lower_norfair_bubble_mountain_final:
@@ -2493,8 +2507,8 @@ preset_kpdr_lower_norfair_bubble_mountain_final:
     dw $09C2, $0049  ; Health
     dw $09D2, $0001  ; Currently selected item
     dw $0AF6, $0075  ; Samus X
-    dw $11F0, $FF52  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FF9B  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FF52  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FF9B  ; Safeties (Ridley E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_lower_norfair_business_center_final:
@@ -2510,8 +2524,8 @@ preset_kpdr_lower_norfair_business_center_final:
     dw $09CE, $0001  ; Pbs
     dw $09D2, $0000  ; Currently selected item
     dw $0AF6, $0032  ; Samus X
-    dw $11F0, $FF66  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FFAF  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FF66  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FFAF  ; Safeties (Ridley E-Tank) refill
     dw #$FFFF
 
 preset_kpdr_backtracking_maridia_tube_revisit:
@@ -2654,8 +2668,8 @@ preset_kpdr_backtracking_g4_hallway:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $00BC  ; Samus X
     dw $0AFA, $068B  ; Samus Y
-    dw $11F0, $FF8E  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $FFD7  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FF8E  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $FFD7  ; Safeties (Ridley E-Tank) refill
     dw $D8B2, $6C01  ; Doors
     dw #$FFFF
 
@@ -2720,8 +2734,8 @@ preset_kpdr_tourian_metroids_2:
     dw $09CE, $0002  ; Pbs
     dw $0AF6, $003B  ; Samus X
     dw $0AFA, $008B  ; Samus Y
-    dw $11F0, $FFCA  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $0001  ; Safeties (Ridley E-Tank) refill
+    dw $11F6, $FFCA  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $0001  ; Safeties (Ridley E-Tank) refill
     dw $D822, $0021  ; Events
     dw $D8C4, $0001  ; Doors
     dw #$FFFF
@@ -2739,7 +2753,7 @@ preset_kpdr_tourian_metroids_3:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $00C2  ; Samus X
     dw $0AFA, $018B  ; Samus Y
-    dw $11F0, $0001  ; Safeties (Fireflea E-Tank) refill
+    dw $11F6, $0001  ; Safeties (Fireflea E-Tank) refill
     dw $D822, $0023  ; Events
     dw $D8C4, $0003  ; Doors
     dw #$FFFF
@@ -2775,12 +2789,14 @@ preset_kpdr_tourian_giant_hoppers:
     dw $09CE, $0005  ; Pbs
     dw $0AF6, $0058  ; Samus X
     dw $0AFA, $01CB  ; Samus Y
-    dw $0FA4, $0000  ; Safeties (Halfie Savings) energy adjustment
-    dw $0FA6, $0000  ; Safeties (Whomple Savings) energy adjustment
-    dw $0FA8, $0000  ; Safeties (Plasma Spark Skip) energy adjustment
-    dw $0FAE, $0000  ; Safeties (Blue Pillars) energy adjustment
-    dw $11F0, $0000  ; Safeties (Fireflea E-Tank) refill
-    dw $11F2, $0000  ; Safeties (Ridley E-Tank) refill
+    dw $0F7A, $1906  ; Safeties enabled
+    dw $0FA6, $0000  ; Safeties (Halfie Savings) energy adjustment
+    dw $0FA8, $0000  ; Safeties (Safer Draygon) energy adjustment
+    dw $0FAA, $0000  ; Safeties (Whomple Savings) energy adjustment
+    dw $0FAC, $0000  ; Safeties (Plasma Spark Skip) energy adjustment
+    dw $0FB2, $0000  ; Safeties (Blue Pillars) energy adjustment
+    dw $11F6, $0000  ; Safeties (Fireflea E-Tank) refill
+    dw $11F8, $0000  ; Safeties (Ridley E-Tank) refill
     dw $D822, $002F  ; Events
     dw $D8C4, $000F  ; Doors
     dw #$FFFF
@@ -2869,10 +2885,10 @@ preset_kpdr_tourian_mother_brain_3:
     dw $1000, $FFD8  ; Safeties (Zeb Skip Skip) missiles adjustment
     dw $1008, $FFFB  ; Safeties (HJB Missiles) missiles adjustment
     dw $1012, $FFFB  ; Safeties (Moat Missiles) missiles adjustment
-    dw $1020, $FFFB  ; Safeties (Aqueduct Missiles) missiles adjustment
+    dw $1022, $FFFB  ; Safeties (Aqueduct Missiles) missiles adjustment
     dw $1040, $0000  ; Safeties (Zeb Skip Skip) supers adjustment
-    dw $105C, $FFFB  ; Safeties (Crab Supers) supers adjustment
-    dw $1062, $FFFB  ; Safeties (Aqueduct Supers) supers adjustment
+    dw $105E, $FFFB  ; Safeties (Crab Supers) supers adjustment
+    dw $1064, $FFFB  ; Safeties (Aqueduct Supers) supers adjustment
     dw $D82C, $0203  ; Bosses
     dw #$FFFF
 

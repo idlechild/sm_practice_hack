@@ -449,14 +449,15 @@ presets_submenu_kpdr_safeties_page1:
     dw #presets_kpdr_safeties_aqueduct_missiles
     dw #presets_kpdr_safeties_aqueduct_supers
     dw #$FFFF
+    dw #presets_kpdr_safeties_spazer
     dw #presets_kpdr_safeties_hjjump_first
     dw #presets_kpdr_safeties_kraid_etank
     dw #presets_kpdr_safeties_early_ice
     dw #presets_kpdr_safeties_southern_route
     dw #$FFFF
-    dw #presets_kpdr_safeties_spazer
     dw #presets_kpdr_safeties_grapple
-    dw #presets_kpdr_safeties_screw_attack
+    dw #presets_kpdr_safeties_ocean_fly_skip
+    dw #presets_kpdr_safeties_healthsaver_spark
     dw #$FFFF
     dw #presets_kpdr_safeties_goto_page2
     dw #$0000
@@ -465,15 +466,19 @@ presets_submenu_kpdr_safeties_page1:
 presets_submenu_kpdr_safeties_page2:
     dw #presets_kpdr_safeties_alpha_spark_skip
     dw #presets_kpdr_safeties_spend_yellow_door_pb
-    dw #presets_kpdr_safeties_ocean_fly_skip
     dw #presets_kpdr_safeties_phantoon_xfactor
     dw #presets_kpdr_safeties_sloaters_refill
     dw #presets_kpdr_safeties_mama_turtle_etank
     dw #presets_kpdr_safeties_botwoon_xfactor
     dw #presets_kpdr_safeties_halfie_savings
+    dw #presets_kpdr_safeties_safer_draygon
     dw #presets_kpdr_safeties_whomple_savings
     dw #presets_kpdr_safeties_plasma_spark_skip
+    dw #$FFFF
+    dw #presets_kpdr_safeties_screw_attack
     dw #presets_kpdr_safeties_blue_pillars
+    dw #presets_kpdr_safeties_slow_pillars
+    dw #$FFFF
     dw #presets_kpdr_safeties_fireflea_etank
     dw #presets_kpdr_safeties_ridley_etank
     dw #$FFFF
@@ -493,7 +498,7 @@ presets_kpdr_safeties_zeb_skip_skip:
     ; Zeb Skip Skip requires HJB and moat and aqueduct missiles and supers
     BIT #$0001 : BEQ .end
     ORA #$0210 : STA !sram_safeties_enabled_kpdr
-    LDA !sram_safeties_enabled_kpdr+$2 : ORA #$0003 : STA !sram_safeties_enabled_kpdr+$2
+    LDA !sram_safeties_enabled_kpdr+$2 : ORA #$0006 : STA !sram_safeties_enabled_kpdr+$2
   .end
     RTL
 
@@ -506,7 +511,7 @@ presets_kpdr_safeties_hjjump_first:
     ; Hi-Jump First requires Kraid E-Tank and HJB missiles and Early Ice
     BIT #$0004 : BEQ .end
     ORA #$0058 : STA !sram_safeties_enabled_kpdr
-    LDA !sram_safeties_enabled_kpdr+$2 : AND #$FFDF : STA !sram_safeties_enabled_kpdr+$2
+    LDA !sram_safeties_enabled_kpdr+$2 : AND #$FF7F : STA !sram_safeties_enabled_kpdr+$2
   .end
     RTL
 
@@ -529,7 +534,13 @@ presets_kpdr_safeties_hjb_missiles:
     RTL
 
 presets_kpdr_safeties_grapple:
-    %cm_toggle_bit("Grapple", !sram_safeties_enabled_kpdr, #$0020, #0)
+    %cm_toggle_bit("Grapple", !sram_safeties_enabled_kpdr, #$0020, .routine)
+  .routine
+    ; Grapple requires Ocean Fly Skip
+    BIT #$0020 : BEQ .end
+    ORA #$0400 : STA !sram_safeties_enabled_kpdr
+  .end
+    RTL
 
 presets_kpdr_safeties_early_ice:
     %cm_toggle_bit("Early Ice", !sram_safeties_enabled_kpdr, #$0040, .routine)
@@ -540,7 +551,7 @@ presets_kpdr_safeties_early_ice:
     AND #$FFFB : STA !sram_safeties_enabled_kpdr
     RTL
   .early_ice
-    LDA !sram_safeties_enabled_kpdr+$2 : AND #$FFDF : STA !sram_safeties_enabled_kpdr+$2
+    LDA !sram_safeties_enabled_kpdr+$2 : AND #$FF7F : STA !sram_safeties_enabled_kpdr+$2
     RTL
 
 presets_kpdr_safeties_alpha_spark_skip:
@@ -559,70 +570,103 @@ presets_kpdr_safeties_moat_missiles:
     RTL
 
 presets_kpdr_safeties_ocean_fly_skip:
-    %cm_toggle_bit("Ocean Fly Skip", !sram_safeties_enabled_kpdr, #$0400, #0)
-
-presets_kpdr_safeties_phantoon_xfactor:
-    %cm_toggle_bit("Phantoon X-Factor", !sram_safeties_enabled_kpdr, #$0800, #0)
-
-presets_kpdr_safeties_sloaters_refill:
-    %cm_toggle_bit("Sloaters Refill", !sram_safeties_enabled_kpdr, #$1000, #0)
-
-presets_kpdr_safeties_mama_turtle_etank:
-    %cm_toggle_bit("Mama Turtle E-Tank", !sram_safeties_enabled_kpdr, #$2000, #0)
-
-presets_kpdr_safeties_crab_supers:
-    %cm_toggle_bit("Crab Supers", !sram_safeties_enabled_kpdr, #$4000, #0)
-
-presets_kpdr_safeties_botwoon_xfactor:
-    %cm_toggle_bit("Botwoon X-Factor", !sram_safeties_enabled_kpdr, #$8000, #0)
-
-presets_kpdr_safeties_aqueduct_missiles:
-    %cm_toggle_bit("Aqueduct Missiles", !sram_safeties_enabled_kpdr+$2, #$0001, .routine)
+    %cm_toggle_bit("Ocean Fly Skip", !sram_safeties_enabled_kpdr, #$0400, .routine)
   .routine
-    ; Aqueduct missiles required by Zeb Skip Skip
-    BIT #$0001 : BNE .end
-    LDA !sram_safeties_enabled_kpdr : AND #$FFFE : STA !sram_safeties_enabled_kpdr
+    ; Ocean Fly Skip required by Grapple and Healthsaver Spark
+    BIT #$0400 : BNE .end
+    AND #$F7DF : STA !sram_safeties_enabled_kpdr
   .end
     RTL
 
-presets_kpdr_safeties_aqueduct_supers:
-    %cm_toggle_bit("Aqueduct Supers", !sram_safeties_enabled_kpdr+$2, #$0002, .routine)
+presets_kpdr_safeties_healthsaver_spark:
+    %cm_toggle_bit("Healthsaver Spark", !sram_safeties_enabled_kpdr, #$0800, .routine)
   .routine
-    ; Aqueduct supers required by Zeb Skip Skip
+    ; Healthsaver Spark requires Ocean Fly Skip
+    BIT #$0800 : BEQ .end
+    ORA #$0400 : STA !sram_safeties_enabled_kpdr
+  .end
+    RTL
+
+presets_kpdr_safeties_phantoon_xfactor:
+    %cm_toggle_bit("Phantoon X-Factor", !sram_safeties_enabled_kpdr, #$1000, #0)
+
+presets_kpdr_safeties_sloaters_refill:
+    %cm_toggle_bit("Sloaters Refill", !sram_safeties_enabled_kpdr, #$2000, #0)
+
+presets_kpdr_safeties_mama_turtle_etank:
+    %cm_toggle_bit("Mama Turtle E-Tank", !sram_safeties_enabled_kpdr, #$4000, #0)
+
+presets_kpdr_safeties_crab_supers:
+    %cm_toggle_bit("Crab Supers", !sram_safeties_enabled_kpdr, #$8000, #0)
+
+presets_kpdr_safeties_botwoon_xfactor:
+    %cm_toggle_bit("Botwoon X-Factor", !sram_safeties_enabled_kpdr+$2, #$0001, #0)
+
+presets_kpdr_safeties_aqueduct_missiles:
+    %cm_toggle_bit("Aqueduct Missiles", !sram_safeties_enabled_kpdr+$2, #$0002, .routine)
+  .routine
+    ; Aqueduct missiles required by Zeb Skip Skip
     BIT #$0002 : BNE .end
     LDA !sram_safeties_enabled_kpdr : AND #$FFFE : STA !sram_safeties_enabled_kpdr
   .end
     RTL
 
+presets_kpdr_safeties_aqueduct_supers:
+    %cm_toggle_bit("Aqueduct Supers", !sram_safeties_enabled_kpdr+$2, #$0004, .routine)
+  .routine
+    ; Aqueduct supers required by Zeb Skip Skip
+    BIT #$0004 : BNE .end
+    LDA !sram_safeties_enabled_kpdr : AND #$FFFE : STA !sram_safeties_enabled_kpdr
+  .end
+    RTL
+
 presets_kpdr_safeties_halfie_savings:
-    %cm_toggle_bit("Halfie Savings", !sram_safeties_enabled_kpdr+$2, #$0004, #0)
+    %cm_toggle_bit("Halfie Savings", !sram_safeties_enabled_kpdr+$2, #$0008, #0)
+
+presets_kpdr_safeties_safer_draygon:
+    %cm_toggle_bit("Safer Draygon", !sram_safeties_enabled_kpdr+$2, #$0010, #0)
 
 presets_kpdr_safeties_whomple_savings:
-    %cm_toggle_bit("Whomple Savings", !sram_safeties_enabled_kpdr+$2, #$0008, #0)
+    %cm_toggle_bit("Whomple Savings", !sram_safeties_enabled_kpdr+$2, #$0020, #0)
 
 presets_kpdr_safeties_plasma_spark_skip:
-    %cm_toggle_bit("Plasma Spark Skip", !sram_safeties_enabled_kpdr+$2, #$0010, #0)
+    %cm_toggle_bit("Plasma Spark Skip", !sram_safeties_enabled_kpdr+$2, #$0040, #0)
 
 presets_kpdr_safeties_southern_route:
-    %cm_toggle_bit("Southern Route", !sram_safeties_enabled_kpdr+$2, #$0020, .routine)
+    %cm_toggle_bit("Southern Route", !sram_safeties_enabled_kpdr+$2, #$0080, .routine)
   .routine
     ; Southern Route requires Late Ice
-    BIT #$0020 : BEQ .end
+    BIT #$0080 : BEQ .end
     LDA !sram_safeties_enabled_kpdr : AND #$FFBB : STA !sram_safeties_enabled_kpdr
   .end
     RTL
 
 presets_kpdr_safeties_screw_attack:
-    %cm_toggle_bit("Screw Attack", !sram_safeties_enabled_kpdr+$2, #$0040, #0)
+    %cm_toggle_bit("Screw Attack", !sram_safeties_enabled_kpdr+$2, #$0100, .routine)
+  .routine
+    ; Screw Attack prevents Slow Pillars
+    BIT #$0100 : BEQ .end
+    AND #$FBFF : STA !sram_safeties_enabled_kpdr+$2
+  .end
+    RTL
 
 presets_kpdr_safeties_blue_pillars:
-    %cm_toggle_bit("Blue Pillars", !sram_safeties_enabled_kpdr+$2, #$0080, #0)
+    %cm_toggle_bit("Blue Pillars", !sram_safeties_enabled_kpdr+$2, #$0200, #0)
+
+presets_kpdr_safeties_slow_pillars:
+    %cm_toggle_bit("Slow Pillars", !sram_safeties_enabled_kpdr+$2, #$0400, .routine)
+  .routine
+    ; Slow Pillars prevented by Screw Attack
+    BIT #$0400 : BEQ .end
+    AND #$FEFF : STA !sram_safeties_enabled_kpdr+$2
+  .end
+    RTL
 
 presets_kpdr_safeties_fireflea_etank:
-    %cm_toggle_bit("Fireflea E-Tank", !sram_safeties_enabled_kpdr+$2, #$0100, #0)
+    %cm_toggle_bit("Fireflea E-Tank", !sram_safeties_enabled_kpdr+$2, #$0800, #0)
 
 presets_kpdr_safeties_ridley_etank:
-    %cm_toggle_bit("Ridley E-Tank", !sram_safeties_enabled_kpdr+$2, #$0200, #0)
+    %cm_toggle_bit("Ridley E-Tank", !sram_safeties_enabled_kpdr+$2, #$1000, #0)
 
 
 ; Crateria
