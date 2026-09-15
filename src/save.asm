@@ -56,16 +56,16 @@ pre_load_state:
     LDA !ENEMY_MAIN_LOOP_COUNTER : STA !ram_loadstate_enemy_main_loop_counter
 
   .done
-    LDA !ram_last_save_state_type : BNE .tinystate
-    RTS
-
-  .tinystate
     ; Force blank and disable NMI
     %a8()
     LDA #$80 : STA $802100
     LDA #$00 : STA $4200
     %ai16()
 
+    LDA !ram_last_save_state_type : BNE .tinystate
+    RTS
+
+  .tinystate
     ; Save the old room ID
     LDA !ROOM_ID : PHA
 
@@ -201,25 +201,22 @@ post_load_state:
   .done_eram
 
     ; Freeze inputs if necessary
-    LDA !ram_freeze_on_load : BEQ .return
-    LDA !ram_slowdown_mode : BNE .return
+    LDA !ram_freeze_on_load : BEQ .done_freeze_inputs
+    LDA !ram_slowdown_mode : BNE .done_freeze_inputs
     LDA !SLOWDOWN_PAUSED : STA !ram_slowdown_mode
     INC : STA !ram_slowdown_controller_1 : STA !ram_slowdown_controller_2
     INC : STA !ram_slowdown_frames
 
-    ; Preserve segment timer during freeze
-    LDA !ram_last_save_state_type : BEQ .preserve_seg_full
-    DEC : BEQ .preserve_seg_1st_tiny
-    DEC : BEQ .preserve_seg_2nd_tiny
-    BRK
-
-  .preserve_seg_full
+  .done_freeze_inputs
+    ; Preserve segment timer (either for freeze on load or for NMI)
     LDA !ram_seg_rt_frames : STA !SRAM_SEG_TIMER_F
     LDA !ram_seg_rt_seconds : STA !SRAM_SEG_TIMER_S
     LDA !ram_seg_rt_minutes : STA !SRAM_SEG_TIMER_M
 
-  .return
-    LDA !ram_last_save_state_type : BEQ .done
+    ; Preserve timers if enabling NMI
+    LDA !REG_4200_NMI : BIT #$0080 : BEQ .done
+    LDA !FRAME_COUNTER : PHA
+    LDA !ram_realtime_room : PHA
 
     ; Re-enable NMI, turn on force-blank and wait NMI to execute.
     ; This prevents some annoying flashing when loading states where
@@ -227,20 +224,17 @@ post_load_state:
     JSL $80834B
     JSL $80836F
 
+    PLA : STA !ram_realtime_room
+    PLA : STA !FRAME_COUNTER
+    LDA !SRAM_SEG_TIMER_F : STA !ram_seg_rt_frames
+    LDA !SRAM_SEG_TIMER_S : STA !ram_seg_rt_seconds
+    LDA !SRAM_SEG_TIMER_M : STA !ram_seg_rt_minutes
+
   .done
-    RTS
-
-  .preserve_seg_1st_tiny
-    LDA !ram_seg_rt_frames : STA !SRAM_1ST_SEG_TIMER_F
-    LDA !ram_seg_rt_seconds : STA !SRAM_1ST_SEG_TIMER_S
-    LDA !ram_seg_rt_minutes : STA !SRAM_1ST_SEG_TIMER_M
-    BRA .return
-
-  .preserve_seg_2nd_tiny
-    LDA !ram_seg_rt_frames : STA !SRAM_2ND_SEG_TIMER_F
-    LDA !ram_seg_rt_seconds : STA !SRAM_2ND_SEG_TIMER_S
-    LDA !ram_seg_rt_minutes : STA !SRAM_2ND_SEG_TIMER_M
-    BRA .return
+    %a8()
+    LDA !REG_4200_NMI : STA $4200
+    LDA #$0F : STA $13 : STA !REG_2100_BRIGHTNESS : STA $0F2100
+    RTL
 }
 
 post_load_music:
@@ -333,15 +327,6 @@ post_load_music:
 
   .done
     RTS
-}
-
-; These restored registers are game-specific and needs to be updated for different games
-register_restore_return:
-{
-    %a8()
-    LDA !REG_4200_NMI : STA $4200
-    LDA #$0F : STA $13 : STA !REG_2100_BRIGHTNESS : STA $0F2100
-    RTL
 }
 
 save_state:
@@ -531,26 +516,49 @@ save_return:
     DEC : BEQ .continue_2nd_tiny
     BRK
 
-  .continue_full
-    LDA !ram_minimap : STA !SRAM_SAVED_MINIMAP
-    LDA !SAFEWORD : STA !SRAM_SAVED_STATE
-
-    TSC : STA !SRAM_SAVED_SP
-    JMP register_restore_return
-
   .continue_1st_tiny
     LDA !ram_minimap : STA !SRAM_1ST_SAVED_MINIMAP
     LDA !SAFEWORD : STA !SRAM_1ST_SAVED_STATE
-
     TSC : STA !SRAM_1ST_SAVED_SP
-    JMP register_restore_return
+    BRA .return
 
   .continue_2nd_tiny
     LDA !ram_minimap : STA !SRAM_2ND_SAVED_MINIMAP
     LDA !SAFEWORD : STA !SRAM_2ND_SAVED_STATE
-
     TSC : STA !SRAM_2ND_SAVED_SP
-    JMP register_restore_return
+    BRA .return
+
+  .continue_full
+    LDA !ram_minimap : STA !SRAM_SAVED_MINIMAP
+    LDA !SAFEWORD : STA !SRAM_SAVED_STATE
+    TSC : STA !SRAM_SAVED_SP
+
+  .return
+    ; Preserve timers if enabling NMI
+    LDA !REG_4200_NMI : BIT #$0080 : BEQ .done
+
+    LDA !ram_seg_rt_frames : STA !SRAM_SEG_TIMER_F
+    LDA !ram_seg_rt_seconds : STA !SRAM_SEG_TIMER_S
+    LDA !ram_seg_rt_minutes : STA !SRAM_SEG_TIMER_M
+    LDA !FRAME_COUNTER : PHA
+    LDA !ram_realtime_room : PHA
+
+    ; When we re-enable NMI, it may or may not cost us a frame.
+    ; To make this more consistent, attempt to always trip the NMI.
+    JSL $80834B
+    JSL $808338
+
+    PLA : STA !ram_realtime_room
+    PLA : STA !FRAME_COUNTER
+    LDA !SRAM_SEG_TIMER_F : STA !ram_seg_rt_frames
+    LDA !SRAM_SEG_TIMER_S : STA !ram_seg_rt_seconds
+    LDA !SRAM_SEG_TIMER_M : STA !ram_seg_rt_minutes
+
+  .done
+    %a8()
+    LDA !REG_4200_NMI : STA $4200
+    LDA #$0F : STA $13 : STA !REG_2100_BRIGHTNESS : STA $0F2100
+    RTL
 }
 
 load_state:
@@ -770,8 +778,7 @@ load_return:
   .load_dma_regs_done
     ; Restore registers and return
     %ai16()
-    JSR post_load_state
-    JMP register_restore_return
+    JMP post_load_state
 }
 
 vm:
@@ -935,8 +942,8 @@ else
 endif
 
   .call_pause_hook
-    ; We jump into the middle of the hook (to skip waiting for an NMI), so we have to be careful
-    ;   with the stack & processor status
+    ; We jump into the middle of the hook (to skip waiting for an NMI),
+    ; so we have to be careful with the stack and processor status
     PHP : %a8()
 if !FEATURE_PAL
     JML $A7C289
