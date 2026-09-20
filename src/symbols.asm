@@ -252,6 +252,8 @@ ram_cm_preserved_timers = !ram_cm_preserved_timers ; !WRAM_MENU_START+$88 ; 8 by
 ; The following RAM may be used multiple times,
 ; as long as it isn't used multiple times on the same menu page
 
+ram_cm_category_preset_pkrd = !ram_cm_category_preset_pkrd ; !WRAM_MENU_START+$90
+
 ram_cm_watch_enemy_property = !ram_cm_watch_enemy_property ; !WRAM_MENU_START+$90
 ram_cm_watch_enemy_index = !ram_cm_watch_enemy_index ; !WRAM_MENU_START+$92
 ram_cm_watch_enemy_side = !ram_cm_watch_enemy_side ; !WRAM_MENU_START+$94
@@ -540,8 +542,10 @@ sram_update_timers_ctrl_input = !sram_update_timers_ctrl_input ; !SRAM_START+$AC
 sram_update_timers_options = !sram_update_timers_options ; !SRAM_START+$AE
 sram_sprite_features_blue_color = !sram_sprite_features_blue_color ; !SRAM_START+$B0
 sram_sprite_features_grapple_color = !sram_sprite_features_grapple_color ; !SRAM_START+$B2
+
 sram_safeties_enabled_kpdr = !sram_safeties_enabled_kpdr ; !SRAM_START+$B4 ; 4 bytes
-sram_safeties_enabled_prkd = !sram_safeties_enabled_prkd ; !SRAM_START+$B8
+sram_safeties_enabled_phantoonfirst = !sram_safeties_enabled_phantoonfirst ; !SRAM_START+$B8 ; 3 bytes
+sram_safeties_enabled_100map = !sram_safeties_enabled_100map ; !SRAM_START+$BB ; 1 byte
 
 ; ^ FREE SPACE ^ up to +$CE
 

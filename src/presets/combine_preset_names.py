@@ -116,6 +116,7 @@ def write_combined_preset_names():
 
 
 load_preset_names("kpdr")
+load_preset_names("phantoonfirst")
 load_preset_names("kpdr20")
 load_preset_names("kpdr21")
 load_preset_names("kpdr22")
@@ -129,7 +130,6 @@ load_preset_names("gtmax")
 load_preset_names("100early")
 load_preset_names("hundo")
 load_preset_names("100map")
-load_preset_names("spazermap")
 load_preset_names("14ice")
 load_preset_names("14speed")
 load_preset_names("rbo")

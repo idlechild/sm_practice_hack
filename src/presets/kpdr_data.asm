@@ -846,6 +846,7 @@ preset_kpdr_kraid_leaving_kraid_etank:
     dw $0F78, $000F  ; Safeties enabled
     dw $1006, $FFFF  ; Safeties (Kraid E-Tank) missiles adjustment
     dw $11C6, $0001  ; Safeties (Kraid E-Tank) refill
+    dw $D8B8, $00EC  ; Doors
     dw #$FFFF
 
 preset_kpdr_kraid_business_center_preelev:
@@ -893,7 +894,7 @@ preset_kpdr_upper_norfair_hijump_etank:
     dw $0A1E, $0004  ; More position/state
     dw $0AF6, $0041  ; Samus X
     dw $0AFA, $058B  ; Samus Y
-    dw $D8B8, $20ED  ; Doors
+    dw $D8B8, $20EC  ; Doors
     dw #$FFFF
 
 preset_kpdr_upper_norfair_leaving_hijump:
@@ -963,7 +964,7 @@ preset_kpdr_upper_norfair_cathedral:
     dw $0AF6, $02A6  ; Samus X
     dw $0AFA, $008B  ; Samus Y
     dw $1002, $0004  ; Safeties (Spazer) missiles adjustment
-    dw $D8B8, $24ED  ; Doors
+    dw $D8B8, $24EC  ; Doors
     dw #$FFFF
 
 preset_kpdr_upper_norfair_rising_tide:
@@ -980,7 +981,7 @@ preset_kpdr_upper_norfair_rising_tide:
     dw $0F80, $FFC4  ; Safeties (Zeb Skip Skip) energy adjustment
     dw $1000, $FFFE  ; Safeties (Zeb Skip Skip) missiles adjustment
     dw $1180, $0002  ; Safeties (Zeb Skip Skip) stage
-    dw $D8B8, $26ED  ; Doors
+    dw $D8B8, $26EC  ; Doors
     dw #$FFFF
 
 preset_kpdr_upper_norfair_bubble_mountain:
@@ -1166,7 +1167,7 @@ preset_kpdr_upper_norfair_entering_ice:
     dw $09CA, $0003  ; Supers
     dw $0AF6, $0030  ; Samus X
     dw $0AFA, $0394  ; Samus Y
-    dw $D8B8, $2EED  ; Doors
+    dw $D8B8, $2EEC  ; Doors
     dw #$FFFF
 
 preset_kpdr_upper_norfair_ice_escape:
@@ -1206,7 +1207,7 @@ preset_kpdr_red_brinstar_alpha_spark:
     dw $0F78, $007B  ; Safeties enabled
     dw $104C, $FFFF  ; Safeties (Early Ice) supers adjustment
     dw $D876, $0121  ; Items
-    dw $D8B8, $26ED  ; Doors
+    dw $D8B8, $26EC  ; Doors
     dw #$FFFF
 
 preset_kpdr_red_brinstar_reverse_skree_boost:
@@ -2082,7 +2083,7 @@ preset_kpdr_upper_norfair_revisit_ice_maze_up:
     dw $0AF8, $0000  ; Samus subpixel X
     dw $0AFA, $008B  ; Samus Y
     dw $0AFC, $FFFF  ; Samus subpixel Y
-    dw $D8B8, $2EED  ; Doors
+    dw $D8B8, $2EEC  ; Doors
     dw #$FFFF
 
 preset_kpdr_upper_norfair_revisit_ice_maze_down:
@@ -2359,6 +2360,7 @@ preset_kpdr_lower_norfair_ridley:
     dw $09CA, $0008  ; Supers
     dw $0AF6, $003D  ; Samus X
     dw $0AFA, $009B  ; Samus Y
+    dw $0F7A, $0B7E  ; Safeties enabled
     dw $10B4, $0000  ; Safeties (Slow Pillars) power bombs adjustment
     dw $11F6, $FFC1  ; Safeties (Fireflea E-Tank) refill
     dw $D8BA, $D1F1  ; Doors
@@ -2382,7 +2384,7 @@ preset_kpdr_lower_norfair_leaving_ridley:
     dw $0A1E, $0008  ; More position/state
     dw $0AF6, $0057  ; Samus X
     dw $0AFA, $019B  ; Samus Y
-    dw $0F7A, $1F7E  ; Safeties enabled
+    dw $0F7A, $1B7E  ; Safeties enabled
     dw $11F6, $FFB7  ; Safeties (Fireflea E-Tank) refill
     dw $11F8, $0001  ; Safeties (Ridley E-Tank) refill
     dw $D82A, $0101  ; Bosses

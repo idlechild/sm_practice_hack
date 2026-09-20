@@ -166,6 +166,11 @@ def load_preset_data(file_label):
                 addr = line[8:12]
                 value = line[15:19]
                 name = line[23:]
+                if name.startswith("Safeties ("):
+                    end_parenthesis_index = name.index(") ")
+                    if end_parenthesis_index < 11:
+                        raise Exception("Unrecognized safety name: " + name)
+                    name = "Safeties " + name[end_parenthesis_index+2:]
                 if addr not in name_dict:
                     name_dict[addr] = name
                 elif name != name_dict[addr]:
@@ -176,7 +181,8 @@ def load_preset_data(file_label):
             elif line:
                 if (preset_name or (len(preset_data_list) > 0) or
                     (len(line) < 23) or (line[0:2] != "; ") or (line[-1:] != ")") or
-                    ((line[6:19] != " = Safeties (") and (line[10:23] != " = Safeties ("))):
+                    ((line[4:17] != " = Safeties (") and (line[6:19] != " = Safeties (") and
+                     (line[8:21] != " = Safeties (") and (line[10:23] != " = Safeties ("))):
                     raise Exception("Unrecognized line: " + line)
             elif preset_name:
                 raise Exception("Empty line in preset: " + preset_name)
@@ -366,7 +372,6 @@ def write_combined_preset_data():
 
 init_unused_safeties()
 load_preset_data("100map")
-load_preset_data("spazermap")
 remove_unused_safeties()
 combine_preset_data()
 write_combined_preset_data()

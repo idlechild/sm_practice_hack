@@ -129,10 +129,7 @@ cm_boot:
     LDA !ram_load_preset_low_word : BEQ .main_game_loop
 
     ; If Map Completion preset category selected then turn minimap on
-    LDA !sram_preset_category : CMP !PRESET_CATEGORY_100MAP_INDEX : BEQ .set_minimap
-    CMP !PRESET_CATEGORY_SPAZERMAP_INDEX : BNE .load_preset
-
-  .set_minimap
+    LDA !sram_preset_category : CMP !PRESET_CATEGORY_100MAP_INDEX : BNE .load_preset
     LDA #$0001 : STA !ram_minimap
 
   .load_preset
@@ -378,10 +375,7 @@ cm_transfer_original_tileset:
 
     ; If loading a preset and Map Completion preset category selected then turn minimap on
     LDA !ram_load_preset_low_word : BEQ .check_room
-    LDA !sram_preset_category : CMP !PRESET_CATEGORY_100MAP_INDEX : BEQ .set_minimap
-    CMP !PRESET_CATEGORY_SPAZERMAP_INDEX : BNE .check_room
-
-  .set_minimap
+    LDA !sram_preset_category : CMP !PRESET_CATEGORY_100MAP_INDEX : BNE .check_room
     LDA #$0001 : STA !ram_minimap
 
   .check_room
@@ -3085,12 +3079,21 @@ execute_toggle_bit:
 
     ; Load which bit(s) to toggle
     LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : INC !DP_CurrentMenu : STA !DP_ToggleValue
+    EOR #$FFFF : STA !DP_Temp
 
     ; Load JSL target
     LDA [!DP_CurrentMenu] : INC !DP_CurrentMenu : INC !DP_CurrentMenu : STA !DP_JSLTarget
 
-    ; Toggle the bit
-    LDA [!DP_Address] : EOR !DP_ToggleValue : STA [!DP_Address]
+    LDA [!DP_Address] : BIT !DP_ToggleValue : BNE .toggleOff
+    ; toggle on
+    ORA !DP_ToggleValue
+    BRA .store
+
+  .toggleOff
+    AND !DP_Temp
+
+  .store
+    STA [!DP_Address]
 
     ; skip if JSL target is zero
     LDA !DP_JSLTarget : BEQ .end

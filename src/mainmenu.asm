@@ -270,6 +270,9 @@ action_submenu:
 
 action_presets_mainmenu:
 {
+    LDA !sram_safeties_enabled_phantoonfirst : AND #$0008
+    LSR #3 : STA !ram_cm_category_preset_pkrd
+
     ; Increment stack pointer by 2, then store current menu
     LDA !MENU_STACK_INDEX : INC #2 : STA !MENU_STACK_INDEX : TAX
 
@@ -302,6 +305,7 @@ action_submenu_jump:
 preset_category_submenus:
 {
     dw #PresetsMenuKpdr
+    dw #PresetsMenuPhantoonFirst
     dw #PresetsMenuKpdr20
     dw #PresetsMenuKpdr21
     dw #PresetsMenuKpdr22
@@ -315,7 +319,6 @@ preset_category_submenus:
     dw #PresetsMenu100early
     dw #PresetsMenuHundo
     dw #PresetsMenu100map
-    dw #PresetsMenuSpazermap
     dw #PresetsMenu14ice
     dw #PresetsMenu14speed
     dw #PresetsMenuRbo
@@ -334,6 +337,7 @@ preset_category_submenus:
 preset_category_banks:
 {
     dw #PresetsMenuKpdr>>16
+    dw #PresetsMenuPhantoonFirst>>16
     dw #PresetsMenuKpdr20>>16
     dw #PresetsMenuKpdr21>>16
     dw #PresetsMenuKpdr22>>16
@@ -347,7 +351,6 @@ preset_category_banks:
     dw #PresetsMenu100early>>16
     dw #PresetsMenuHundo>>16
     dw #PresetsMenu100map>>16
-    dw #PresetsMenuSpazermap>>16
     dw #PresetsMenu14ice>>16
     dw #PresetsMenu14speed>>16
     dw #PresetsMenuRbo>>16
@@ -924,6 +927,7 @@ SelectPresetCategoryMenu:
     dw #presets_current
     dw #$FFFF
     dw #precat_kpdr_safeties
+    dw #precat_phantoonfirst
     dw #precat_kpdr
     dw #precat_prkd19
     dw #precat_prkd20
@@ -933,7 +937,6 @@ SelectPresetCategoryMenu:
     dw #precat_100early
     dw #precat_hundo
     dw #precat_100map
-    dw #precat_spazermap
     dw #precat_14ice
     dw #precat_14speed
     dw #precat_rbo
@@ -951,7 +954,8 @@ presets_current:
     dl #!sram_preset_category
     dw #.routine
     db #$28, "CURRENT PRESET", #$FF
-    db #$28, "       KPDR", #$FF
+    db #$28, "  ANY% KPDR", #$FF
+    db #$28, " PHAN FIRST", #$FF
     db #$28, "   KPDR 20%", #$FF
     db #$28, "   KPDR 21%", #$FF
     db #$28, "   KPDR 22%", #$FF
@@ -965,7 +969,6 @@ presets_current:
     db #$28, " 100% EARLY", #$FF
     db #$28, "  100% LATE", #$FF
     db #$28, "   100% MAP", #$FF
-    db #$28, " SPAZER MAP", #$FF
     db #$28, "    14% ICE", #$FF
     db #$28, "  14% SPEED", #$FF
     db #$28, "        RBO", #$FF
@@ -984,7 +987,7 @@ presets_current:
     RTL
 
 precat_kpdr:
-    %cm_submenu("KPDR", #SelectKpdrPresetCategoryMenu)
+    %cm_submenu("Any% KPDR", #SelectKpdrPresetCategoryMenu)
 
 SelectKpdrPresetCategoryMenu:
     dw #precat_kpdr_safeties
@@ -1001,49 +1004,48 @@ SelectKpdrPresetCategoryMenu:
 precat_kpdr_safeties:
     %cm_jsl("KPDR (Safeties)", #action_select_preset_category, #$0000)
 
+precat_phantoonfirst:
+    %cm_jsl("Phantoon First", #action_select_preset_category, #$0001)
+
 precat_kpdr20:
-    %cm_jsl("20% KPDR 15 Missiles", #action_select_preset_category, #$0001)
+    %cm_jsl("20% KPDR 15 Missiles", #action_select_preset_category, #$0002)
 
 precat_kpdr21:
-    %cm_jsl("21% KPDR 3 E-Tanks", #action_select_preset_category, #$0002)
+    %cm_jsl("21% KPDR 3 E-Tanks", #action_select_preset_category, #$0003)
 
 precat_kpdr22:
-    %cm_jsl("22% KPDR 4 E-Tanks", #action_select_preset_category, #$0003)
+    %cm_jsl("22% KPDR 4 E-Tanks", #action_select_preset_category, #$0004)
 
 precat_kpdr23:
-    %cm_jsl("23% KPDR with Spazer", #action_select_preset_category, #$0004)
+    %cm_jsl("23% KPDR with Spazer", #action_select_preset_category, #$0005)
 
 precat_kpdr25:
-    %cm_jsl("25% KPDR Early Ice", #action_select_preset_category, #$0005)
+    %cm_jsl("25% KPDR Early Ice", #action_select_preset_category, #$0006)
 
 precat_prkd19:
-    %cm_jsl("19% PRKD 15 Missiles", #action_select_preset_category, #$0006)
+    %cm_jsl("19% PRKD 15 Missiles", #action_select_preset_category, #$0007)
 
 precat_prkd20:
-    %cm_jsl("20% PRKD 20 Missiles", #action_select_preset_category, #$0007)
+    %cm_jsl("20% PRKD 20 Missiles", #action_select_preset_category, #$0008)
 
 precat_pkrd:
-    %cm_jsl("Any% PKRD", #action_select_preset_category, #$0008)
+    %cm_jsl("Any% PKRD", #action_select_preset_category, #$0009)
 
 precat_gtclassic:
-    %cm_jsl("GT Classic", #action_select_preset_category, #$0009)
+    %cm_jsl("GT Classic", #action_select_preset_category, #$000A)
 
 precat_gtmax:
-    %cm_jsl("GT Max%", #action_select_preset_category, #$000A)
+    %cm_jsl("GT Max%", #action_select_preset_category, #$000B)
 
 precat_100early:
-    %cm_jsl("100% Early Crocomire", #action_select_preset_category, #$000B)
+    %cm_jsl("100% Early Crocomire", #action_select_preset_category, #$000C)
 
 precat_hundo:
-    %cm_jsl("100% Late Crocomire", #action_select_preset_category, #$000C)
+    %cm_jsl("100% Late Crocomire", #action_select_preset_category, #$000D)
 
 precat_100map:
-!PRESET_CATEGORY_100MAP_INDEX = #$000D
-    %cm_jsl("100% Map Completion", #action_select_preset_category, #$000D)
-
-precat_spazermap:
-!PRESET_CATEGORY_SPAZERMAP_INDEX = #$000E
-    %cm_jsl("100% Map with Spazer", #action_select_preset_category, #$000E)
+!PRESET_CATEGORY_100MAP_INDEX = #$000E
+    %cm_jsl("100% Map Completion", #action_select_preset_category, #$000E)
 
 precat_14ice:
     %cm_jsl("14% Ice", #action_select_preset_category, #$000F)

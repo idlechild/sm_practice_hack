@@ -111,10 +111,7 @@ init_non_zero_persistent_wram:
     LDA #$8000 : STA !ram_cm_gmode
 
     ; If Map Completion preset category selected then turn minimap on
-    LDA !sram_preset_category : CMP !PRESET_CATEGORY_100MAP_INDEX : BEQ .set_minimap
-    CMP !PRESET_CATEGORY_SPAZERMAP_INDEX : BNE .done
-
-  .set_minimap
+    LDA !sram_preset_category : CMP !PRESET_CATEGORY_100MAP_INDEX : BNE .done
     LDA #$0001 : STA !ram_minimap
 
   .done
@@ -327,9 +324,11 @@ endif
     STA !sram_read_only_locks+$4
 
   .upgrade_22to23
-    TDC : STA !sram_preset_category : STA !sram_safeties_enabled_prkd
+    TDC : STA !sram_preset_category
+    STA !sram_safeties_enabled_phantoonfirst+$2
     LDA #$0118 : STA !sram_safeties_enabled_kpdr
     LDA #$0010 : STA !sram_safeties_enabled_kpdr+$2
+    LDA #$4140 : STA !sram_safeties_enabled_phantoonfirst
 
     LDA !SRAM_VERSION : STA !sram_initialized
     RTS

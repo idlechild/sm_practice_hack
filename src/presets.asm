@@ -321,7 +321,11 @@ preset_load_preset:
 
     ; apply safeties
     LDA !sram_preset_category : ASL : TAX
-    LDA.l preset_safeties_definition_table,X : PHA ; later pulled with PLY
+    LDA.l preset_safeties_definition_table,X : BNE .safeties_init
+    JMP .apply_category_adjustments
+
+  .safeties_init
+    PHA ; later pulled with PLY
     LDA.l preset_safeties_sram_table,X : TAX
     LDA.l $700000,X : AND !eram_safeties_enabled : STA !eram_safeties_enabled
     LDA.l $700002,X : AND !eram_safeties_enabled+$2 : STA !eram_safeties_enabled+$2
@@ -1522,6 +1526,7 @@ incsrc presets/combined_preset_names.asm
 
 %startfree(F1)
 incsrc presets/kpdr_menu.asm
+incsrc presets/phantoonfirst_menu.asm
 incsrc presets/kpdr20_menu.asm
 incsrc presets/kpdr21_menu.asm
 incsrc presets/kpdr22_menu.asm
@@ -1538,7 +1543,6 @@ incsrc presets/hundo_menu.asm
 
 %startfree(F2)
 incsrc presets/100map_menu.asm
-incsrc presets/spazermap_menu.asm
 incsrc presets/14ice_menu.asm
 incsrc presets/14speed_menu.asm
 incsrc presets/rbo_menu.asm

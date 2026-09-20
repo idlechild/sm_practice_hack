@@ -14,7 +14,7 @@ PresetsMenuKpdr:
     dw #$FFFF
     dw #presets_goto_kpdr_safeties
     dw #$0000
-    %cm_header("PRESETS FOR KPDR")
+    %cm_header("PRESETS FOR ANY% KPDR")
 
 presets_goto_kpdr_crateria:
     %cm_submenu("Crateria", #presets_submenu_kpdr_crateria)
@@ -644,21 +644,31 @@ presets_kpdr_safeties_southern_route:
 presets_kpdr_safeties_screw_attack:
     %cm_toggle_bit("Screw Attack", !sram_safeties_enabled_kpdr+$2, #$0100, .routine)
   .routine
+    ; Screw Attack requires Blue Pillars
     ; Screw Attack prevents Slow Pillars
     BIT #$0100 : BEQ .end
-    AND #$FBFF : STA !sram_safeties_enabled_kpdr+$2
+    ORA #$0200 : AND #$FBFF : STA !sram_safeties_enabled_kpdr+$2
   .end
     RTL
 
 presets_kpdr_safeties_blue_pillars:
-    %cm_toggle_bit("Blue Pillars", !sram_safeties_enabled_kpdr+$2, #$0200, #0)
+    %cm_toggle_bit("Blue Pillars", !sram_safeties_enabled_kpdr+$2, #$0200, .routine)
+  .routine
+    ; Blue Pillars required by Screw Attack
+    ; Blue Pillars prevented by Slow Pillars
+    BIT #$0200 : BNE .blue
+    AND #$FEFF : STA !sram_safeties_enabled_kpdr+$2
+    RTL
+  .blue
+    AND #$FBFF : STA !sram_safeties_enabled_kpdr+$2
+    RTL
 
 presets_kpdr_safeties_slow_pillars:
     %cm_toggle_bit("Slow Pillars", !sram_safeties_enabled_kpdr+$2, #$0400, .routine)
   .routine
-    ; Slow Pillars prevented by Screw Attack
+    ; Slow Pillars prevented by Screw Attack or Blue Pillars
     BIT #$0400 : BEQ .end
-    AND #$FEFF : STA !sram_safeties_enabled_kpdr+$2
+    AND #$FCFF : STA !sram_safeties_enabled_kpdr+$2
   .end
     RTL
 

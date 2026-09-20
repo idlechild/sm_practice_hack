@@ -1,61 +1,62 @@
 
 preset_safeties_sram_table:
     dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
-    dw #!sram_safeties_enabled_kpdr
+    dw #!sram_safeties_enabled_phantoonfirst
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #!sram_safeties_enabled_100map
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
 
 preset_safeties_definition_table:
     dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
-    dw #preset_kpdr_safeties_definition
+    dw #preset_phantoonfirst_safeties_definition
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #preset_100map_safeties_definition
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
+    dw #$0000
 
 preset_kpdr_zeb_skip_skip_definition:
     ; Stage 0: Retro Missiles
@@ -123,7 +124,7 @@ preset_kpdr_safeties_definition:
     db !SAFETIES_CMD_ETANK|!SAFETIES_COMBO_FLAG
     db #$05, #$08
     db !SAFETIES_CMD_DOOR
-    db #$08, #$02
+    db #$08, #$03
 
     ; Safety 00000010: HJB Missiles
     db !SAFETIES_CMD_MISSILE
@@ -236,5 +237,97 @@ preset_kpdr_safeties_definition:
     db #$0B, #$08
 
     ; Done KPDR Safeties
+    db !SAFETIES_CMD_DONE
+
+preset_phantoonfirst_safeties_definition:
+    ; Safety 000001: Brinstar Reserve
+    db !SAFETIES_CMD_RTANK|!SAFETIES_COMBO_FLAG
+    db #$02, #$02
+    db !SAFETIES_CMD_DOOR
+    db #$04, #$40
+
+    ; Safety 000002: Early Supers Missiles
+    db !SAFETIES_CMD_MISSILE
+    db #$01, #$80
+
+    ; Safety 000004: Right Side Supers
+    db !SAFETIES_CMD_SUPER
+    db #$10, #$40
+
+    ; Safety 000008: PKRD
+    db !SAFETIES_CMD_ITEM_LO|!SAFETIES_COMBO_FLAG
+    db #$01, #$06, #$01
+    db !SAFETIES_CMD_EVENT|!SAFETIES_COMBO_FLAG
+    db #$09, #$01
+    db !SAFETIES_CMD_DOOR
+    db #$08, #$EC
+
+    ; Safety 000010: PKRD + E-Tank
+    db !SAFETIES_CMD_ETANK|!SAFETIES_COMBO_FLAG
+    db #$05, #$08
+    db !SAFETIES_CMD_DOOR
+    db #$08, #$03
+
+    ; Safety 000020: HJB Missiles
+    db !SAFETIES_CMD_MISSILE
+    db #$06, #$80
+
+    ; Safety 000040: Wave Missiles
+    db !SAFETIES_CMD_MISSILE
+    db #$08, #$08
+
+    ; Safety 000080: Varia + Gravity Jump
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 000100: Ridley X-Factor
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 000200: Slow Pillars
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 000400: Fireflea E-Tank
+    db !SAFETIES_CMD_ETANK
+    db #$0A, #$01
+
+    ; Safety 000800: Ridley E-Tank
+    db !SAFETIES_CMD_ETANK|!SAFETIES_COMBO_FLAG
+    db #$09, #$40
+    db !SAFETIES_CMD_DOOR
+    db #$0B, #$08
+
+    ; Safety 001000: Kraid E-Tank
+    db !SAFETIES_CMD_ETANK|!SAFETIES_COMBO_FLAG
+    db #$05, #$08
+    db !SAFETIES_CMD_DOOR
+    db #$08, #$03
+
+    ; Safety 002000: Mt. Everest Spark Skip
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 004000: Botwoon E-Tank
+    db !SAFETIES_CMD_ETANK
+    db #$13, #$01
+
+    ; Safety 008000: Halfie Savings
+    db !SAFETIES_CMD_ADJUST
+
+    ; Safety 010000: Space Jump
+    db !SAFETIES_CMD_ITEM_HI|!SAFETIES_COMBO_FLAG
+    db #$02, #$13, #$04
+    db !SAFETIES_CMD_DOOR
+    db #$13, #$80
+
+    ; Safety 020000: Reverse Spark Skip
+    db !SAFETIES_CMD_ADJUST
+
+    ; Done Phantoon First Safeties
+    db !SAFETIES_CMD_DONE
+
+preset_100map_safeties_definition:
+    ; Safety 01: Spazer
+    db !SAFETIES_CMD_BEAM
+    db #$04, #$05, #$04
+
+    ; Done Mapo Safeties
     db !SAFETIES_CMD_DONE
 
