@@ -371,7 +371,7 @@ save_write_table:
     dw $0000|$4316, $0002  ; size = $02xx ($0200), unused bank reg = $00
     dw $1000|$420B, $02    ; Trigger DMA on channel 1
 
-    ; Done, other than DMA and flags, uses SRAM $737F00-$737FFF
+    ; Done, other than DMA and flags, uses SRAM $726B02-$726BFF
     dw $0000, save_return
 
 save_return:
@@ -466,7 +466,7 @@ load_write_table:
     dw $0000|$4316, $0002  ; size = $02xx ($0200), unused bank reg = $00.
     dw $1000|$420B, $02    ; Trigger DMA on channel 1
 
-    ; Done, other than DMA and flags, uses SRAM $737F00-$737FFF
+    ; Done, other than DMA and flags, uses SRAM $726B02-$726BFF
     dw $0000, load_return
 
 load_return:
