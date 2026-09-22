@@ -276,11 +276,6 @@ post_load_music:
     LDA !ram_loadstate_music_data : CMP !MUSIC_DATA : BNE .clear_track_load_data
     JMP .check_track
 
-  .clear_track_load_data
-    TDC : JSL !MUSIC_ROUTINE
-    LDA #$FF00 : CLC : ADC !MUSIC_DATA : JSL !MUSIC_ROUTINE
-    BRA .load_track
-
   .fast_off_preset_off
     ; Treat music as already loaded
     STZ !MUSIC_QUEUE_TIMERS : STZ !MUSIC_QUEUE_TIMERS+$2
@@ -298,10 +293,21 @@ post_load_music:
     STA !MUSIC_TIMER : STA !SOUND_TIMER
     BRA .done
 
+  .clear_track_load_data
+    TDC : JSL !MUSIC_ROUTINE
+    LDA #$FF00 : CLC : ADC !MUSIC_DATA : JSL !MUSIC_ROUTINE
+
+    ; Until we load music data, set music data to what APU currently has
+    LDA !ram_loadstate_music_data : STA !MUSIC_DATA
+    BRA .load_track
+
   .queued_music_data_clear_track
     ; Insert clear track before queued music data and start queue there
     DEX #2 : TXA : AND #$000E : STA !MUSIC_QUEUE_START : TAX
     STZ !MUSIC_QUEUE_ENTRIES,X : STZ !MUSIC_ENTRY
+
+    ; Until we load music data, set music data to what APU currently has
+    LDA !ram_loadstate_music_data : STA !MUSIC_DATA
 
     ; Clear all timers before this point
   .music_clear_timer_loop
