@@ -187,7 +187,7 @@ org $808F24
     JSL hook_set_music_track
     BRA $00
 
-org $808F65
+org $808F62
     JML hook_set_music_data
 
 
@@ -871,11 +871,13 @@ hook_set_music_track:
 
 hook_set_music_data:
 {
-    STA !MUSIC_DATA : TAX ; overwritten code
+    STA !UPLOADING_TO_APU ; prevent prac hack from loading during this time
+    AND #$00FF : STA !MUSIC_DATA : TAX ; overwritten code
     LDA !sram_music_toggle : CMP #$0002 : BEQ .fast_no_music
     JML $808F69
 
   .fast_no_music
+    STZ !UPLOADING_TO_APU
     JML $808F89
 }
 
