@@ -280,6 +280,9 @@ endif
 
 gamemode_load_state:
 {
+    ; Do not load state while uploading music data to APU
+    LDA !UPLOADING_TO_APU : BNE .not_allowed
+
 if !FEATURE_TINYSTATES
 else
     LDA !ram_last_save_state_type : BEQ .load_full
@@ -304,6 +307,9 @@ endif
     ; since loading the state includes loading the stack
     TDC : STA !ram_last_save_state_type
     JML load_state
+
+  .not_allowed
+    RTL
 
   .not_available
 if !FEATURE_TINYSTATES
