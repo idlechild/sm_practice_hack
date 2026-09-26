@@ -2228,11 +2228,16 @@ ih_set_zebes_timer:
 if !FEATURE_VANILLAHUD
 else
 ; Update Timers is called during normal gameplay,
-; so it avoid common helper methods in favor of optimization
+; so it avoids common helper methods in favor of optimization
 ih_update_timers:
 {
     PHX : PHP : PHB
     PHK : PLB
+
+    ; Update last room times so opening and closing the prac hack menu doesn't overwrite updates
+    LDA !ram_realtime_room : SEC : SBC !ram_transition_counter : STA !ram_last_room_lag
+    LDA !ram_gametime_room : STA !ram_last_gametime_room
+    LDA !ram_realtime_room : STA !ram_last_realtime_room
 
     LDA !ram_minimap : BEQ .start
     JMP .mmHUD
