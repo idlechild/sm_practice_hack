@@ -173,7 +173,6 @@ init_sram:
 {
     LDA #$0015 : STA !sram_artificial_lag
     TDC : STA !sram_fanfare
-    STA !sram_frame_counter_mode
     STA !sram_display_mode
     STA !sram_last_preset_low_word
     STA !sram_save_has_set_rng
@@ -228,11 +227,7 @@ endif
     TDC : STA !sram_custom_header
 
   .upgrade_13to14
-    ; "skip fanfares, but adjust timer" option has been replaced with "speedrun" timer mode
-    LDA !sram_fanfare : BIT #$0002 : BEQ .upgrade_14to15
     LDA !sram_fanfare : AND #$0001 : STA !sram_fanfare
-    LDA !sram_frame_counter_mode : BNE .upgrade_14to15
-    LDA !FRAME_COUNTER_ADJUST_REALTIME : STA !sram_frame_counter_mode
 
   .upgrade_14to15
     TDC : STA !sram_bomb_torizo_door
@@ -329,6 +324,7 @@ endif
     LDA #$0118 : STA !sram_safeties_enabled_kpdr
     LDA #$0010 : STA !sram_safeties_enabled_kpdr+$2
     LDA #$4140 : STA !sram_safeties_enabled_phantoonfirst
+    LDA !FRAME_COUNTER_ADJUST_REALTIME : STA !sram_frame_counter_mode
 
     LDA !SRAM_VERSION : STA !sram_initialized
     RTS
