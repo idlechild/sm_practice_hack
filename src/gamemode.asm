@@ -826,7 +826,7 @@ cm_write_ctrl_routine:
     TDC : TAX : TAY : STA !CTRL_SHORTCUT_TYPE : STA !CTRL_SHORTCUT_PRI_UPDATE_TIMERS
     STA !CTRL_SHORTCUT_PRI_TO_SEC_DUAL_JUMP : STA !CTRL_SHORTCUT_SEC_TO_DUAL_JUMP
     STA !CTRL_SHORTCUT_TRACKING_PRI_PREV
-    DEC : STA !CTRL_SHORTCUT_TRACKING_LANDED
+    DEC : STA !CTRL_SHORTCUT_TRACKING_LANDED : STA !CTRL_SHORTCUT_TRACKING_DROP_SPAWNED
 
     ; Initialize category indices to 48 indicating no shortcut found.
     LDA #$0030 : STA !CTRL_SHORTCUT_TABLE_DUAL_INDEX
@@ -988,10 +988,12 @@ else
     LDA !sram_update_timers_ctrl_input : BNE .updateTimers
     LDA !sram_update_timers_ctrl_input+1 : BNE .updateTimers
 
-    ; Check if we always update timers or update on landed
+    ; Check if we always update timers or update on landed or on drop spawned
     LDA.w !sram_update_timers_options : BIT.b !UPDATE_TIMERS_ALWAYS : BNE .alwaysUpdateTimers
-    BIT.b !UPDATE_TIMERS_ON_LANDED : BEQ .doneUpdateTimers
-    JMP .updateTimersOnLanded
+    BIT.b !UPDATE_TIMERS_ON_LANDED_DROP_SPAWNED : BEQ .doneUpdateTimers
+    BIT.b !UPDATE_TIMERS_ON_DROP_SPAWNED : BEQ .onlyOnLanded
+    BIT.b !UPDATE_TIMERS_ON_LANDED : BEQ .onlyOnDropSpawned
+    JMP .updateTimersOnLandedDrop
 
   .updateTimers
     ; Check if we always update timers, or if we update on press and not hold
@@ -1001,6 +1003,12 @@ else
     ; Record the desired on press options
     %a16() : LDA.w !sram_update_timers_ctrl_input : STA !CTRL_SHORTCUT_PRI_UPDATE_TIMERS : %a8()
     BRA .updateTimersOptions
+
+  .onlyOnLanded
+    JMP .updateTimersOnLanded
+
+  .onlyOnDropSpawned
+    JMP .updateTimersOnDropSpawned
 
   .alwaysUpdateTimers
     ; Write simple JSL
@@ -1018,9 +1026,11 @@ else
     CMP.b !UPDATE_TIMERS_ON_HOLD : BEQ .updateTimersHold
     CMP.b !UPDATE_TIMERS_ON_RELEASE : BEQ .updateTimersRelease
     CMP.b !UPDATE_TIMERS_ON_HOLD_RELEASE : BEQ .updateTimersHoldRelease
-    LDA.w !sram_update_timers_options : BIT.b !UPDATE_TIMERS_ON_LANDED
-    BEQ .doneUpdateTimers
-    JMP .updateTimersOnLanded
+    LDA.w !sram_update_timers_options
+    BIT.b !UPDATE_TIMERS_ON_LANDED_DROP_SPAWNED : BEQ .doneUpdateTimers
+    BIT.b !UPDATE_TIMERS_ON_DROP_SPAWNED : BEQ .onlyOnLanded
+    BIT.b !UPDATE_TIMERS_ON_LANDED : BEQ .onlyOnDropSpawned
+    JMP .updateTimersOnLandedDrop
 
   .updateTimersHoldRelease
     ; LDA !CTRL_SHORTCUT_TRACKING_PRI_PREV
@@ -1061,7 +1071,10 @@ else
     LDA !sram_update_timers_ctrl_input+1 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     ; BEQ $04 or $06
     LDA #$F0 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
-    LDA.w !sram_update_timers_options : AND.b !UPDATE_TIMERS_ON_LANDED
+    LDA.w !sram_update_timers_options : AND.b !UPDATE_TIMERS_ON_LANDED_DROP_SPAWNED
+    BEQ .updateTimersCrtlContinue
+    AND #$02 ; relies on !UPDATE_TIMERS_ON_LANDED being #$0002
+  .updateTimersCrtlContinue
     ORA #$04 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     ; Write simple JSL
     LDA.l ctrl_shortcut_jsl_word_lsb_table+!UPDATE_TIMERS_CTRL_SHORTCUT_TYPE
@@ -1071,10 +1084,26 @@ else
     JSR .writeJsl
 
     ; Write on landed check if option selected
-    LDA.w !sram_update_timers_options : BIT.b !UPDATE_TIMERS_ON_LANDED : BNE .afterCtrlInputSkipLanded
+    LDA.w !sram_update_timers_options
+    BIT.b !UPDATE_TIMERS_ON_LANDED_DROP_SPAWNED : BEQ .timersGotoTrackPri
+    BIT.b !UPDATE_TIMERS_ON_DROP_SPAWNED : BEQ .onlyOnLandedBranch
+    BIT.b !UPDATE_TIMERS_ON_LANDED : BEQ .onlyOnDropSpawnedBranch
+
+    ; BRA $11
+    LDA #$80 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$11 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    JMP .updateTimersOnLandedDrop
+
+  .timersGotoTrackPri
     JMP .updateTimersTrackPri
 
-  .afterCtrlInputSkipLanded
+  .onlyOnDropSpawnedBranch
+    ; BRA $0A
+    LDA #$80 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$0A : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    JMP .updateTimersOnDropSpawned
+
+  .onlyOnLandedBranch
     ; BRA $0D
     LDA #$80 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     LDA #$0D : STA !CTRL_SHORTCUT_ROUTINE,X : INX
@@ -1089,9 +1118,9 @@ else
     LDA #$89 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     LDA #$04 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     LDA #$00 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
-    ; BNE $04
+    ; BNE $0B
     LDA #$D0 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
-    LDA #$04 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$0B : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     ; Write simple JSL
     LDA.l ctrl_shortcut_jsl_word_lsb_table+!UPDATE_TIMERS_CTRL_SHORTCUT_TYPE
     STA !CTRL_SHORTCUT_JSL_WORD_LSB
@@ -1109,6 +1138,76 @@ else
     LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
     LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    JMP .updateTimersTrackPri
+
+  .updateTimersOnDropSpawned
+    ; LDA !CTRL_SHORTCUT_TRACKING_DROP_SPAWNED
+    LDA #$AF : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; BNE $0B
+    LDA #$D0 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$0B : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; Write simple JSL
+    LDA.l ctrl_shortcut_jsl_word_lsb_table+!UPDATE_TIMERS_CTRL_SHORTCUT_TYPE
+    STA !CTRL_SHORTCUT_JSL_WORD_LSB
+    LDA.l ctrl_shortcut_jsl_word_msb_table+!UPDATE_TIMERS_CTRL_SHORTCUT_TYPE
+    STA !CTRL_SHORTCUT_JSL_WORD_MSB
+    JSR .writeJsl
+
+    ; Reset on drop spawned flag afterwards
+    ; LDA #$FFFF
+    LDA #$A9 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$FF : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$FF : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; STA !CTRL_SHORTCUT_TRACKING_DROP_SPAWNED
+    LDA #$8F : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    JMP .updateTimersTrackPri
+
+  .updateTimersOnLandedDrop
+    ; LDA !CTRL_SHORTCUT_TRACKING_LANDED
+    LDA #$AF : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; AND !CTRL_SHORTCUT_TRACKING_DROP_SPAWNED
+    LDA #$2F : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; BIT #$0004
+    LDA #$89 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$04 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$00 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; BNE $0F
+    LDA #$D0 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$0F : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; Write simple JSL
+    LDA.l ctrl_shortcut_jsl_word_lsb_table+!UPDATE_TIMERS_CTRL_SHORTCUT_TYPE
+    STA !CTRL_SHORTCUT_JSL_WORD_LSB
+    LDA.l ctrl_shortcut_jsl_word_msb_table+!UPDATE_TIMERS_CTRL_SHORTCUT_TYPE
+    STA !CTRL_SHORTCUT_JSL_WORD_MSB
+    JSR .writeJsl
+
+    ; Reset on landed and on drop spawned flags afterwards
+    ; LDA #$FFFF
+    LDA #$A9 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$FF : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA #$FF : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; STA !CTRL_SHORTCUT_TRACKING_LANDED
+    LDA #$8F : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_LANDED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    ; STA !CTRL_SHORTCUT_TRACKING_DROP_SPAWNED
+    LDA #$8F : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>8 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
+    LDA.b #!CTRL_SHORTCUT_TRACKING_DROP_SPAWNED>>16 : STA !CTRL_SHORTCUT_ROUTINE,X : INX
 
   .updateTimersTrackPri
     ; Track previous input if necessary
@@ -2700,6 +2799,7 @@ UpdateTimersMenu:
     dw #update_timers_on_release
     dw #$FFFF
     dw #update_timers_on_landed
+    dw #update_timers_on_drop_spawned
     dw #$FFFF
     dw #update_timers_always
     dw #$0000
@@ -2739,6 +2839,9 @@ update_timers_on_release:
 
 update_timers_on_landed:
     %cm_toggle_bit("Update On Samus Landed", !sram_update_timers_options, !UPDATE_TIMERS_ON_LANDED, #0)
+
+update_timers_on_drop_spawned:
+    %cm_toggle_bit("Update On Drop Spawned", !sram_update_timers_options, !UPDATE_TIMERS_ON_DROP_SPAWNED, #0)
 
 update_timers_always:
     %cm_toggle_bit("Update Every Frame", !sram_update_timers_options, !UPDATE_TIMERS_ALWAYS, #0)
