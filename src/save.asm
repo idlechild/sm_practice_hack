@@ -852,8 +852,7 @@ tinystates_load_paused:
     INX #2
     DEY : BNE .load_loop
 
-    JSL $82B62B ; Draw pause menu during fade in
-    RTL
+    JML tinystates_load_paused_continued
 }
 
 %endfree(80)
@@ -861,9 +860,17 @@ tinystates_load_paused:
 
 %startfree(82)
 
+tinystates_load_paused_continued:
+{
+    JSR $9009   ; Continue initializing pause menu
+    JML $82B62B ; Draw pause menu during fade in
+}
+
 tinystates_preload_bg_data:
+{
     JSR $82E2 ; Re-load BG3 tiles
     RTL
+}
 
 tinystates_load_kraid:
 {
