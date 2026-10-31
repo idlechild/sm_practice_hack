@@ -5,1316 +5,529 @@
 ; ---------------
 
 org $E58000
-RoomNameTextTable:
 ROOM:
 
 org $E591F8
   .LandingSite
-    db $28, "Landing Site", $FF
-warnpc $E59212
-
 org $E592B3
   .GauntletEntrance
-    db $28, "Gauntlet Entrance", $FF
-warnpc $E592CD
-
 org $E592FD
   .ParlorAndAlcatraz
-    db $28, "Parlor and Alcatraz", $FF
-warnpc $E59317
-
 org $E593AA
   .CrateriaPowerBombs
-    db $28, "Crateria Power Bombs", $FF
-warnpc $E593C4
-
 org $E593D5
   .CrateriaSaveRoom
-    db $28, "Crateria Save Room", $FF
-warnpc $E593EF
-
 org $E593FE
   .WestOcean
-    db $28, "West Ocean", $FF
-warnpc $E59418
-
 org $E59461
   .BowlingAlleyPath
-    db $28, "Bowling Alley Path", $FF
-warnpc $E5947B
-
 org $E5948C
   .CrateriaKihunterRoom
-    db $28, "Crateria Kihunter Room", $FF
-warnpc $E594A6
-
 org $E594CC
   .ForgottenHighwayElev
-    db $28, "Forgotten Highway Elev", $FF
-warnpc $E594E6
-
 org $E594FD
   .EastOcean
-    db $28, "East Ocean", $FF
-warnpc $E59517
-
 org $E59552
   .ForgottenHighwayKagos
-    db $28, "Forgotten Highway Kagos", $FF
-warnpc $E5956C
-
 org $E5957D
   .CrabMaze
-    db $28, "Crab Maze", $FF
-warnpc $E59597
-
 org $E595A8
   .ForgottenHighwayElbow
-    db $28, "Forgotten Highway Elbow", $FF
-warnpc $E595C2
-
 org $E595D4
   .CrateriaTube
-    db $28, "Crateria Tube", $FF
-warnpc $E595EE
-
 org $E595FF
   .TheMoat
-    db $28, "The Moat", $FF
-warnpc $E59619
-
 org $E5962A
   .RedBrinstarElevRoom
-    db $28, "Red Brinstar Elev Room", $FF
-warnpc $E59644
-
 org $E5965B
   .GauntletETankRoom
-    db $28, "Gauntlet E-Tank Room", $FF
-warnpc $E59675
-
 org $E5968F
   .PreBowling
-    db $28, "Pre-Bowling", $FF
-warnpc $E596A9
-
 org $E596BA
   .Climb
-    db $28, "Climb", $FF
-warnpc $E596D4
-
 org $E5975C
   .PitRoom
-    db $28, "Pit Room", $FF
-warnpc $E59776
-
 org $E597B5
   .ElevToBlueBrinstar
-    db $28, "Elev to Blue Brinstar", $FF
-warnpc $E597CF
-
 org $E59804
   .BombTorizoRoom
-    db $28, "Bomb Torizo Room", $FF
-warnpc $E5981E
-
 org $E59879
   .Flyway
-    db $28, "Flyway", $FF
-warnpc $E59893
-
 org $E598E2
   .PreMapFlyway
-    db $28, "Pre-Map Flyway", $FF
-warnpc $E598FC
-
 org $E5990D
   .TerminatorRoom
-    db $28, "Terminator Room", $FF
-warnpc $E59927
-
 org $E59938
   .GreenBrinElevRoom
-    db $28, "Green Brin Elev Room", $FF
-warnpc $E59952
-
 org $E59969
   .LowerMushrooms
-    db $28, "Lower Mushrooms", $FF
-warnpc $E59983
-
 org $E59994
   .CrateriaMapRoom
-    db $28, "Crateria Map Room", $FF
-warnpc $E599AE
-
 org $E599BD
   .GreenPiratesShaft
-    db $28, "Green Pirates Shaft", $FF
-warnpc $E599D7
-
 org $E599F9
   .CrateriaSuperRoom
-    db $28, "Crateria Super Room", $FF
-warnpc $E59A13
-
 org $E59A44
   .FinalMissileBombway
-    db $28, "Final Missile Bombway", $FF
-warnpc $E59A5E
-
 org $E59A90
   .TheFinalMissile
-    db $28, "The Final Missile", $FF
-warnpc $E59AAA
-
 org $E59AD9
   .GreenBrinMainShaft
-    db $28, "Green Brin Main Shaft", $FF
-warnpc $E59AF3
-
 org $E59B5B
   .SporeSpawnSuperRoom
-    db $28, "Spore Spawn Super Room", $FF
-warnpc $E59B75
-
 org $E59B9D
   .BrinstarPreMapRoom
-    db $28, "Brinstar Pre-Map Room", $FF
-warnpc $E59BB7
-
 org $E59BC8
   .EarlySupersRoom
-    db $28, "Early Supers Room", $FF
-warnpc $E59BE2
-
 org $E59C07
   .BrinstarReserveTank
-    db $28, "Brinstar Reserve Tank", $FF
-warnpc $E59C21
-
 org $E59C35
   .BrinstarMapRoom
-    db $28, "Brinstar Map Room", $FF
-warnpc $E59C4F
-
 org $E59C5E
   .GreenBrinFirefleas
-    db $28, "Green Brin Firefleas", $FF
-warnpc $E59C78
-
 org $E59C89
   .GreenBrinMissileRefi
-    db $28, "Green Brin Missile Refi", $FF
-warnpc $E59CA3
-
 org $E59CB3
   .DachoraRoom
-    db $28, "Dachora Room", $FF
-warnpc $E59CCD
-
 org $E59D19
   .BigPink
-    db $28, "Big Pink", $FF
-warnpc $E59D33
-
 org $E59D9C
   .SporeSpawnKihunters
-    db $28, "Spore Spawn Kihunters", $FF
-warnpc $E59DB6
-
 org $E59DC7
   .SporeSpawnRoom
-    db $28, "Spore Spawn Room", $FF
-warnpc $E59DE1
-
 org $E59E11
   .PinkBrinPowerBombs
-    db $28, "Pink Brin Power Bombs", $FF
-warnpc $E59E2B
-
 org $E59E52
   .GreenHillZone
-    db $28, "Green Hill Zone", $FF
-warnpc $E59E6C
-
 org $E59E9F
   .MorphBallRoom
-    db $28, "Morph Ball Room", $FF
-warnpc $E59EB9
-
 org $E59F11
   .ConstructionZone
-    db $28, "Construction Zone", $FF
-warnpc $E59F2B
-
 org $E59F64
   .BlueBrinstarETank
-    db $28, "Blue Brinstar E-Tank", $FF
-warnpc $E59F7E
-
 org $E59FBA
   .NoobBridge
-    db $28, "Noob Bridge", $FF
-warnpc $E59FD4
-
 org $E59FE5
   .GreenBrinstarBeetoms
-    db $28, "Green Brinstar Beetoms", $FF
-warnpc $E59FFF
-
 org $E5A011
   .EtecoonETankRoom
-    db $28, "Etecoon E-Tank Room", $FF
-warnpc $E5A02B
-
 org $E5A051
   .EtecoonSuperRoom
-    db $28, "Etecoon Super Room", $FF
-warnpc $E5A06B
-
 org $E5A07B
   .DachoraEnergyRefill
-    db $28, "Dachora Energy Refill", $FF
-warnpc $E5A095
-
 org $E5A0A4
   .SporeSpawnFarming
-    db $28, "Spore Spawn Farming", $FF
-warnpc $E5A0BE
-
 org $E5A0D2
   .WaterwayETankRoom
-    db $28, "Waterway E-Tank Room", $FF
-warnpc $E5A0EC
-
 org $E5A107
   .FirstMissileRoom
-    db $28, "First Missile Room", $FF
-warnpc $E5A121
-
 org $E5A130
   .PinkBrinstarHoppers
-    db $28, "Pink Brinstar Hoppers", $FF
-warnpc $E5A14A
-
 org $E5A15B
   .HopperEnergyTankRoom
-    db $28, "Hopper Energy Tank Room", $FF
-warnpc $E5A175
-
 org $E5A184
   .BigPinkSaveRoom
-    db $28, "Big Pink Save Room", $FF
-warnpc $E5A19E
-
 org $E5A1AD
   .BlueBrinstarBoulders
-    db $28, "Blue Brinstar Boulders", $FF
-warnpc $E5A1C7
-
 org $E5A1D8
   .BillyMaysRoom
-    db $28, "Billy Mays Room", $FF
-warnpc $E5A1F2
-
 org $E5A201
   .GreenBrinSaveRoom
-    db $28, "Green Brin Save Room", $FF
-warnpc $E5A21B
-
 org $E5A22A
   .EtecoonSaveRoom
-    db $28, "Etecoon Save Room", $FF
-warnpc $E5A244
-
 org $E5A253
   .RedTower
-    db $28, "Red Tower", $FF
-warnpc $E5A26D
-
 org $E5A293
   .RedBrinstarFirefleas
-    db $28, "Red Brinstar Firefleas", $FF
-warnpc $E5A2AD
-
 org $E5A2CE
   .XRayScopeRoom
-    db $28, "X-Ray Scope Room", $FF
-warnpc $E5A2E8
-
 org $E5A2F7
   .Hellway
-    db $28, "Hellway", $FF
-warnpc $E5A311
-
 org $E5A322
   .CaterpillarRoom
-    db $28, "Caterpillar Room", $FF
-warnpc $E5A33C
-
 org $E5A37C
   .BetaPowerBombRoom
-    db $28, "Beta Power Bomb Room", $FF
-warnpc $E5A396
-
 org $E5A3AE
   .AlphaPowerBombRoom
-    db $28, "Alpha Power Bomb Room", $FF
-warnpc $E5A3C8
-
 org $E5A3DD
   .SkreeBoostRoom
-    db $28, "Skree Boost Room", $FF
-warnpc $E5A3F7
-
 org $E5A408
   .BelowSpazer
-    db $28, "Below Spazer", $FF
-warnpc $E5A422
-
 org $E5A447
   .SpazerRoom
-    db $28, "Spazer Room", $FF
-warnpc $E5A461
-
 org $E5A471
   .WarehouseZeelaRoom
-    db $28, "Warehouse Zeela Room", $FF
-warnpc $E5A48B
-
 org $E5A4B1
   .WarehouseETankRoom
-    db $28, "Warehouse E-Tank Room", $FF
-warnpc $E5A4CB
-
 org $E5A4DA
   .WarehouseKihunterRoom
-    db $28, "Warehouse Kihunter Room", $FF
-warnpc $E5A4F4
-
 org $E5A521
   .BabyKraidRoom
-    db $28, "Baby Kraid Room", $FF
-warnpc $E5A53B
-
 org $E5A56B
   .KraidEyeDoorRoom
-    db $28, "Kraid Eye Door Room", $FF
-warnpc $E5A585
-
 org $E5A59F
   .KraidRoom
-    db $28, "Kraid Room", $FF
-warnpc $E5A5B9
-
 org $E5A5ED
   .StatuesHallway
-    db $28, "Statues Hallway", $FF
-warnpc $E5A607
-
 org $E5A618
   .SloatersRefill
-    db $28, "Sloaters Refill", $FF
-warnpc $E5A632
-
 org $E5A641
   .KraidRefillStations
-    db $28, "Kraid Refill Stations", $FF
-warnpc $E5A65B
-
 org $E5A66A
   .StatuesRoom
-    db $28, "Statues Room", $FF
-warnpc $E5A684
-
 org $E5A6A1
   .WarehouseEntrance
-    db $28, "Warehouse Entrance", $FF
-warnpc $E5A6BB
-
 org $E5A6E2
   .VariaSuitRoom
-    db $28, "Varia Suit Room", $FF
-warnpc $E5A6FC
-
 org $E5A70B
   .WarehouseSaveRoom
-    db $28, "Warehouse Save Room", $FF
-warnpc $E5A725
-
 org $E5A734
   .RedBrinstarSaveRoom
-    db $28, "Red Brinstar Save Room", $FF
-warnpc $E5A74E
-
 org $E5A75D
   .IceBeamAcidRoom
-    db $28, "Ice Beam Acid Room", $FF
-warnpc $E5A777
-
 org $E5A788
   .Cathedral
-    db $28, "Cathedral", $FF
-warnpc $E5A7A2
-
 org $E5A7B3
   .CathedralEntrance
-    db $28, "Cathedral Entrance", $FF
-warnpc $E5A7CD
-
 org $E5A7DE
   .BusinessCenter
-    db $28, "Business Center", $FF
-warnpc $E5A7F8
-
 org $E5A815
   .IceBeamGateRoom
-    db $28, "Ice Beam Gate Room", $FF
-warnpc $E5A82F
-
 org $E5A865
   .IceBeamTutorialRoom
-    db $28, "Ice Beam Tutorial Room", $FF
-warnpc $E5A87F
-
 org $E5A890
   .IceBeamRoom
-    db $28, "Ice Beam Room", $FF
-warnpc $E5A8AA
-
 org $E5A8B9
   .IceBeamSnakeRoom
-    db $28, "Ice Beam Snake Room", $FF
-warnpc $E5A8D3
-
 org $E5A8F8
   .CrumbleShaft
-    db $28, "Crumble Shaft", $FF
-warnpc $E5A912
-
 org $E5A923
   .CrocomireSpeedway
-    db $28, "Crocomire Speedway", $FF
-warnpc $E5A93D
-
 org $E5A98D
   .CrocomireRoom
-    db $28, "Crocomire's Room", $FF
-warnpc $E5A9A7
-
 org $E5A9E5
   .HiJumpBootsRoom
-    db $28, "Hi Jump Boots Room", $FF
-warnpc $E5A9FF
-
 org $E5AA0E
   .CrocomireEscape
-    db $28, "Crocomire Escape", $FF
-warnpc $E5AA28
-
 org $E5AA41
   .HiJumpETankRoom
-    db $28, "Hi Jump E-Tank Room", $FF
-warnpc $E5AA5B
-
 org $E5AA82
   .PostCrocFarmingRoom
-    db $28, "Post Croc Farming Room", $FF
-warnpc $E5AA9C
-
 org $E5AAB5
   .PostCrocSaveRoom
-    db $28, "Post Croc Save Room", $FF
-warnpc $E5AACF
-
 org $E5AADE
   .PostCrocPowerBombs
-    db $28, "Post Croc Power Bombs", $FF
-warnpc $E5AAF8
-
 org $E5AB07
   .PostCrocomireShaft
-    db $28, "Post Crocomire Shaft", $FF
-warnpc $E5AB21
-
 org $E5AB3B
   .PostCrocMissileRoom
-    db $28, "Post Croc Missile Room", $FF
-warnpc $E5AB55
-
 org $E5AB64
   .GrappleTutorialRoom3
-    db $28, "Grapple Tutorial Room 3", $FF
-warnpc $E5AB7E
-
 org $E5AB8F
   .PostCrocJumpRoom
-    db $28, "Post Croc Jump Room", $FF
-warnpc $E5ABA9
-
 org $E5ABD2
   .GrappleTutorialRoom2
-    db $28, "Grapple Tutorial Room 2", $FF
-warnpc $E5ABEC
-
 org $E5AC00
   .GrappleTutorialRoom1
-    db $28, "Grapple Tutorial Room 1", $FF
-warnpc $E5AC1A
-
 org $E5AC2B
   .GrappleBeamRoom
-    db $28, "Grapple Beam Room", $FF
-warnpc $E5AC45
-
 org $E5AC5A
   .NorfairReserveTank
-    db $28, "Norfair Reserve Tank", $FF
-warnpc $E5AC74
-
 org $E5AC83
   .GreenBubblesMissiles
-    db $28, "Green Bubbles Missiles", $FF
-warnpc $E5AC9D
-
 org $E5ACB3
   .BubbleMountain
-    db $28, "Bubble Mountain", $FF
-warnpc $E5ACCD
-
 org $E5ACF0
   .SpeedBoosterHall
-    db $28, "Speed Booster Hall", $FF
-warnpc $E5AD0A
-
 org $E5AD1B
   .SpeedBoosterRoom
-    db $28, "Speed Booster Room", $FF
-warnpc $E5AD35
-
 org $E5AD5E
   .SingleChamber
-    db $28, "Single Chamber", $FF
-warnpc $E5AD78
-
 org $E5ADAD
   .DoubleChamber
-    db $28, "Double Chamber", $FF
-warnpc $E5ADC7
-
 org $E5ADDE
   .WaveBeamRoom
-    db $28, "Wave Beam Room", $FF
-warnpc $E5ADF8
-
 org $E5AE07
   .SpikyPlatformsTunnel
-    db $28, "Spiky Platforms Tunnel", $FF
-warnpc $E5AE21
-
 org $E5AE32
   .VolcanoRoom
-    db $28, "Volcano Room", $FF
-warnpc $E5AE4C
-
 org $E5AE74
   .KronicBoostRoom
-    db $28, "Kronic Boost Room", $FF
-warnpc $E5AE8E
-
 org $E5AEB4
   .MagdolliteTunnel
-    db $28, "Magdollite Tunnel", $FF
-warnpc $E5AECE
-
 org $E5AEDF
   .PurpleShaft
-    db $28, "Purple Shaft", $FF
-warnpc $E5AEF9
-
 org $E5AF14
   .LavaDiveRoom
-    db $28, "Lava Dive Room", $FF
-warnpc $E5AF2E
-
 org $E5AF3F
   .LowerNorfairElevator
-    db $28, "Lower Norfair Elevator", $FF
-warnpc $E5AF59
-
 org $E5AF72
   .UpperNorfFarmingRoom
-    db $28, "Upper Norf Farming Room", $FF
-warnpc $E5AF8C
-
 org $E5AFA3
   .RisingTide
-    db $28, "Rising Tide", $FF
-warnpc $E5AFBD
-
 org $E5AFCE
   .AcidSnakesTunnel
-    db $28, "Acid Snakes Tunnel", $FF
-warnpc $E5AFE8
-
 org $E5AFFB
   .SpikyAcidSnakesTunnel
-    db $28, "Spiky Acid Snakes Tunnel", $FF
-warnpc $E5B015
-
 org $E5B026
   .NutellaRefill
-    db $28, "Nutella Refill", $FF
-warnpc $E5B040
-
 org $E5B051
   .PurpleFarmingRoom
-    db $28, "Purple Farming Room", $FF
-warnpc $E5B06B
-
 org $E5B07A
   .BatCave
-    db $28, "Bat Cave", $FF
-warnpc $E5B094
-
 org $E5B0B4
   .NorfairMapRoom
-    db $28, "Norfair Map Room", $FF
-warnpc $E5B0CE
-
 org $E5B0DD
   .BubbleMountainSave
-    db $28, "Bubble Mountain Save", $FF
-warnpc $E5B0F7
-
 org $E5B106
   .FrogSpeedway
-    db $28, "Frog Speedway", $FF
-warnpc $E5B120
-
 org $E5B139
   .RedPirateShaft
-    db $28, "Red Pirate Shaft", $FF
-warnpc $E5B153
-
 org $E5B167
   .FrogSavestation
-    db $28, "Frog Savestation", $FF
-warnpc $E5B181
-
 org $E5B192
   .CrocomireSaveRoom
-    db $28, "Crocomire Save Room", $FF
-warnpc $E5B1AC
-
 org $E5B1BB
   .LNElevatorSaveRoom
-    db $28, "LN Elevator Save Room", $FF
-warnpc $E5B1D5
-
 org $E5B1E5
   .AcidStatueRoom
-    db $28, "Acid Statue Room", $FF
-warnpc $E5B1FF
-
 org $E5B236
   .MainHall
-    db $28, "Main Hall", $FF
-warnpc $E5B250
-
 org $E5B283
   .GoldenTorizoRoom
-    db $28, "Golden Torizo's Room", $FF
-warnpc $E5B29D
-
 org $E5B2DA
   .FastRipperRoom
-    db $28, "Fast Ripper Room", $FF
-warnpc $E5B2F4
-
 org $E5B305
   .GTEnergyRecharge
-    db $28, "GT Energy Recharge", $FF
-warnpc $E5B31F
-
 org $E5B32E
   .RidleyRoom
-    db $28, "Ridley's Room", $FF
-warnpc $E5B348
-
 org $E5B37A
   .LNFarmingRoom
-    db $28, "LN Farming Room", $FF
-warnpc $E5B394
-
 org $E5B3A5
   .FastPillarsSetupRoom
-    db $28, "Fast Pillars Setup Room", $FF
-warnpc $E5B3BF
-
 org $E5B40A
   .MickeyMouseRoom
-    db $28, "Mickey Mouse Room", $FF
-warnpc $E5B424
-
 org $E5B457
   .PillarRoom
-    db $28, "Pillar Room", $FF
-warnpc $E5B471
-
 org $E5B482
   .PlowerhouseRoom
-    db $28, "Plowerhouse Room", $FF
-warnpc $E5B49C
-
 org $E5B4AD
   .WorstRoomInTheGame
-    db $28, "Worst Room In The Game", $FF
-warnpc $E5B4C7
-
 org $E5B4E5
   .Amphitheatre
-    db $28, "Amphitheatre", $FF
-warnpc $E5B4FF
-
 org $E5B510
   .LNSpringBallMaze
-    db $28, "LN Spring Ball Maze", $FF
-warnpc $E5B52A
-
 org $E5B55A
   .LNEscapePowerBombs
-    db $28, "LN Escape Power Bombs", $FF
-warnpc $E5B574
-
 org $E5B585
   .RedKihunterShaft
-    db $28, "Red Kihunter Shaft", $FF
-warnpc $E5B59F
-
 org $E5B5D5
   .Wasteland
-    db $28, "Wasteland", $FF
-warnpc $E5B5EF
-
 org $E5B62B
   .MetalPiratesRoom
-    db $28, "Metal Pirates Room", $FF
-warnpc $E5B645
-
 org $E5B656
   .ThreeMusketeersRoom
-    db $28, "Three Musketeers' Room", $FF
-warnpc $E5B670
-
 org $E5B698
   .RidleyTankRoom
-    db $28, "Ridley Tank Room", $FF
-warnpc $E5B6B2
-
 org $E5B6C1
   .ScrewAttackRoom
-    db $28, "Screw Attack Room", $FF
-warnpc $E5B6DB
-
 org $E5B6EE
   .LNFirefleaRoom
-    db $28, "LN Fireflea Room", $FF
-warnpc $E5B708
-
 org $E5B741
   .LowerNorfairSaveRoom
-    db $28, "Lower Norfair Save Room", $FF
-warnpc $E5B75B
-
 org $E5C98E
   .BowlingAlley
-    db $28, "Bowling Alley", $FF
-warnpc $E5C9A8
-
 org $E5CA08
   .WreckedShipEntrance
-    db $28, "Wrecked Ship Entrance", $FF
-warnpc $E5CA22
-
 org $E5CA52
   .Attic
-    db $28, "Attic", $FF
-warnpc $E5CA6C
-
 org $E5CAAE
   .AssemblyLine
-    db $28, "Assembly Line", $FF
-warnpc $E5CAC8
-
 org $E5CAF6
   .WreckedShipMainShaft
-    db $28, "Wrecked Ship Main Shaft", $FF
-warnpc $E5CB10
-
 org $E5CB8B
   .SpikyDeathRoom
-    db $28, "Spiky Death Room", $FF
-warnpc $E5CBA5
-
 org $E5CBD5
   .ElectricDeathRoom
-    db $28, "Electric Death Room", $FF
-warnpc $E5CBEF
-
 org $E5CC27
   .WreckedShipETank
-    db $28, "Wrecked Ship E-Tank", $FF
-warnpc $E5CC41
-
 org $E5CC6F
   .Basement
-    db $28, "Basement", $FF
-warnpc $E5CC89
-
 org $E5CCCB
   .WreckedShipMapRoom
-    db $28, "Wrecked Ship Map Room", $FF
-warnpc $E5CCE5
-
 org $E5CD13
   .PhantoonRoom
-    db $28, "Phantoon's Room", $FF
-warnpc $E5CD2D
-
 org $E5CD5C
   .SpongeBath
-    db $28, "Sponge Bath", $FF
-warnpc $E5CD76
-
 org $E5CDA8
   .WSWestSuperRoom
-    db $28, "WS West Super Room", $FF
-warnpc $E5CDC2
-
 org $E5CDF1
   .WSEastSuperRoom
-    db $28, "WS East Super Room", $FF
-warnpc $E5CE0B
-
 org $E5CE40
   .GravitySuitRoom
-    db $28, "Gravity Suit Room", $FF
-warnpc $E5CE5A
-
 org $E5CE8A
   .WreckedShipSaveRoom
-    db $28, "Wrecked Ship Save Room", $FF
-warnpc $E5CEA4
-
 org $E5CED2
   .GlassTunnelSaveRoom
-    db $28, "Glass Tunnel Save Room", $FF
-warnpc $E5CEEC
-
 org $E5CEFB
   .GlassTunnel
-    db $28, "Glass Tunnel", $FF
-warnpc $E5CF15
-
 org $E5CF54
   .WestTunnel
-    db $28, "West Tunnel", $FF
-warnpc $E5CF6E
-
 org $E5CF80
   .EastTunnel
-    db $28, "East Tunnel", $FF
-warnpc $E5CF9A
-
 org $E5CFC9
   .MainStreet
-    db $28, "Main Street", $FF
-warnpc $E5CFE3
-
 org $E5D017
   .FishTank
-    db $28, "Fish Tank", $FF
-warnpc $E5D031
-
 org $E5D055
   .MamaTurtleRoom
-    db $28, "Mama Turtle Room", $FF
-warnpc $E5D06F
-
 org $E5D08A
   .CrabTunnel
-    db $28, "Crab Tunnel", $FF
-warnpc $E5D0A4
-
 org $E5D0B9
   .MtEverest
-    db $28, "Mt. Everest", $FF
-warnpc $E5D0D3
-
 org $E5D104
   .RedFishRoom
-    db $28, "Red Fish Room", $FF
-warnpc $E5D11E
-
 org $E5D13B
   .WateringHole
-    db $28, "Watering Hole", $FF
-warnpc $E5D155
-
 org $E5D16D
   .NWestMaridiaBugRoom
-    db $28, "N.West Maridia Bug Room", $FF
-warnpc $E5D187
-
 org $E5D1A3
   .CrabShaft
-    db $28, "Crab Shaft", $FF
-warnpc $E5D1BD
-
 org $E5D1DD
   .PseudoPlasmaSpark
-    db $28, "Pseudo Plasma Spark", $FF
-warnpc $E5D1F7
-
 org $E5D21C
   .CrabHole
-    db $28, "Crab Hole", $FF
-warnpc $E5D236
-
 org $E5D252
   .WestSandHallTunnel
-    db $28, "West Sand Hall Tunnel", $FF
-warnpc $E5D26C
-
 org $E5D27E
   .PlasmaTutorialRoom
-    db $28, "Plasma Tutorial Room", $FF
-warnpc $E5D298
-
 org $E5D2AA
   .PlasmaRoom
-    db $28, "Plasma Room", $FF
-warnpc $E5D2C4
-
 org $E5D2D9
   .ThreadTheNeedleRoom
-    db $28, "Thread The Needle Room", $FF
-warnpc $E5D2F3
-
 org $E5D30B
   .MaridiaElevatorRoom
-    db $28, "Maridia Elevator Room", $FF
-warnpc $E5D325
-
 org $E5D340
   .PlasmaSparkRoom
-    db $28, "Plasma Spark Room", $FF
-warnpc $E5D35A
-
 org $E5D387
   .KassiuzRoom
-    db $28, "Kassiuz Room", $FF
-warnpc $E5D3A1
-
 org $E5D3B6
   .MaridiaMapRoom
-    db $28, "Maridia Map Room", $FF
-warnpc $E5D3D0
-
 org $E5D3DF
   .ForgottenHighwaySave
-    db $28, "Forgotten Highway Save", $FF
-warnpc $E5D3F9
-
 org $E5D408
   .Toilet
-    db $28, "Toilet", $FF
-warnpc $E5D422
-
 org $E5D433
   .BugSandHole
-    db $28, "Bug Sand Hole", $FF
-warnpc $E5D44D
-
 org $E5D461
   .WestSandHall
-    db $28, "West Sand Hall", $FF
-warnpc $E5D47B
-
 org $E5D48E
   .Oasis
-    db $28, "Oasis", $FF
-warnpc $E5D4A8
-
 org $E5D4C2
   .EastSandHall
-    db $28, "East Sand Hall", $FF
-warnpc $E5D4DC
-
 org $E5D4EF
   .WestSandHole
-    db $28, "West Sand Hole", $FF
-warnpc $E5D509
-
 org $E5D51E
   .EastSandHole
-    db $28, "East Sand Hole", $FF
-warnpc $E5D538
-
 org $E5D54D
   .WestAqueductQuicksand
-    db $28, "West Aqueduct Quicksand", $FF
-warnpc $E5D567
-
 org $E5D57A
   .EastAqueductQuicksand
-    db $28, "East Aqueduct Quicksand", $FF
-warnpc $E5D594
-
 org $E5D5A7
   .Aqueduct
-    db $28, "Aqueduct", $FF
-warnpc $E5D5C1
-
 org $E5D5EC
   .ButterflyRoom
-    db $28, "Butterfly Room", $FF
-warnpc $E5D606
-
 org $E5D617
   .BotwoonHallway
-    db $28, "Botwoon Hallway", $FF
-warnpc $E5D631
-
 org $E5D646
   .PantsRoom
-    db $28, "Pants Room", $FF
-warnpc $E5D660
-
 org $E5D69A
   .EastPantsRoom
-    db $28, "East Pants Room", $FF
-warnpc $E5D6B4
-
 org $E5D6D0
   .SpringBallRoom
-    db $28, "Spring Ball Room", $FF
-warnpc $E5D6EA
-
 org $E5D6FD
   .BelowBotwoonETank
-    db $28, "Below Botwoon E-Tank", $FF
-warnpc $E5D717
-
 org $E5D72A
   .Colosseum
-    db $28, "Colosseum", $FF
-warnpc $E5D744
-
 org $E5D765
   .AqueductSaveRoom
-    db $28, "Aqueduct Save Room", $FF
-warnpc $E5D77F
-
 org $E5D78F
   .ThePreciousRoom
-    db $28, "The Precious Room", $FF
-warnpc $E5D7A9
-
 org $E5D7E4
   .BotwoonETankRoom
-    db $28, "Botwoon E-Tank Room", $FF
-warnpc $E5D7FE
-
 org $E5D81A
   .DraygonSaveRoom
-    db $28, "Draygon Save Room", $FF
-warnpc $E5D834
-
 org $E5D845
   .MaridiaMissileRefill
-    db $28, "Maridia Missile Refill", $FF
-warnpc $E5D85F
-
 org $E5D86E
   .PlasmaBeachQuicksand
-    db $28, "Plasma Beach Quicksand", $FF
-warnpc $E5D888
-
 org $E5D898
   .BotwoonQuicksandRoom
-    db $28, "Botwoon Quicksand Room", $FF
-warnpc $E5D8B2
-
 org $E5D8C5
   .ShaktoolRoom
-    db $28, "Shaktool Room", $FF
-warnpc $E5D8DF
-
 org $E5D913
   .HalfieClimbRoom
-    db $28, "Halfie Climb Room", $FF
-warnpc $E5D92D
-
 org $E5D95E
   .BotwoonRoom
-    db $28, "Botwoon's Room", $FF
-warnpc $E5D978
-
 org $E5D9AA
   .SpaceJumpRoom
-    db $28, "Space Jump Room", $FF
-warnpc $E5D9C4
-
 org $E5D9D4
   .MaridiaEnergyRefill
-    db $28, "Maridia Energy Refill", $FF
-warnpc $E5D9EE
-
 org $E5D9FE
   .WestCactusAlleyRoom
-    db $28, "West Cactus Alley Room", $FF
-warnpc $E5DA18
-
 org $E5DA2B
   .EastCactusAlleyRoom
-    db $28, "East Cactus Alley Room", $FF
-warnpc $E5DA45
-
 org $E5DA60
   .DraygonRoom
-    db $28, "Draygon's Room", $FF
-warnpc $E5DA7A
-
 org $E5DAAE
   .TourianFirstRoom
-    db $28, "Tourian First Room", $FF
-warnpc $E5DAC8
-
 org $E5DAE1
   .MetroidRoom1
-    db $28, "Metroid Room 1", $FF
-warnpc $E5DAFB
-
 org $E5DB31
   .MetroidRoom2
-    db $28, "Metroid Room 2", $FF
-warnpc $E5DB4B
-
 org $E5DB7D
   .MetroidRoom3
-    db $28, "Metroid Room 3", $FF
-warnpc $E5DB97
-
 org $E5DBCD
   .MetroidRoom4
-    db $28, "Metroid Room 4", $FF
-warnpc $E5DBE7
-
 org $E5DC19
   .BlueHopperRoom
-    db $28, "Blue Hopper Room", $FF
-warnpc $E5DC33
-
 org $E5DC65
   .DustTorizoRoom
-    db $28, "Dust Torizo Room", $FF
-warnpc $E5DC7F
-
 org $E5DCB1
   .BigBoyRoom
-    db $28, "Big Boy Room", $FF
-warnpc $E5DCCB
-
 org $E5DCFF
   .SeaweedRoom
-    db $28, "Seaweed Room", $FF
-warnpc $E5DD19
-
 org $E5DD2E
   .TourianRechargeRoom
-    db $28, "Tourian Recharge Room", $FF
-warnpc $E5DD48
-
 org $E5DD58
   .MotherBrainRoom
-    db $28, "Mother Brain Room", $FF
-warnpc $E5DD72
-
 org $E5DDC4
   .TourianEyeDoorRoom
-    db $28, "Tourian Eye Door Room", $FF
-warnpc $E5DDDE
-
 org $E5DDF3
   .RinkaShaft
-    db $28, "Rinka Shaft", $FF
-warnpc $E5DE0D
-
 org $E5DE23
   .MotherBrainSaveRoom
-    db $28, "Mother Brain Save Room", $FF
-warnpc $E5DE3D
-
 org $E5DE4D
   .TourianEscapeRoom1
-    db $28, "Tourian Escape Room 1", $FF
-warnpc $E5DE67
-
 org $E5DE7A
   .TourianEscapeRoom2
-    db $28, "Tourian Escape Room 2", $FF
-warnpc $E5DE94
-
 org $E5DEA7
   .TourianEscapeRoom3
-    db $28, "Tourian Escape Room 3", $FF
-warnpc $E5DEC1
-
 org $E5DEDE
   .TourianEscapeRoom4
-    db $28, "Tourian Escape Room 4", $FF
-warnpc $E5DEF8
-
 org $E5DF1B
   .UpperTourianSaveRoom
-    db $28, "Upper Tourian Save Room", $FF
-warnpc $E5DF35
-
 org $E5DF45
   .CeresElevatorRoom
-    db $28, "Ceres Elevator Room", $FF
-warnpc $E5DF5F
-
 org $E5DF8D
   .FallingTileRoom
-    db $28, "Falling Tile Room", $FF
-warnpc $E5DFA7
-
 org $E5DFD7
   .MagnetStairsRoom
-    db $28, "Magnet Stairs Room", $FF
-warnpc $E5DFF1
-
 org $E5E021
   .DeadScientistRoom
-    db $28, "Dead Scientist Room", $FF
-warnpc $E5E03B
-
 org $E5E06B
   .58Escape
-    db $28, "58 Escape", $FF
-warnpc $E5E085
-
 org $E5E0B5
   .CeresRidleyRoom
-    db $28, "Ceres Ridley's Room", $FF
-warnpc $E5E0CF
-
 org $E5E82C
   .DebugRoom
-    db $28, "Debug Room", $FF
-warnpc $E5E844
-
