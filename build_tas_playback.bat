@@ -29,9 +29,9 @@ type ..\build\print_pc.log
 del 00.sfc ff.sfc ..\build\00.sfc ..\build\ff.sfc
 cd ..
 
-if exist build\smhack20_tas_playback.sfc del build\smhack20_tas_playback.sfc
+if exist build\smhack20_tas_playback_retro.sfc del build\smhack20_tas_playback_retro.sfc
 if not exist build\smhack20_tas_playback.ips goto end_patch_tas_playback
-copy "build\Super Metroid NTSC.sfc" build\smhack20_tas_playback.sfc
-"tools\Lunar IPS.exe" -ApplyIPS build\smhack20_tas_playback.ips build\smhack20_tas_playback.sfc
+copy "build\Super Metroid NTSC.sfc" build\smhack20_tas_playback_retro.sfc
+"tools\Lunar IPS.exe" -ApplyIPS build\smhack20_tas_playback.ips build\smhack20_tas_playback_retro.sfc
 :end_patch_tas_playback
 
